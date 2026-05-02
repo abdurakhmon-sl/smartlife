@@ -1184,13 +1184,41 @@ async function toggleTask(id,cur){
   await APP.db.from('sl_tasks').update({status:cur==='pending'?'done':'pending',updated_at:new Date().toISOString()}).eq('id',id);
   loadSection('team');
 }
+async function loadWishForMonth(email, mo){
+  // Load existing wish/bonus for this month from sl_tasks
+  try{
+    const {data}=await APP.db.from('sl_tasks').select('description').eq('section','target').eq('assigned_to',email).eq('month',mo).maybeSingle();
+    if(data?.description){
+      let d={};try{d=JSON.parse(data.description);}catch(e){}
+      document.getElementById('wsBonus').value=d.bonus||0;
+      document.getElementById('wsWish').value=d.wish||'';
+    } else {
+      document.getElementById('wsBonus').value=0;
+      document.getElementById('wsWish').value='';
+    }
+  }catch(e){}
+}
+
 async function openWishModal(teamId,email,name,mo){
   document.getElementById('wsName').value=name;
-  document.getElementById('wsMonth').value=mo;
+  // Populate month dropdown with plan months
+  const moSel=document.getElementById('wsMonth');
+  if(moSel.tagName==='SELECT'){
+    moSel.innerHTML=APP.months.map(m=>`<option value="${m}"${m===mo?' selected':''}>${monthLabel(m)}</option>`).join('');
+  } else {
+    moSel.value=mo;
+  }
   document.getElementById('wsBonus').value=0;
   document.getElementById('wsWish').value='';
   document.getElementById('wsWish').dataset.email=email;
   document.getElementById('wsWish').dataset.team=teamId;
+  // Load existing data for this month
+  await loadWishForMonth(email, mo);
+  // When month changes - reload data
+  document.getElementById('wsMonth').onchange=async function(){
+    await loadWishForMonth(email, this.value);
+  };
+  openM('M_wish');
   setTimeout(()=>{
     const bonusInput=document.getElementById('wsBonus');
     const impact=document.getElementById('wsImpact');
@@ -1206,9 +1234,7 @@ async function openWishModal(teamId,email,name,mo){
     bonusInput.addEventListener('input',updateImpact);
     updateImpact();
   },50);
-  const {data}=await APP.db.from('sl_tasks').select('*').eq('section','target').eq('assigned_to',email).eq('month',mo).single();
-  if(data){let d={};try{d=JSON.parse(data.description||'{}');}catch(e){}document.getElementById('wsWish').value=d.wish||'';document.getElementById('wsBonus').value=d.bonus||bonus;}
-  openM('M_wish');
+  // (data loaded above by loadWishForMonth)
 }
 async function saveWish(){
   const email=document.getElementById('wsWish').dataset.email;
