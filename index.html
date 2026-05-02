@@ -1,0 +1,2654 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Smartlife Platform</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0d1b2a;--blue:#2563eb;--blue2:#1d4ed8;--blue-t:rgba(37,99,235,.1);--green:#059669;--green-t:rgba(5,150,105,.1);--amber:#d97706;--amber-t:rgba(217,119,6,.1);--red:#dc2626;--red-t:rgba(220,38,38,.1);--ink:#0f172a;--ink2:#334155;--ink3:#64748b;--ink4:#94a3b8;--bg:#f0f4f8;--card:#fff;--border:#e2e8f0;--border2:#f8fafc;--sw:218px;--font:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--ink);font-size:14px}
+button,input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:2px}
+#loginScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--navy);z-index:1000}
+.lBg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0,rgba(37,99,235,.22),transparent)}
+.lCard{position:relative;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:40px 36px;width:100%;max-width:380px}
+.lIcon{width:48px;height:48px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:14px;font-weight:700;color:#fff}
+.lH1{color:#fff;font-size:20px;font-weight:700;text-align:center}.lSub{color:rgba(255,255,255,.35);font-size:12px;text-align:center;margin-top:3px;margin-bottom:24px}
+.lf{margin-bottom:14px}.lf label{display:block;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
+.lf input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:11px 14px;font-size:14px;color:#fff;outline:none;transition:.15s}
+.lf input:focus{border-color:var(--blue)}.lf input::placeholder{color:rgba(255,255,255,.2)}
+.lBtn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.lBtn:hover{background:var(--blue2)}.lBtn:disabled{opacity:.5;cursor:not-allowed}
+.lErr{color:#f87171;font-size:12px;margin-top:8px;text-align:center;min-height:18px}
+#app{display:none;height:100vh;overflow:hidden}
+.layout{display:flex;height:100%}
+.sidebar{width:var(--sw);background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06)}
+.sLogo{padding:16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px}
+.sLogoIcon{width:30px;height:30px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.sLogoText{font-size:13px;font-weight:700;color:#fff}.sLogoSub{font-size:9px;color:rgba(255,255,255,.25);font-family:var(--mono)}
+.sNav{flex:1;overflow-y:auto;padding:8px;scrollbar-width:none}.sNav::-webkit-scrollbar{display:none}
+.sCat{font-size:9px;font-weight:700;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.9px;padding:10px 8px 4px}
+.sItem{padding:8px 10px;border-radius:7px;cursor:pointer;color:rgba(255,255,255,.5);font-size:12px;margin-bottom:1px;transition:.12s;border:1px solid transparent}
+.sItem:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}.sItem.act{background:var(--blue-t);color:var(--blue);border-color:rgba(37,99,235,.2);font-weight:500}
+.sBottom{padding:10px;border-top:1px solid rgba(255,255,255,.06)}
+.sUser{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.04)}
+.sAvatar{width:28px;height:28px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+.sUserInfo{flex:1;min-width:0}.sUserName{font-size:11px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sUserRole{font-size:9px;color:rgba(255,255,255,.3);margin-top:1px}
+.sLogout{background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:13px;padding:2px;transition:.12s}.sLogout:hover{color:rgba(255,255,255,.7)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{height:52px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.topbarTitle{font-size:15px;font-weight:700;flex:1}.topbarRight{display:flex;align-items:center;gap:8px}
+.content{flex:1;overflow-y:auto;padding:20px}
+.btn{display:inline-flex;align-items:center;gap:5px;background:none;border:1px solid var(--border);border-radius:7px;padding:5px 12px;font-size:11px;font-weight:600;color:var(--ink2);cursor:pointer;transition:.12s;white-space:nowrap}
+.btn:hover{background:var(--bg)}.btn.primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn.primary:hover{background:var(--blue2)}
+.btn.success{background:var(--green);color:#fff;border-color:var(--green)}.btn.danger{background:var(--red);color:#fff;border-color:var(--red)}.btn.sm{padding:3px 8px;font-size:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden}
+.cardH{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.cardH h3{font-size:13px;font-weight:700;flex:1}.cardH .hint{font-size:11px;color:var(--ink3)}.cardB{padding:16px}
+.kpiGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.kpiL{font-size:10px;color:var(--ink3);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.kpiV{font-size:20px;font-weight:700;letter-spacing:-.5px;line-height:1;font-family:var(--mono)}.kpiS{font-size:11px;color:var(--ink4);margin-top:4px}
+.kpi.blue .kpiV{color:var(--blue)}.kpi.green .kpiV{color:var(--green)}.kpi.amber .kpiV{color:var(--amber)}.kpi.red .kpiV{color:var(--red)}
+.tWrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--bg);padding:7px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--ink3);border-bottom:1px solid var(--border);white-space:nowrap;text-transform:uppercase;letter-spacing:.4px}
+td{padding:8px 10px;border-bottom:1px solid var(--border2);vertical-align:middle}
+tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
+.tFoot td{font-weight:700;background:var(--bg);border-top:2px solid var(--border)}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600}
+.badge-blue{background:var(--blue-t);color:var(--blue)}.badge-green{background:var(--green-t);color:var(--green)}
+.badge-amber{background:var(--amber-t);color:var(--amber)}.badge-red{background:var(--red-t);color:var(--red)}.badge-gray{background:var(--bg);color:var(--ink3)}
+.fRow{display:grid;gap:12px;margin-bottom:14px}.fRow.c2{grid-template-columns:1fr 1fr}.fRow.c3{grid-template-columns:1fr 1fr 1fr}
+.fG{display:flex;flex-direction:column;gap:5px}.fG label{font-size:11px;font-weight:600;color:var(--ink2)}
+.fG input,.fG select,.fG textarea{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;outline:none;background:var(--card);transition:.12s}
+.fG input:focus,.fG select:focus,.fG textarea:focus{border-color:var(--blue)}
+.pInput{border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;outline:none;background:var(--card);transition:.12s;width:100%}
+.pInput:focus{border-color:var(--blue)}
+.iEdit{background:transparent;border:1px solid transparent;border-radius:5px;padding:3px 6px;font-size:12px;font-family:var(--mono);width:70px;text-align:right;transition:.12s}
+.iEdit:hover{border-color:var(--border);background:var(--bg)}.iEdit:focus{border-color:var(--blue);background:var(--card);outline:none}
+.prog{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progFill{height:100%;border-radius:3px;transition:width .35s}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;align-items:center;justify-content:center;padding:16px}
+.modal.open{display:flex}
+.mBox{background:var(--card);border-radius:16px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.mH{padding:15px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;position:sticky;top:0;background:var(--card);z-index:1}
+.mH h3{font-size:14px;font-weight:700;flex:1}.mH .mX{background:none;border:none;font-size:16px;cursor:pointer;color:var(--ink3)}.mH .mX:hover{color:var(--ink)}.mB{padding:20px}
+.mF{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--card)}
+.bn{border-left:3px solid var(--amber);background:var(--amber-t);border-radius:8px;padding:10px 14px;margin-bottom:8px}
+.bn.red{border-color:var(--red);background:var(--red-t)}.bn.green{border-color:var(--green);background:var(--green-t)}
+.bnT{font-size:12px;font-weight:700;margin-bottom:2px}.bnS{font-size:11px;color:var(--ink3)}
+.wBar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(37,99,235,.04);border:1px dashed rgba(37,99,235,.25);border-radius:10px;margin-bottom:12px}
+#sellerView{display:none;background:var(--navy);min-height:100vh;padding:20px;color:#fff}
+/* SIDEBAR FONT SIZE */
+.sItem{font-size:13px;font-weight:500;padding:9px 12px}
+.sCat{font-size:10px}
+
+/* BURGER */
+.burgerBtn{display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--ink2);padding:4px 8px;margin-right:4px;line-height:1}
+
+/* OVERLAY */
+#sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+#sidebarOverlay.show{display:block}
+
+@media(max-width:768px){
+  .burgerBtn{display:flex;align-items:center}
+  .sidebar{position:fixed;left:0;top:0;height:100%;z-index:100;transform:translateX(-100%);transition:transform .25s ease;width:240px}
+  .sidebar.mobileOpen{transform:translateX(0)}
+  .main{width:100%}
+  .kpiGrid{grid-template-columns:1fr 1fr}
+  .fRow.c3{grid-template-columns:1fr 1fr}
+  .content{padding:12px}
+  .topbarTitle{font-size:13px}
+  table{font-size:11px}
+  th{padding:5px 7px}
+  td{padding:6px 7px}
+}
+</style>
+</head>
+<body>
+<div id="loginScreen" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0d1b2a;z-index:1000">
+  <div class="lBg"></div>
+  <div class="lCard">
+    <div class="lIcon">SL</div>
+    <div class="lH1">Smartlife Platform</div>
+    <div class="lSub">Biznes boshqaruv tizimi v2.0</div>
+    <div class="lf"><label>Email</label><input id="lEmail" type="email" placeholder="admin@smartlife.uz" autocomplete="email"></div>
+    <div class="lf"><label>PIN-kod</label><input id="lPin" type="password" placeholder="••••••" maxlength="20"></div>
+    <button class="lBtn" id="lBtn" onclick="doLogin()">Kirish</button>
+    <div class="lErr" id="lErr"></div>
+  </div>
+</div>
+<div id="app" style="display:none">
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sLogo"><div class="sLogoIcon">SL</div><div><div class="sLogoText">Smartlife</div><div class="sLogoSub">Biznes Platforma v2.0</div></div></div>
+      <nav class="sNav" id="sNav"></nav>
+      <div class="sBottom"><div class="sUser">
+        <div class="sAvatar" id="sAvatar">A</div>
+        <div class="sUserInfo"><div class="sUserName" id="sUserName">—</div><div class="sUserRole" id="sUserRole">—</div></div>
+        <button class="sLogout" onclick="doLogout()">✕</button>
+      </div></div>
+    </div>
+    <div class="main">
+      <div class="topbar"><button class="burgerBtn" id="burgerBtn" onclick="toggleSidebar()">☰</button><div class="topbarTitle" id="topbarTitle">—</div><div class="topbarRight" id="topbarRight"></div></div>
+      <div class="content" id="content"></div>
+    </div>
+  </div>
+</div>
+<div id="sellerView" style="display:none"></div>
+<div id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="modal" id="M_user"><div class="mBox"><div class="mH"><h3 id="M_user_title">—</h3><button class="mX" onclick="closeM('M_user')">✕</button></div><div class="mB" id="M_user_body"></div><div class="mF" id="M_user_foot"></div></div></div>
+<div class="modal" id="M_task"><div class="mBox">
+  <div class="mH"><h3>Задача</h3><button class="mX" onclick="closeM('M_task')">✕</button></div>
+  <div class="mB">
+    <div class="fG" style="margin-bottom:12px"><label>Название</label><input id="tTitle"></div>
+    <div class="fG" style="margin-bottom:12px"><label>Описание</label><textarea id="tDesc" rows="2" style="resize:vertical"></textarea></div>
+    <div class="fRow c2"><div class="fG"><label>Кому</label><select id="tAssign"></select></div><div class="fG"><label>Раздел</label><select id="tSect"><option value="general">Общая</option><option value="sales">Продажи</option><option value="marketing">Маркетинг</option><option value="finance">Финансы</option><option value="target">Цель</option></select></div></div>
+    <div class="fRow c2" style="margin-top:12px"><div class="fG"><label>Приоритет</label><select id="tPrio"><option value="high">Высокий</option><option value="medium" selected>Средний</option><option value="low">Низкий</option></select></div><div class="fG"><label>Дедлайн</label><input id="tDue" type="date"></div></div>
+  </div>
+  <div class="mF"><button class="btn" onclick="closeM('M_task')">Отмена</button><button class="btn primary" onclick="saveTask()">Сохранить</button></div>
+</div></div>
+<div class="modal" id="M_wish"><div class="mBox">
+  <div class="mH"><h3>Цель и мотивация</h3><button class="mX" onclick="closeM('M_wish')">✕</button></div>
+  <div class="mB">
+    <div class="fG" style="margin-bottom:12px"><label>Сотрудник</label><input id="wsName" readonly style="background:var(--bg)"></div>
+    <div class="fRow c2"><div class="fG"><label>Желаемый бонус ($)</label><input id="wsBonus" type="number" min="0" step="50"></div><div class="fG"><label>Месяц</label><input id="wsMonth" type="month"></div></div>
+    <div class="fG" style="margin-top:12px"><label>Мечта (что хочет при выполнении плана)</label><textarea id="wsWish" rows="3" style="resize:vertical" placeholder="Купить машину, поехать в отпуск..."></textarea></div>
+  </div>
+  <div class="mF"><button class="btn" onclick="closeM('M_wish')">Отмена</button><button class="btn primary" onclick="saveWish()">Сохранить</button></div>
+</div></div>
+<div class="modal" id="M_coll"><div class="mBox">
+  <div class="mH"><h3 id="M_coll_title">Должник</h3><button class="mX" onclick="closeM('M_coll')">✕</button></div>
+  <div class="mB">
+    <div class="fRow c2"><div class="fG"><label>Клиент</label><input id="clName"></div><div class="fG"><label>Телефон</label><input id="clPhone"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Филиал</label><select id="clBranch"></select></div><div class="fG"><label>Дата договора</label><input id="clDate" type="date"></div></div>
+    <div class="fRow c3"><div class="fG"><label>Долг $</label><input id="clDebt" type="number"></div><div class="fG"><label>Оплачено $</label><input id="clPaid" type="number"></div><div class="fG"><label>Дней просрочки</label><input id="clDays" type="number"></div></div>
+    <div class="fRow c2" style="margin-top:4px"><div class="fG"><label>Следующий контакт</label><input id="clNext" type="date"></div><div class="fG"><label>Коллектор</label><select id="clColl"></select></div></div>
+    <div class="fG" style="margin-top:8px"><label>Примечание</label><textarea id="clNotes" rows="2" style="resize:vertical"></textarea></div>
+  </div>
+  <div class="mF"><button class="btn" onclick="closeM('M_coll')">Отмена</button><button class="btn primary" onclick="saveColl()">Сохранить</button></div>
+</div></div>
+<div class="modal" id="M_recur"><div class="mBox" style="max-width:560px">
+  <div class="mH"><h3>Qaytalanadigan vazifa</h3><button class="mX" onclick="closeM('M_recur')">✕</button></div>
+  <div class="mB">
+    <div class="fG" style="margin-bottom:12px"><label>Vazifa nomi</label><input id="rTitle" placeholder="Masalan: Lidlarga qo'ng'iroq qilish"></div>
+    <div class="fG" style="margin-bottom:12px"><label>Tavsif</label><textarea id="rDesc" rows="2" style="resize:vertical"></textarea></div>
+    <div class="fRow c3">
+      <div class="fG"><label>Bajaruvchi</label><select id="rAssign"></select></div>
+      <div class="fG"><label>Bo'lim</label><select id="rSect">
+        <option value="general">Umumiy</option>
+        <option value="callcenter">Koll-markaz</option>
+        <option value="sales">Sotuvlar</option>
+        <option value="target">Maqsad</option>
+      </select></div>
+      <div class="fG"><label>Muhimlik</label><select id="rPrio">
+        <option value="high">Yuqori</option>
+        <option value="medium" selected>O'rta</option>
+        <option value="low">Past</option>
+      </select></div>
+    </div>
+    <div class="fRow c2" style="margin-top:12px">
+      <div class="fG"><label>Takrorlash</label><select id="rFreq">
+        <option value="daily">Har kuni</option>
+        <option value="weekdays">Har kuni (DU-JU)</option>
+        <option value="weekly">Har hafta</option>
+        <option value="monthly">Har oy</option>
+      </select></div>
+      <div class="fG"><label>Boshlash sanasi</label><input id="rStart" type="date"></div>
+    </div>
+    <div class="fG" style="margin-top:12px"><label>Tugash sanasi (ixtiyoriy)</label><input id="rEnd" type="date"></div>
+  </div>
+  <div class="mF"><button class="btn" onclick="closeM('M_recur')">Bekor</button><button class="btn primary" onclick="saveRecurring()">Yaratish</button></div>
+</div></div>
+
+<div class="modal" id="M_tgpreview"><div class="mBox" style="max-width:680px">
+  <div class="mH"><h3>Telegram — Yuborishdan oldin tekshirish</h3><button class="mX" onclick="closeM('M_tgpreview')">✕</button></div>
+  <div class="mB" id="tgPreviewBody" style="max-height:60vh;overflow-y:auto"></div>
+  <div class="mF">
+    <button class="btn" onclick="closeM('M_tgpreview')">Bekor</button>
+    <button class="btn success" onclick="confirmSendTg()">Hammaga yuborish</button>
+  </div>
+</div></div>
+
+<div class="modal" id="M_ai"><div class="mBox" style="max-width:640px">
+  <div class="mH">
+    <h3>AI Tahlilchi</h3>
+    <span style="font-size:10px;background:var(--blue-t);color:var(--blue);padding:2px 8px;border-radius:10px;margin-left:8px">Claude</span>
+    <button class="mX" onclick="closeM('M_ai')" style="margin-left:auto">✕</button>
+  </div>
+  <div class="mB">
+    <div id="aiChat" style="min-height:200px;max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px">
+      <input id="aiInput" placeholder="Savol bering: Qaysi filial yaxshi ishlayapti? Bottleneck nima?..."
+        style="flex:1;border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;outline:none"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg();}">
+      <button class="btn primary" onclick="sendAiMsg()">Yuborish</button>
+    </div>
+    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+      <button class="btn sm" onclick="askAi('Qaysi filial eng yaxshi ishlayapti?')">Eng yaxshi filial?</button>
+      <button class="btn sm" onclick="askAi('Asosiy muammolar nima?')">Muammolar?</button>
+      <button class="btn sm" onclick="askAi('Qaysi oyda sotuvchi olish kerak?')">Sotuvchi kerakmi?</button>
+      <button class="btn sm" onclick="askAi('Marketingni qanday yaxshilash mumkin?')">Marketing tavsiya</button>
+    </div>
+  </div>
+</div></div>
+
+<div class="modal" id="M_team"><div class="mBox" style="max-width:520px">
+  <div class="mH"><h3 id="M_team_title">Xodim</h3><button class="mX" onclick="closeM('M_team')">✕</button></div>
+  <div class="mB" id="M_team_body"></div>
+  <div class="mF" id="M_team_foot"></div>
+</div></div>
+
+<div class="modal" id="M_widget"><div class="mBox">
+  <div class="mH"><h3>Добавить виджет</h3><button class="mX" onclick="closeM('M_widget')">✕</button></div>
+  <div class="mB">
+    <div class="fG" style="margin-bottom:12px"><label>Тип виджета</label><select id="wType"><option value="bar">Bar Chart</option><option value="line">Line Chart</option><option value="pie">Pie Chart</option><option value="kpi">KPI карточки</option><option value="table">Таблица</option></select></div>
+    <div class="fG" style="margin-bottom:12px"><label>Источник данных</label><select id="wSource"><option value="sales_by_branch">Продажи по филиалам</option><option value="sales_by_month">Продажи по месяцам</option><option value="leads_by_branch">Лиды по филиалам</option><option value="profit_by_branch">Прибыль по филиалам</option><option value="mkt_by_branch">Маркетинг по филиалам</option></select></div>
+    <div class="fG"><label>Заголовок (опционально)</label><input id="wTitle" placeholder="Автоматически"></div>
+  </div>
+  <div class="mF"><button class="btn" onclick="closeM('M_widget')">Отмена</button><button class="btn primary" onclick="saveWidget()">Добавить</button></div>
+</div></div>
+
+<script>
+// ════════════════════════════════════════════════
+// CONFIG — ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ
+// ════════════════════════════════════════════════
+const SB_URL  = 'https://trvzoyuabdnahteskglm.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydnpveXVhYmRuYWh0ZXNrZ2xtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NjU4NjIsImV4cCI6MjA5MzA0MTg2Mn0.qnN0-kjxdVN_3GsImbCDSbXSeJyIX_H4uQsdACQiUpo';
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+const APP = {
+  user:null, db:null, params:{}, branches:[], models:[], team:[], users:[],
+  months:[], currentSection:'strategy', currentMonth:'', _charts:{}, monthlyBonuses:{}
+};
+
+// ════════════════════════════════════════════════
+// STARTUP
+// ════════════════════════════════════════════════
+window.addEventListener('load', () => {
+  if (!SB_URL || SB_URL.includes('ВСТАВЬТЕ')) {
+    document.getElementById('loginScreen').innerHTML = '<div style="position:relative;text-align:center;color:#fff;padding:60px"><div style="font-size:18px;font-weight:700;margin-bottom:10px">Настройка</div><div style="opacity:.6">Замените SB_URL и SB_ANON в начале файла</div></div>';
+    return;
+  }
+  APP.db = supabase.createClient(SB_URL, SB_ANON);
+  const SESSION_VER = 'sl_v2';
+  const s = sessionStorage.getItem('sl_user');
+  const v = sessionStorage.getItem('sl_ver');
+  if (s && v === SESSION_VER) { startApp(JSON.parse(s)); }
+  else { sessionStorage.clear(); }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('lPin').addEventListener('keydown', e => e.key==='Enter' && doLogin());
+  document.getElementById('lEmail').addEventListener('keydown', e => e.key==='Enter' && document.getElementById('lPin').focus());
+  document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+});
+
+// ════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════
+async function sha256(msg) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function doLogin() {
+  const email = document.getElementById('lEmail').value.trim().toLowerCase();
+  const pin   = document.getElementById('lPin').value.trim();
+  const btn   = document.getElementById('lBtn');
+  const err   = document.getElementById('lErr');
+  if (!email||!pin){err.textContent='Введите email и PIN';return;}
+  btn.disabled=true; btn.textContent='Вход...'; err.textContent='';
+  try {
+    const hash = await sha256(pin);
+    const {data,error} = await APP.db.from('sl_users').select('*').eq('email',email).eq('pin_hash',hash).eq('active',true).single();
+    if (error||!data) throw new Error('Неверный email или PIN');
+    sessionStorage.setItem('sl_user', JSON.stringify(data));
+    sessionStorage.setItem('sl_ver', 'sl_v2');
+    await startApp(data);
+  } catch(e) { err.textContent=e.message||'Ошибка'; btn.disabled=false; btn.textContent='Войти'; }
+}
+function doLogout(){ sessionStorage.removeItem('sl_user'); location.reload(); }
+
+// ════════════════════════════════════════════════
+// START APP
+// ════════════════════════════════════════════════
+async function startApp(user) {
+  APP.user = user;
+  document.getElementById('loginScreen').style.display='none';
+  if (user.role==='SALES_STAFF') {
+    document.getElementById('sellerView').style.display='block';
+    await loadBase(); renderSellerView(); return;
+  }
+  document.getElementById('app').style.display='block';
+  await loadBase(); buildNav();
+  document.getElementById('sAvatar').textContent  = (user.full_name||user.email)[0].toUpperCase();
+  document.getElementById('sUserName').textContent = user.full_name||user.email;
+  document.getElementById('sUserRole').textContent = roleLabel(user.role);
+  // Generate recurring tasks for today on login
+  generateRecurringTasks().catch(e=>console.log('recurring:',e));
+  scheduleAutoTg(); // auto TG at 9:00 if enabled
+  loadSection('strategy');
+}
+async function loadBase() {
+  const db = APP.db;
+  const [pR,bR,mR,tR,uR] = await Promise.all([
+    db.from('sl_params').select('*'),
+    db.from('sl_branches').select('*').order('id'),
+    db.from('sl_models').select('*'),
+    db.from('sl_team').select('*').order('full_name'),
+    db.from('sl_users').select('*')
+  ]);
+  APP.params   = Object.fromEntries((pR.data||[]).map(r=>[r.key,r.value]));
+  const allBranches = bR.data||[];
+  // inactive_branches = JSON array of branch IDs excluded from plan
+  let inactiveBranches=[];
+  try{inactiveBranches=JSON.parse(APP.params.inactive_branches||'[]').map(String);}catch(e){}
+  APP.branches = allBranches.filter(b=>!inactiveBranches.includes(String(b.id)));
+  APP.allBranches = allBranches; // keep full list for toggle UI
+  APP.models = mR.data||[];
+  APP.team   = tR.data||[];
+  APP.users  = uR.data||[];
+  const start = APP.params.start_month||'2026-05';
+  const count = parseInt(APP.params.plan_months||3);
+  APP.months=[]; let [yr,mo]=start.split('-').map(Number);
+  for(let i=0;i<count;i++){APP.months.push(`${yr}-${String(mo).padStart(2,'0')}`);mo++;if(mo>12){mo=1;yr++;}}
+  if(!APP.currentMonth||!APP.months.includes(APP.currentMonth)) APP.currentMonth=APP.months[0]||yyyymm();
+  // Load monthly bonuses from params (bonus_YYYY-MM keys)
+  APP.monthlyBonuses={};
+  APP.months.forEach(m=>{
+    try{APP.monthlyBonuses[m]=parseFloat(APP.params['bonus_'+m]||0);}catch(e){APP.monthlyBonuses[m]=0;}
+  });
+}
+
+// ════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════
+const SECTIONS=[
+  {id:'strategy',    label:'Strategiya',    cat:'Rejalashtirish'},
+  {id:'sales',       label:'Sotuvlar',      cat:null},
+  {id:'marketing',   label:'Marketing',     cat:null},
+  {id:'branches',    label:'Filiallar',     cat:null},
+  {id:'team',        label:'Jamoa',         cat:'Boshqaruv'},
+  {id:'finance',     label:'Moliya',        cat:null},
+  {id:'leaderboard', label:'Reyting',        cat:null},
+  {id:'inventory',   label:'Ombor',          cat:null},
+  {id:'procurement', label:'Zakup / OK',    cat:null},
+  {id:'collections', label:'Undiruv',       cat:null},
+  {id:'callcenter',  label:'Koll-markaz',   cat:null},
+  {id:'settings',    label:'Sozlamalar',    cat:'Tizim'},
+];
+function buildNav() {
+  // Branch managers always get sales + team access
+  let sectionsStr = APP.user.sections||'ALL';
+  if(APP.user.role==='BRANCH_MGR' && sectionsStr!=='ALL') {
+    const sArr = sectionsStr.split(',');
+    if(!sArr.includes('sales')) sArr.push('sales');
+    if(!sArr.includes('team')) sArr.push('team');
+    sectionsStr = sArr.join(',');
+  }
+  const allowed = sectionsStr==='ALL'?null:sectionsStr.split(',').map(s=>s.trim());
+  let html='',lastCat=null;
+  SECTIONS.forEach(s=>{
+    if(allowed&&!allowed.includes(s.id)) return;
+    if(s.cat!==lastCat){if(s.cat)html+=`<div class="sCat">${s.cat}</div>`;lastCat=s.cat;}
+    html+=`<div class="sItem" id="nav_${s.id}" onclick="loadSection('${s.id}')">${s.label}</div>`;
+  });
+  document.getElementById('sNav').innerHTML=html;
+}
+function loadSection(id) {
+  APP.currentSection=id;
+  document.querySelectorAll('.sItem').forEach(el=>el.classList.remove('act')); closeSidebar();
+  const nav=document.getElementById(`nav_${id}`); if(nav) nav.classList.add('act');
+  document.getElementById('topbarTitle').textContent=SECTIONS.find(s=>s.id===id)?.label||id;
+  document.getElementById('topbarRight').innerHTML='';
+  const fns={strategy:renderStrategy,sales:renderSales,marketing:renderMarketing,branches:renderBranches,team:renderTeam,finance:renderFinance,procurement:renderProcurement,collections:renderCollections,callcenter:renderCallCenter,leaderboard:renderLeaderboard,inventory:renderInventory,settings:renderSettings};
+  if(fns[id]) fns[id]();
+}
+
+// ════════════════════════════════════════════════
+// CORE CALC ENGINE
+// ════════════════════════════════════════════════
+function runCalc() {
+  const p=APP.params;
+  const targetProfit  = parseFloat(p.target_profit||500000);
+  const targetMargin  = parseFloat(p.target_margin||10);
+  const planMonths    = parseInt  (p.plan_months||3);
+  const avgCheck      = parseFloat(p.avg_check||1200);
+  const grossMargin   = parseFloat(p.gross_margin||11);
+  const mktBudget     = parseFloat(p.mkt_budget||12000);
+  const cpl           = parseFloat(p.cpl||0.86);
+  const convQuality   = parseFloat(p.conv_quality||50);
+  const convSale      = parseFloat(p.conv_sale||30);
+  const organicLeads  = parseInt  (p.organic_leads||1000);
+  const installPct    = parseFloat(p.install_pct||50);
+  const installMonths = parseInt  (p.install_months||6);
+  const badDebtPct    = parseFloat(p.bad_debt_pct||3);
+  const otherOpex     = parseFloat(p.other_opex||5000);
+  // Per-month bonuses — each month has its own bonus total
+  // bonusRev per month = that month's bonus / margin
+  // For base calc (KPI display), use average or current month bonus
+  const curMo = APP.currentMonth || APP.months[0] || yyyymm();
+  const totalBonuses = parseFloat(APP.params['bonus_'+curMo]||0);
+  const baseRev  = targetProfit/(targetMargin/100);
+  const bonusRev = totalBonuses/(targetMargin/100);
+  const netRev   = baseRev + bonusRev;
+  // New funnel: leads → visit (conv_visit%) → buy (conv_buy%)
+  const convVisit  = parseFloat(p.conv_visit||8);
+  const convBuy    = parseFloat(p.conv_buy||80);
+  const convRate   = (convVisit/100)*(convBuy/100);
+  const units      = Math.ceil(netRev/avgCheck);
+  const totalLeads = convRate>0?Math.ceil(units/convRate):0;
+  const storeVisits= Math.ceil(totalLeads*(convVisit/100));
+  const paidLeads  = cpl>0?Math.ceil(mktBudget/cpl):0;
+  const neededPaid = Math.max(0,totalLeads-organicLeads);
+  // Per-month margin/check overrides
+  let monthMargins=[],monthChecks=[];
+  try{monthMargins=JSON.parse(p.month_margins||'[]');}catch(e){}
+  try{monthChecks=JSON.parse(p.month_checks||'[]');}catch(e){}
+  while(monthMargins.length<planMonths) monthMargins.push(null);
+  while(monthChecks.length<planMonths)  monthChecks.push(null);
+  const totalWeight = APP.branches.reduce((s,b)=>s+parseFloat(b.weight||1),0);
+  const totalFOT    = APP.team.reduce((s,t)=>s+parseFloat(t.salary_usd||0),0);
+  const totalRent   = APP.branches.reduce((s,b)=>s+parseFloat(b.rent_usd||0),0);
+  let growthRates=[];
+  try{growthRates=JSON.parse(p.month_growth||'[]');}catch(e){}
+  while(growthRates.length<planMonths) growthRates.push(1);
+  growthRates=growthRates.slice(0,planMonths);
+  // growthPcts: each month = % of target (last = 100)
+  let growthPcts2 = growthRates.slice(0, planMonths);
+  while (growthPcts2.length < planMonths) growthPcts2.push(100);
+  growthPcts2[planMonths-1] = 100;
+  const normRates = growthPcts2.map(v => parseFloat(v||100)/100);
+  return {targetProfit,targetMargin,planMonths,avgCheck,grossMargin,mktBudget,cpl,convQuality,convSale,convVisit,convBuy,organicLeads,installPct,installMonths,badDebtPct,otherOpex,netRev,baseRev,bonusRev,units,convRate,totalLeads,storeVisits,paidLeads,neededPaid,totalWeight,totalFOT,totalRent,normRates,growthRates,growthPcts:growthPcts2,totalBonuses,monthMargins,monthChecks};
+}
+function bmp(branch,c,idx) {
+  const share=parseFloat(branch.weight||1)/(c.totalWeight||1);
+  const mPct=(c.normRates[idx]||1);
+  const mMargin = parseFloat(c.monthMargins[idx]||c.targetMargin);
+  const mCheck  = parseFloat(c.monthChecks[idx]||c.avgCheck);
+  const monthProfit = c.targetProfit * mPct * share;
+  // Per-month bonus for this month
+  const mo = APP.months[idx]||APP.currentMonth||yyyymm();
+  const mBonus = parseFloat(APP.params['bonus_'+mo]||0);
+  const mBonusShare = mBonus * share / (mMargin/100); // extra rev needed for bonus
+  const rev = monthProfit / (mMargin/100) + mBonusShare;
+  const units = Math.ceil(rev/mCheck);
+  const leads = c.convRate>0?Math.ceil(units/c.convRate):0;
+  const visits = Math.ceil(leads*(c.convVisit/100));
+  return{rev,units,leads,visits,profit:monthProfit,mkt:c.mktBudget*share*mPct,margin:mMargin,check:mCheck};
+}
+
+// ════════════════════════════════════════════════
+// PARAM HELPERS
+// ════════════════════════════════════════════════
+async function saveP(key,value) {
+  APP.params[key]=String(value);
+  await APP.db.from('sl_params').upsert({key,value:String(value),updated_at:new Date().toISOString(),updated_by:APP.user?.email||''},{onConflict:'key'});
+  if(['plan_months','start_month'].includes(key)){await loadBase();buildNav();}
+  loadSection(APP.currentSection);
+}
+function pFld(key,label,type='number',step='1') {
+  const v=APP.params[key]||'';
+  if(!canEdit()) return `<div class="fG"><label>${label}</label><div style="padding:8px 10px;font-size:14px;font-weight:600;font-family:var(--mono)">${v}</div></div>`;
+  return `<div class="fG"><label>${label}</label><input class="pInput" type="${type}" value="${v}" step="${step}" onchange="saveP('${key}',this.value)"></div>`;
+}
+
+// ════════════════════════════════════════════════
+// STRATEGY
+// ════════════════════════════════════════════════
+async function renderStrategy() {
+  const c=runCalc();
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn success" onclick="sendDailyNotifications()">Отправить план в TG</button>`;
+  // growthPcts: % of target profit per month, last month always 100
+  let growthPcts = [];
+  try { growthPcts = JSON.parse(APP.params.month_growth||'[]'); } catch(e) {}
+  while (growthPcts.length < c.planMonths) growthPcts.push(100);
+  growthPcts = growthPcts.slice(0, c.planMonths);
+  growthPcts[c.planMonths-1] = 100; // last month always 100%
+
+  const growthHTML = APP.months.map((m,i)=>{
+    const isLast = i === c.planMonths-1;
+    const pct = growthPcts[i];
+    const monthProfit = c.targetProfit * pct / 100;
+    const monthRev = monthProfit / (c.targetMargin/100);
+    return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px${isLast?';border-color:var(--green)':''}">
+      <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">${monthLabel(m)}${isLast?' ✓':''}</div>
+      ${isLast
+        ? `<div style="font-size:18px;font-weight:700;font-family:var(--mono);color:var(--green)">100%</div>`
+        : canEdit()
+          ? `<input type="number" class="pInput" value="${pct}" step="5" min="1" max="100" onchange="updateGrowth(${i},this.value)" style="font-size:15px;font-weight:700;font-family:var(--mono)">`
+          : `<div style="font-size:18px;font-weight:700;font-family:var(--mono)">${pct}%</div>`
+      }
+      <div style="font-size:12px;font-weight:700;color:var(--ink);margin-top:4px">${fmtD(monthProfit)}</div>
+      <div style="font-size:10px;color:var(--ink4);margin-top:2px">${fmtD(monthRev)} выручка</div>
+      <div style="height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${pct>=100?'var(--green)':pct>=70?'var(--blue)':'var(--amber)'};border-radius:2px"></div></div>
+    </div>`;
+  }).join('');
+  const branchMax=getBranchMax();
+  let sellerMax={};try{sellerMax=JSON.parse(APP.params.seller_max||'{}');}catch(e){}
+  const rows=APP.branches.map(b=>{
+    const cols=APP.months.map((_,i)=>bmp(b,c,i));
+    return{b,cols,totRev:cols.reduce((s,x)=>s+x.rev,0),totUnits:cols.reduce((s,x)=>s+x.units,0),totLeads:cols.reduce((s,x)=>s+x.leads,0),totVisits:cols.reduce((s,x)=>s+x.visits,0),totProfit:cols.reduce((s,x)=>s+x.profit,0)};
+  });
+  const mH=APP.months.map(m=>`<th style="text-align:right">${monthLabel(m)}</th>`).join('');
+  const mHU=APP.months.map(m=>`<th style="text-align:right">${monthLabel(m)} шт</th>`).join('');
+  const bns=bottlenecks(c);
+  let html=`
+  <div class="card"><div class="cardH"><h3>Boshqaruv paneli</h3><span class="hint">Barcha o'zgarishlar darhol qollaniladi</span></div><div class="cardB">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px;margin-bottom:16px">
+      ${pFld('target_profit','Maqsadli foyda $/oy')}
+      ${pFld('target_margin','Maqsadli marja %','number','0.1')}
+      ${pFld('avg_check','O\'rtacha chek $')}
+      ${pFld('plan_months','Oylar soni')}
+      ${pFld('start_month','Reja boshlanishi','month')}
+      ${pFld('gross_margin','Yalpi marja %','number','0.1')}
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Распределение плана по месяцам (веса)</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px">${growthHTML}</div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:8px">Har bir oy uchun maqsadli foydaning % ini kiriting. Oxirgi oy har doim 100% = <strong>${fmtD(c.targetProfit)}</strong>. Misol: 40%, 70%, 100%</div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Har oyga alohida marja va o'rtacha chek (ixtiyoriy)</div>
+      <div style="overflow-x:auto"><table style="width:auto">
+        <thead><tr>
+          <th>Parametr</th>
+          ${APP.months.map(m=>`<th style="text-align:right">${monthLabel(m)}</th>`).join('')}
+          <th style="color:var(--ink4)">Default</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;white-space:nowrap">Marja %</td>
+            ${APP.months.map((m,i)=>`<td style="text-align:right">
+              ${canEdit()?`<input type="number" class="iEdit" style="width:65px" value="${c.monthMargins[i]||''}" placeholder="${c.targetMargin}" step="0.1" onchange="saveMonthOverride('month_margins',${i},this.value)">`:
+              (c.monthMargins[i]||c.targetMargin)+'%'}
+            </td>`).join('')}
+            <td style="text-align:right;color:var(--ink4);font-size:11px">${c.targetMargin}%</td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;white-space:nowrap">O'rtacha chek $</td>
+            ${APP.months.map((m,i)=>`<td style="text-align:right">
+              ${canEdit()?`<input type="number" class="iEdit" style="width:75px" value="${c.monthChecks[i]||''}" placeholder="${c.avgCheck}" onchange="saveMonthOverride('month_checks',${i},this.value)">`:
+              '$'+(c.monthChecks[i]||c.avgCheck)}
+            </td>`).join('')}
+            <td style="text-align:right;color:var(--ink4);font-size:11px">$${c.avgCheck}</td>
+          </tr>
+        </tbody>
+      </table></div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:6px">Bo'sh qolsa — yuqoridagi umumiy qiymat ishlatiladi</div>
+    </div>
+  </div></div>
+  <div class="kpiGrid">
+    ${kpi('Maqsadli foyda/oy',fmtD(c.targetProfit),`Marja ${c.targetMargin}%`,'green')}
+    ${kpi('Bonuslar (qo\'shimcha)',fmtD(c.totalBonuses),`+${fmtD(c.totalBonuses/c.targetMargin*100)} daromad`,'amber')}
+    ${kpi('Kerakli daromad/oy',fmtD(c.netRev),`${fmt(c.units)} dona · bonuslar bilan`,'blue')}
+    ${kpi('Kerakli lidlar/oy',fmt(c.totalLeads),`Konv. ${(c.convRate*100).toFixed(1)}%`,'')}
+    ${kpi("Do'konga tashrif/oy",fmt(c.storeVisits),`${c.convVisit}% lidlardan`,'blue')}
+    ${kpi('Sotib oladi/oy',fmt(c.units),`${c.convBuy}% tashrif buyurganlardan`,'green')}
+    ${kpi('Marketing/oy',fmtD(c.mktBudget),`CPL $${c.cpl}`,'amber')}
+    ${kpi('Reja oylari',c.planMonths,APP.params.start_month||'','')}
+    ${kpi('Faol filiallar',APP.branches.length,`Jami ${(APP.allBranches||APP.branches).length} dan`,(APP.allBranches||APP.branches).length>APP.branches.length?'amber':'')}
+    ${kpi('Jami daromad',fmtD(c.netRev*c.planMonths),`за ${c.planMonths} мес`,'blue')}
+    ${kpi('Jamoa maoshi/oy',fmtD(c.totalFOT),`${APP.team.length} kishi`,'amber')}
+    ${kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')}
+  </div>
+  <div class="card"><div class="cardH"><h3>Muammoli joylar (Bottleneck-tahlil)</h3></div><div class="cardB">
+    ${bns.map(b=>`<div class="bn ${b.lvl}"><div class="bnT">${b.t}</div><div class="bnS">${b.d}</div></div>`).join('')}
+  </div></div>
+  <div class="card"><div class="cardH"><h3>Jadval 1 — Filiallар boyicha sotuvlar</h3><span class="hint">Daromad $ va dona | og'irlikni toghridan to'g'ri tahrirlash mumkin</span></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Filial</th><th>Shahar</th><th>Og'irlik</th>${mH}<th style="text-align:right">Jami $</th>${mHU}<th style="text-align:right">Jami dona</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
+      <td>${canEdit()?`<input class="iEdit" type="number" value="${r.b.weight}" step="0.25" min="0.25" max="10" onchange="updW(${r.b.id},this.value)">`:r.b.weight}</td>
+      ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(x.rev)}</td>`).join('')}
+      <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(r.totRev)}</td>
+      ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${x.units}</td>`).join('')}
+      <td style="text-align:right;font-weight:700;font-family:var(--mono)">${r.totUnits}</td>
+    </tr>`).join('')}</tbody>
+    <tfoot><tr class="tFoot"><td colspan="3">ИТОГО</td>
+      ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.cols[i].rev,0))}</td>`).join('')}
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.totRev,0))}</td>
+      ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${rows.reduce((s,r)=>s+r.cols[i].units,0)}</td>`).join('')}
+      <td style="text-align:right;font-family:var(--mono)">${rows.reduce((s,r)=>s+r.totUnits,0)}</td>
+    </tr></tfoot>
+  </table></div></div>
+  <div class="card"><div class="cardH"><h3>Jadval 2 — Filiallar boyicha lidlar</h3><span class="hint">Reja bajarish uchun kerakli lidlar</span></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Филиал</th><th>Город</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
+      ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${fmt(x.leads)}</td>`).join('')}
+      <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmt(r.totLeads)}</td>
+    </tr>`).join('')}</tbody>
+    <tfoot><tr class="tFoot"><td colspan="2">ИТОГО</td>
+      ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${fmt(rows.reduce((s,r)=>s+r.cols[i].leads,0))}</td>`).join('')}
+      <td style="text-align:right;font-family:var(--mono)">${fmt(rows.reduce((s,r)=>s+r.totLeads,0))}</td>
+    </tr></tfoot>
+  </table></div></div>
+  <div class="card"><div class="cardH"><h3>Jadval 3 — Filiallar boyicha foyda</h3><span class="hint">Sof foyda $</span></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Филиал</th><th>Город</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
+      ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(x.profit)}</td>`).join('')}
+      <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(r.totProfit)}</td>
+    </tr>`).join('')}</tbody>
+    <tfoot><tr class="tFoot"><td colspan="2">ИТОГО</td>
+      ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.cols[i].profit,0))}</td>`).join('')}
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.totProfit,0))}</td>
+    </tr></tfoot>
+  </table></div></div>`;
+
+  // BRANCH MAX + STAFF ANALYSIS TABLE — only for managers and above
+  const canSeeBranchMax = ['ADMIN','TOP_MGR','BRANCH_MGR','CFO'].includes(APP.user?.role||'');
+  if(canSeeBranchMax){
+  html+=`<div class="card"><div class="cardH">
+    <h3>Filial maksimumi va sotuvchilar tahlili</h3>
+    <span class="hint">Tarixdagi maks sotuv → necha X o'sish kerak → qancha sotuvchi kerak</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr>
+      <th>Filial</th>
+      <th style="text-align:right">Maks sotuv $</th>
+      <th style="text-align:right">Joriy sotuvchi</th>
+      <th style="text-align:right">1 sotuvchi maks $</th>
+      ${APP.months.map(m=>`<th style="text-align:right">${monthLabel(m)} X</th><th style="text-align:right">${monthLabel(m)} kerak</th>`).join('')}
+    </tr></thead>
+    <tbody>${rows.map(r=>{
+      const maxRev=parseFloat(branchMax[r.b.id]||0);
+      const staffCount=parseInt(r.b.staff_count)||1;
+      const perSeller=maxRev>0?maxRev/staffCount:0;
+      return `<tr>
+        <td>
+          <strong>${r.b.name}</strong>
+          ${maxRev===0?'<span class="badge badge-gray" style="margin-left:4px;font-size:9px">Maks kiritilmagan</span>':''}
+        </td>
+        <td style="text-align:right">
+          ${canEdit()?`<input class="iEdit" type="number" value="${Math.round(maxRev)||''}" placeholder="0" style="width:90px" onchange="saveBranchMax('${r.b.id}',this.value)">`:fmtD(maxRev)}
+        </td>
+        <td style="text-align:right;font-family:var(--mono)">${staffCount}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--blue)">${perSeller>0?fmtD(perSeller):'—'}</td>
+        ${r.cols.map((col,i)=>{
+          const xGrow=maxRev>0?(col.rev/maxRev):0;
+          const neededStaff=perSeller>0?Math.ceil(col.rev/perSeller):staffCount;
+          const needsMore=neededStaff>staffCount;
+          const xLabel=maxRev>0?xGrow.toFixed(2)+'x':'—';
+          const xColor=maxRev>0?(xGrow>2.6?'red':xGrow>1.5?'amber':'green'):'gray';
+          return `<td style="text-align:right"><span class="badge badge-${xColor}">${xLabel}</span></td>
+          <td style="text-align:right">
+            <span style="font-family:var(--mono);font-weight:700;color:var(--${needsMore?'red':'green'})">${neededStaff}</span>
+            ${needsMore?`<span style="font-size:10px;color:var(--red)"> (+${neededStaff-staffCount})</span>`:''}
+          </td>`;
+        }).join('')}
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>`;
+
+  } // end canSeeBranchMax
+
+  // ENHANCED BOTTLENECKS with staff recommendations
+  const staffBns=[];
+  rows.forEach(r=>{
+    const maxRev=parseFloat(branchMax[r.b.id]||0);
+    if(!maxRev) return;
+    const staffCount=parseInt(r.b.staff_count)||1;
+    const perSeller=maxRev/staffCount;
+    r.cols.forEach((col,i)=>{
+      const xGrow=col.rev/maxRev;
+      const neededStaff=Math.ceil(col.rev/perSeller);
+      if(xGrow>2.6&&neededStaff>staffCount){
+        staffBns.push({
+          lvl:'red',
+          t:`${r.b.name} — ${monthLabel(APP.months[i])}: +${neededStaff-staffCount} ta sotuvchi kerak`,
+          d:`Reja maksimumdan ${xGrow.toFixed(1)}x yuqori. Joriy ${staffCount} sotuvchi yetmaydi. ${neededStaff} ta sotuvchi kerak.`
+        });
+      }
+    });
+  });
+
+  if(staffBns.length){
+    html=html.replace(
+      '<div class="card"><div class="cardH"><h3>Muammoli joylar (Bottleneck-tahlil)</h3></div><div class="cardB">',
+      `<div class="card"><div class="cardH"><h3>Muammoli joylar (Bottleneck-tahlil)</h3></div><div class="cardB">${staffBns.map(b=>`<div class="bn ${b.lvl}"><div class="bnT">${b.t}</div><div class="bnS">${b.d}</div></div>`).join('')}`
+    );
+  }
+
+  html += wArea('strategy');
+  document.getElementById('content').innerHTML=html;
+  renderWidgets('strategy');
+}
+async function saveMonthOverride(key,idx,val){
+  let arr=[];try{arr=JSON.parse(APP.params[key]||'[]');}catch(e){}
+  while(arr.length<=idx) arr.push(null);
+  arr[idx]=val===''||val===null?null:parseFloat(val);
+  APP.params[key]=JSON.stringify(arr);
+  await APP.db.from('sl_params').upsert({key,value:JSON.stringify(arr),updated_at:new Date().toISOString(),updated_by:APP.user?.email||''},{onConflict:'key'});
+  // Reload calc without full page reload for smoothness
+  loadSection('strategy');
+}
+
+async function updateGrowth(i,v){let r=[];try{r=JSON.parse(APP.params.month_growth||'[]');}catch(e){}while(r.length<=APP.months.length)r.push(100);r[i]=Math.min(100,Math.max(1,parseFloat(v)||10));r[APP.months.length-1]=100;await saveP('month_growth',JSON.stringify(r));}
+async function updW(id,v){const val=parseFloat(v)||0.25;await APP.db.from('sl_branches').update({weight:val}).eq('id',id);const b=APP.branches.find(x=>x.id===id);if(b)b.weight=val;loadSection(APP.currentSection);}
+function bottlenecks(c){
+  const bns=[];
+  if(c.convRate<0.1) bns.push({lvl:'red',t:`Критически низкая конверсия: ${(c.convRate*100).toFixed(1)}%`,d:`Норма 15%+. Проверьте качество лидов и навыки продавцов`});
+  if(c.neededPaid>c.paidLeads) bns.push({lvl:'amber',t:`Дефицит лидов: нужно ${fmt(c.neededPaid)} платных, маркетинг даёт ${fmt(c.paidLeads)}`,d:`Увеличьте бюджет или снизьте CPL`});
+  if(c.targetMargin<8) bns.push({lvl:'amber',t:`Маржа ${c.targetMargin}% — ниже нормы (рек. 10%+)`,d:`Оптимизируйте структуру расходов`});
+  if(c.totalFOT/c.netRev>0.15) bns.push({lvl:'amber',t:`ФОТ ${(c.totalFOT/c.netRev*100).toFixed(1)}% от выручки (норма до 12%)`,d:`Оптимизируйте структуру команды`});
+  if(!bns.length) bns.push({lvl:'green',t:'Barcha ko\'rsatkichlar me\'yorda',d:'Muammoli joy topilmadi. Bajarishga e\'tibor qarating.'});
+  return bns;
+}
+
+// ════════════════════════════════════════════════
+// SALES
+// ════════════════════════════════════════════════
+async function renderSales() {
+  const c=runCalc(); const mo=APP.currentMonth;
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn primary" onclick="openSaleModal()">+ Продажа</button>`;
+  const {data:sls}=await APP.db.from('sl_sales').select('*,sl_models(name)').gte('date',mo+'-01').lte('date',mo+'-31').order('date',{ascending:false});
+  const sales=sls||[];
+  const totalRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const totalU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
+  const today=new Date().toISOString().slice(0,10);
+  const todayRev=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const pct=c.netRev>0?Math.min(100,totalRev/c.netRev*100):0;
+  const byBranch={};
+  APP.branches.forEach(b=>byBranch[b.id]={rev:0,units:0});
+  sales.forEach(s=>{if(byBranch[s.branch_id]){byBranch[s.branch_id].rev+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);byBranch[s.branch_id].units+=parseInt(s.qty||1);}});
+  const moIdx=APP.months.indexOf(mo);
+  let html=mSel()+`<div class="kpiGrid">
+    ${kpi('Факт выручки',fmtD(totalRev),`${Math.round(pct)}% от плана`,pct>=100?'green':pct>=70?'amber':'red')}
+    ${kpi('Факт единиц',fmt(totalU),`План ${fmt(c.units)} шт`,'')}
+    ${kpi('Сегодня',fmtD(todayRev),`Дневной план ${fmtD(c.netRev/26)}`,todayRev>=c.netRev/26?'green':'amber')}
+    ${kpi('Осталось',fmtD(Math.max(0,c.netRev-totalRev)),`${Math.max(0,c.units-totalU)} шт`,'amber')}
+  </div>
+  <div class="card"><div class="cardB">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span>Выполнение ${monthLabel(mo)}</span><strong>${Math.round(pct)}%</strong></div>
+    <div class="prog"><div class="progFill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>=70?'var(--amber)':'var(--blue)'}"></div></div>
+  </div></div>
+  <div class="card"><div class="cardH"><h3>По филиалам — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Филиал</th><th>Менеджер</th><th style="text-align:right">Факт $</th><th style="text-align:right">Факт шт</th><th style="text-align:right">План $</th><th style="text-align:right">Выполн.</th><th style="text-align:right">Осталось</th></tr></thead>
+    <tbody>${APP.branches.map(b=>{
+      const d=byBranch[b.id]||{rev:0,units:0};
+      const bp=bmp(b,c,moIdx>=0?moIdx:0);
+      const p2=bp.rev>0?Math.round(d.rev/bp.rev*100):0;
+      const mgr=APP.team.find(t=>t.branch_id===b.id&&t.role==='BRANCH_MGR');
+      return `<tr><td><strong>${b.name}</strong><br><small style="color:var(--ink3)">${b.city||''}</small></td>
+        <td>${mgr?.full_name||'<span style="color:var(--ink4)">—</span>'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(d.rev)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${d.units}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(bp.rev)}</td>
+        <td style="text-align:right"><span class="badge badge-${p2>=100?'green':p2>=70?'amber':'red'}">${p2}%</span></td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${p2>=100?'green':'red'})">${fmtD(Math.max(0,bp.rev-d.rev))}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>
+  <div class="card"><div class="cardH"><h3>Последние продажи</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Дата</th><th>Филиал</th><th>Модель</th><th>Продавец</th><th style="text-align:right">Сумма $</th><th>Оплата</th></tr></thead>
+    <tbody>${sales.slice(0,30).map(s=>{
+      const br=APP.branches.find(b=>b.id===s.branch_id);
+      return `<tr><td style="font-family:var(--mono);font-size:11px">${s.date}</td><td>${br?.name||'—'}</td><td>${s.sl_models?.name||'—'}</td>
+        <td>${s.salesperson||'—'}</td>
+        <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(parseFloat(s.unit_price||0)*parseInt(s.qty||1))}</td>
+        <td><span class="badge badge-${s.payment_type==='cash'?'green':s.payment_type==='installment'?'amber':'blue'}">${payL(s.payment_type)}</span></td>
+      </tr>`;
+    }).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--ink3)">Продаж нет</td></tr>'}</tbody>
+  </table></div></div>`;
+
+  // BRANCH MANAGER TARGETS
+  if(APP.user?.role==='BRANCH_MGR' || canEdit()) {
+    const myBranch = APP.user?.role==='BRANCH_MGR' 
+      ? APP.branches.find(b=>String(b.id)===String(APP.user?.branch_id))
+      : null;
+    const branchesToShow = myBranch ? [myBranch] : APP.branches;
+    
+    html += `<div class="card">
+      <div class="cardH">
+        <h3>Sotuvchilar boyicha maqsadlar — ${monthLabel(mo)}</h3>
+        <span class="hint">${APP.user?.role==='BRANCH_MGR'?'Siz belgilaysiz':'Barcha filiallar'}</span>
+      </div>
+      <div class="cardB tWrap"><table>
+        <thead><tr><th>Filial</th><th>Sotuvchi</th><th style="text-align:right">Oylik maqsad $</th><th style="text-align:right">Kunlik maqsad $</th><th style="text-align:right">Haqiqat $</th><th style="text-align:right">%</th></tr></thead>
+        <tbody>${branchesToShow.map(b=>{
+          const staff = APP.team.filter(t=>t.branch_id===b.id&&t.role==='SALES_STAFF');
+          const bp = bmp(b,c,moIdx>=0?moIdx:0);
+          const staffCount = staff.length||parseInt(b.staff_count)||1;
+          const defaultTarget = bp.rev/staffCount;
+          
+          if(!staff.length) {
+            return `<tr><td><strong>${b.name}</strong></td><td colspan="5" style="color:var(--ink4)">Sotuvchilar yo'q</td></tr>`;
+          }
+          
+          return staff.map(t=>{
+            const tgtKey = 'target_'+mo+'_'+t.id;
+            const tgt = parseFloat(APP.params[tgtKey]||defaultTarget);
+            const factSeller = sales.filter(s=>s.salesperson===t.email).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+            const pct2 = tgt>0?Math.round(factSeller/tgt*100):0;
+            return `<tr>
+              <td><strong>${b.name}</strong></td>
+              <td>${t.full_name}</td>
+              <td style="text-align:right">
+                ${canBranchMgr(b.id)
+                  ? `<input class="iEdit" type="number" value="${Math.round(tgt)}" style="width:90px" onchange="saveSellerTarget('${tgtKey}',this.value)">`
+                  : fmtD(tgt)}
+              </td>
+              <td style="text-align:right;font-family:var(--mono)">${fmtD(tgt/26)}</td>
+              <td style="text-align:right;font-family:var(--mono);color:var(--${factSeller>=tgt?'green':factSeller>=tgt*0.7?'amber':'red'})">${fmtD(factSeller)}</td>
+              <td style="text-align:right"><span class="badge badge-${pct2>=100?'green':pct2>=70?'amber':'red'}">${pct2}%</span></td>
+            </tr>`;
+          }).join('');
+        }).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+
+  // PLAN VS FACT BY BRANCH - full detail
+  html += `<div class="card">
+    <div class="cardH"><h3>Reja vs Haqiqat — Filiallar boyicha</h3>
+      <span class="hint">${monthLabel(mo)}</span>
+    </div>
+    <div class="cardB tWrap"><table>
+      <thead><tr>
+        <th>Filial</th>
+        <th style="text-align:right">Reja $</th>
+        <th style="text-align:right">Haqiqat $</th>
+        <th style="text-align:right">Farq $</th>
+        <th style="text-align:right">%</th>
+        <th style="text-align:right">Reja dona</th>
+        <th style="text-align:right">Haqiqat dona</th>
+        <th style="text-align:right">Qoldi $</th>
+        <th style="text-align:right">Kunlik reja $</th>
+        <th style="text-align:right">Bugun $</th>
+      </tr></thead>
+      <tbody>${APP.branches.map(b => {
+        const bp   = bmp(b, c, moIdx>=0?moIdx:0);
+        const fact = byBranch[b.id]||{rev:0,units:0};
+        const pct2 = bp.rev>0 ? Math.round(fact.rev/bp.rev*100) : 0;
+        const diff = fact.rev - bp.rev;
+        const left = Math.max(0, bp.rev - fact.rev);
+        const dayPlanBr = bp.rev / 26;
+        const todayBr = sales.filter(s=>s.branch_id===b.id&&s.date===today)
+          .reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+        const barW = Math.min(100, pct2);
+        const barCol = pct2>=100?'var(--green)':pct2>=70?'var(--blue)':'var(--amber)';
+        return `<tr>
+          <td>
+            <strong>${b.name}</strong>
+            <br><small style="color:var(--ink3)">${b.city||''}</small>
+            <div style="height:3px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden">
+              <div style="width:${barW}%;height:100%;background:${barCol};border-radius:2px"></div>
+            </div>
+          </td>
+          <td style="text-align:right;font-family:var(--mono)">${fmtD(bp.rev)}</td>
+          <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${pct2>=100?'green':pct2>=70?'amber':'red'})">${fmtD(fact.rev)}</td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--${diff>=0?'green':'red'})">${diff>=0?'+':''}${fmtD(diff)}</td>
+          <td style="text-align:right"><span class="badge badge-${pct2>=100?'green':pct2>=70?'amber':'red'}">${pct2}%</span></td>
+          <td style="text-align:right;font-family:var(--mono)">${bp.units}</td>
+          <td style="text-align:right;font-family:var(--mono)">${fact.units}</td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--${left===0?'green':'ink3'})">${fmtD(left)}</td>
+          <td style="text-align:right;font-family:var(--mono)">${fmtD(dayPlanBr)}</td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--${todayBr>=dayPlanBr?'green':'amber'})">${fmtD(todayBr)}</td>
+        </tr>`;
+      }).join('')}</tbody>
+      <tfoot><tr class="tFoot">
+        <td>JAMI</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(c.netRev*(c.normRates[moIdx>=0?moIdx:0]||1))}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${pct>=100?'green':'red'})">${fmtD(totalRev)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${totalRev>=c.netRev?'green':'red'})">${totalRev>=c.netRev?'+':''}${fmtD(totalRev-c.netRev*(c.normRates[moIdx>=0?moIdx:0]||1))}</td>
+        <td style="text-align:right"><span class="badge badge-${pct>=100?'green':pct>=70?'amber':'red'}">${Math.round(pct)}%</span></td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(c.units*(c.normRates[moIdx>=0?moIdx:0]||1))}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(totalU)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(Math.max(0,c.netRev*(c.normRates[moIdx>=0?moIdx:0]||1)-totalRev))}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(c.netRev*(c.normRates[moIdx>=0?moIdx:0]||1)/26)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(todayRev)}</td>
+      </tr></tfoot>
+    </table></div>
+  </div>`;
+
+  html+=wArea('sales'); document.getElementById('content').innerHTML=html; renderWidgets('sales');
+}
+
+async function saveSellerTarget(key, val) {
+  await saveP(key, String(parseFloat(val)||0));
+}
+async function openSaleModal(){
+  const brOpts=APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}">${m.name} ($${m.price_usd})</option>`).join('');
+  document.getElementById('M_user_title').textContent='Новая продажа';
+  document.getElementById('M_user_body').innerHTML=`
+    <div class="fRow c2"><div class="fG"><label>Дата</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="fG"><label>Филиал</label><select id="sBranch">${brOpts}</select></div></div>
+    <div class="fRow c2"><div class="fG"><label>Модель</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Цена $</label><input id="sPrice" type="number"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Кол-во</label><input id="sQty" type="number" value="1" min="1"></div><div class="fG"><label>Оплата</label><select id="sPayType"><option value="cash">Наличные</option><option value="installment">Рассрочка</option><option value="card">Карта</option><option value="transfer">Перевод</option></select></div></div>
+    <div class="fG"><label>Продавец (email)</label><input id="sSeller" value="${APP.user.email}"></div>`;
+  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Отмена</button><button class="btn primary" onclick="saveSale()">Сохранить</button>`;
+  openM('M_user'); setTimeout(()=>setModelPrice(),50);
+}
+function setModelPrice(){const sel=document.getElementById('sModel');const opt=sel.options[sel.selectedIndex];document.getElementById('sPrice').value=opt?.dataset.price||'';}
+async function saveSale(){
+  await APP.db.from('sl_sales').insert({date:document.getElementById('sDate').value,branch_id:document.getElementById('sBranch').value,model_id:document.getElementById('sModel').value,unit_price:parseFloat(document.getElementById('sPrice').value)||0,qty:parseInt(document.getElementById('sQty').value)||1,payment_type:document.getElementById('sPayType').value,salesperson:document.getElementById('sSeller').value});
+  closeM('M_user'); renderSales();
+}
+
+// ════════════════════════════════════════════════
+// MARKETING
+// ════════════════════════════════════════════════
+async function renderMarketing(){
+  const c=runCalc();
+  const funnel=[
+    {l:'Всего лидов/мес',v:c.totalLeads,p:100,col:'var(--blue)'},
+    {l:'Качественные',v:Math.round(c.totalLeads*c.convQuality/100),p:c.convQuality,col:'var(--amber)'},
+    {l:'Покупатели',v:c.units,p:c.convRate*100,col:'var(--green)'},
+  ];
+  let html=`<div class="kpiGrid">
+    ${kpi('Бюджет/мес',fmtD(c.mktBudget),`CPL $${c.cpl}`,'blue')}
+    ${kpi('Лидов нужно',fmt(c.totalLeads),`Платных ${fmt(c.neededPaid)}`,'')}
+    ${kpi('Органика',fmt(c.organicLeads),'в мес','green')}
+    ${kpi('Конв. качества',c.convQuality+'%','лид → кач.','')}
+    ${kpi('Конв. продажи',c.convSale+'%','кач. → покупка','')}
+    ${kpi('Итог. конверсия',(c.convRate*100).toFixed(1)+'%','лид → продажа','green')}
+  </div>
+  <div class="card"><div class="cardH"><h3>Параметры маркетинга</h3></div><div class="cardB">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">
+      ${pFld('mkt_budget','Бюджет маркетинга $')}
+      ${pFld('cpl','Стоимость лида CPL $','number','0.01')}
+      ${pFld('conv_quality','Конверсия качества %','number','0.5')}
+      ${pFld('conv_sale','Конверсия продажи %','number','0.5')}
+      ${pFld('organic_leads','Органических лидов/мес')}
+    </div>
+  </div></div>
+  <div class="card"><div class="cardH"><h3>Воронка продаж</h3></div><div class="cardB">
+    ${funnel.map(s=>`<div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${s.l}</span><strong style="font-family:var(--mono)">${fmt(s.v)}</strong></div>
+      <div class="prog"><div class="progFill" style="width:${s.p}%;background:${s.col}"></div></div>
+      <div style="font-size:10px;color:var(--ink3);margin-top:3px">${s.p.toFixed(1)}%</div>
+    </div>`).join('')}
+  </div></div>
+  <div class="card"><div class="cardH"><h3>Бюджет по филиалам</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Филиал</th><th>Вес</th><th style="text-align:right">Бюджет $/мес</th><th style="text-align:right">Платных лидов</th><th style="text-align:right">+ Орган.</th><th style="text-align:right">Итого лидов</th><th style="text-align:right">Ожид. продаж</th></tr></thead>
+    <tbody>${APP.branches.map(b=>{
+      const sh=parseFloat(b.weight||1)/(c.totalWeight||1);
+      const bgt=c.mktBudget*sh,pl=c.cpl>0?Math.ceil(bgt/c.cpl):0;
+      const org=Math.ceil(c.organicLeads*sh),tot=pl+org;
+      return `<tr><td><strong>${b.name}</strong></td><td>${b.weight}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(bgt)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(pl)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(org)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(tot)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${Math.round(tot*c.convRate)}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>`;
+  html+=wArea('marketing'); document.getElementById('content').innerHTML=html; renderWidgets('marketing');
+}
+
+// ════════════════════════════════════════════════
+// BRANCHES
+// ════════════════════════════════════════════════
+async function renderBranches(){
+  const c=runCalc();
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn primary" onclick="openBranchModal()">+ Филиал</button>`;
+  // BRANCH TOGGLE UI
+  let inactiveIds=[];
+  try{inactiveIds=JSON.parse(APP.params.inactive_branches||'[]').map(String);}catch(e){}
+  const allBr=APP.allBranches||APP.branches;
+  const canToggle=isAdmin()||APP.user?.role==='TOP_MGR';
+
+  let html='';
+  if(canToggle){
+    const toggleCards=allBr.map(b=>{
+      const isActive=!inactiveIds.includes(String(b.id));
+      return `<div style="border:2px solid ${isActive?'#059669':'#e2e8f0'};border-radius:10px;padding:12px 14px;background:${isActive?'rgba(5,150,105,.06)':'#f8fafc'}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <div style="font-size:13px;font-weight:700">${b.name}</div>
+          <div onclick="toggleBranchPlan(${b.id},${!isActive})"
+            style="width:40px;height:22px;border-radius:11px;background:${isActive?'#059669':'#cbd5e1'};cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+            <div style="position:absolute;top:3px;${isActive?'right:3px':'left:3px'};width:16px;height:16px;border-radius:50%;background:#fff;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:#64748b">${b.city||'—'} · og.${b.weight}</div>
+        <div style="font-size:10px;margin-top:4px;font-weight:600;color:${isActive?'#059669':'#94a3b8'}">${isActive?'✓ Rejada':'✗ Chiqarilgan'}</div>
+      </div>`;
+    }).join('');
+    html+=`<div class="card"><div class="cardH">
+      <h3>Reja uchun faol filiallar</h3>
+      <span class="hint">Faol: ${APP.branches.length} / Jami: ${allBr.length} — O'chirilgan filiallar barcha hisob va jadvallardan chiqadi</span>
+    </div><div class="cardB">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px">${toggleCards}</div>
+    </div></div>`;
+  }
+
+  html+=`<div class="kpiGrid">
+    ${kpi('Faol filiallar',APP.branches.length,'rejada','blue')}
+    ${kpi('Городов',[...new Set(APP.branches.map(b=>b.city).filter(Boolean))].length,'','','')}
+    ${kpi('Сотрудников',APP.team.length,'в команде','')}
+    ${kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')}
+  </div>
+  <div class="card"><div class="cardH"><h3>Список филиалов</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Филиал</th><th>Город</th><th style="text-align:right">Вес</th><th style="text-align:right">Сотруд.</th><th style="text-align:right">Аренда $</th><th>Менеджер</th><th style="text-align:right">План/мес $</th><th style="text-align:right">Шт/мес</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <tbody>${APP.branches.map(b=>{
+      const plan=bmp(b,c,0);
+      const mgr=APP.team.find(t=>t.branch_id===b.id&&t.role==='BRANCH_MGR');
+      return `<tr><td><strong>${b.name}</strong></td><td>${b.city||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${b.weight}</td><td style="text-align:right">${b.staff_count||2}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(b.rent_usd||0)}</td>
+        <td>${mgr?.full_name||'<span style="color:var(--ink4)">—</span>'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(plan.rev)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${plan.units}</td>
+        ${canEdit()?`<td><button class="btn sm" onclick="openBranchModal(${b.id})">Ред.</button></td>`:''}
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>
+  <div class="card"><div class="cardH"><h3>Сотрудники по филиалам</h3><span class="hint">Привязка и управление</span>${canEdit()?'<button class="btn sm primary" onclick="openTeamModal()" style="margin-left:auto">+ Сотрудник</button>':''}</div><div class="cardB tWrap"><table>
+    <thead><tr><th>Сотрудник</th><th>Email</th><th>Роль</th><th>Филиал</th><th style="text-align:right">Зарплата $</th><th>Telegram ID</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <tbody>${APP.team.map(t=>{
+      const br=APP.branches.find(b=>b.id===t.branch_id);
+      return `<tr><td><strong>${t.full_name}</strong></td><td style="font-size:11px;color:var(--ink3)">${t.email||'—'}</td>
+        <td><span class="badge badge-${rColor(t.role)}">${roleLabel(t.role)}</span></td>
+        <td>${br?.name||'<span style="color:var(--ink4)">Не привязан</span>'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
+        <td style="font-family:var(--mono);font-size:11px">${t.telegram_id||'—'}</td>
+        ${canEdit()?`<td style="white-space:nowrap">
+          <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред.</button>
+          <button class="btn sm danger" onclick="deleteTeamMember('${t.id}','${t.full_name}')">O'ch</button>
+        </td>`:''}
+      </tr>`;
+    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Нет сотрудников</td></tr>'}</tbody>
+  </table></div></div>`;
+
+  // BRANCH MAX INPUT — for admins and branch managers
+  const canSeeBM = ['ADMIN','TOP_MGR','BRANCH_MGR'].includes(APP.user?.role||'');
+  if(canSeeBM){
+    const bm=getBranchMax();
+    const myBranchId=APP.user?.branch_id;
+    const bList=APP.user?.role==='BRANCH_MGR'?APP.branches.filter(b=>String(b.id)===String(myBranchId)):APP.branches;
+    html+=`<div class="card"><div class="cardH">
+      <h3>Filial maksimumi (tarixiy eng yaxshi oy)</h3>
+      <span class="hint">Sotuvchilar tahlili va bottleneck hisoblash uchun</span>
+    </div><div class="cardB tWrap"><table>
+      <thead><tr><th>Filial</th><th>Shahar</th><th style="text-align:right">Maks sotuv $ (kiriting)</th><th style="text-align:right">Joriy sotuvchilar</th><th style="text-align:right">1 sotuvchi maks $</th></tr></thead>
+      <tbody>${bList.map(b=>{
+        const maxRev=parseFloat(bm[b.id]||0);
+        const staffCount=parseInt(b.staff_count)||1;
+        const perSeller=maxRev>0?maxRev/staffCount:0;
+        const cols2=[
+          `<td><strong>${b.name}</strong></td>`,
+          `<td style="color:var(--ink3)">${b.city||'—'}</td>`,
+          `<td style="text-align:right"><input class="iEdit" type="number" value="${Math.round(maxRev)||''}" placeholder="0" style="width:110px;text-align:right" onchange="saveBranchMax('${b.id}',this.value)"></td>`,
+          `<td style="text-align:right;font-family:var(--mono)">${staffCount}</td>`,
+          `<td style="text-align:right;font-family:var(--mono);color:var(--blue)">${perSeller>0?fmtD(perSeller):'—'}</td>`
+        ];
+        return '<tr>'+cols2.join('')+'</tr>';
+      }).join('')}</tbody>
+    </table></div></div>`;
+  }
+
+  html+=wArea('branches'); document.getElementById('content').innerHTML=html; renderWidgets('branches');
+}
+async function openBranchModal(id=null){
+  const b=id?APP.branches.find(x=>x.id===id):null;
+  document.getElementById('M_user_title').textContent=id?'Редактировать филиал':'Добавить филиал';
+  document.getElementById('M_user_body').innerHTML=`
+    <div class="fRow c2"><div class="fG"><label>Название</label><input id="brName" value="${b?.name||''}"></div><div class="fG"><label>Город</label><input id="brCity" value="${b?.city||''}"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Вес (доля плана)</label><input id="brWeight" type="number" step="0.25" min="0.25" value="${b?.weight||1}"></div><div class="fG"><label>Кол-во сотрудников</label><input id="brStaff" type="number" min="1" value="${b?.staff_count||2}"></div></div>
+    <div class="fG"><label>Аренда $/мес</label><input id="brRent" type="number" value="${b?.rent_usd||500}"></div>`;
+  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Отмена</button><button class="btn primary" onclick="saveBranch(${id||'null'})">Сохранить</button>`;
+  openM('M_user');
+}
+async function saveBranch(id){
+  const row={name:document.getElementById('brName').value.trim(),city:document.getElementById('brCity').value.trim(),weight:parseFloat(document.getElementById('brWeight').value)||1,staff_count:parseInt(document.getElementById('brStaff').value)||2,rent_usd:parseFloat(document.getElementById('brRent').value)||0,active:true};
+  if(id){await APP.db.from('sl_branches').update(row).eq('id',id);}else{await APP.db.from('sl_branches').insert(row);}
+  closeM('M_user'); await loadBase(); loadSection('branches');
+}
+
+// ════════════════════════════════════════════════
+// TEAM
+// ════════════════════════════════════════════════
+async function renderTeam(){
+  const c=runCalc(); const mo=APP.currentMonth;
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn" onclick="openTaskModal()">+ Задача</button><button class="btn primary" onclick="openTeamModal()" style="margin-left:4px">+ Сотрудник</button>`;
+  const {data:tasks}=await APP.db.from('sl_tasks').select('*').eq('month',mo).order('due_date');
+  const {data:wishes}=await APP.db.from('sl_tasks').select('*').eq('section','target').eq('month',mo);
+  const totalBonus=APP.team.reduce((s,t)=>s+parseFloat(t.bonus_wish||0),0);
+  const pColor={high:'red',medium:'amber',low:'gray'};
+  const sColor={pending:'amber',done:'green',cancelled:'gray'};
+  let html=mSel()+`<div class="kpiGrid">
+    ${kpi('Сотрудников',APP.team.length,'активных','blue')}
+    ${kpi('ФОТ/мес',fmtD(c.totalFOT),'фиксированный','amber')}
+    ${kpi('Желаемые бонусы',fmtD(totalBonus),'при выполнении плана','green')}
+    ${kpi('Задач открытых',(tasks||[]).filter(t=>t.status==='pending').length,mo,'')}
+  </div>
+  <div class="card"><div class="cardH"><h3>Команда — цели и мотивация</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Сотрудник</th><th>Роль</th><th>Филиал</th><th style="text-align:right">Зарплата $</th><th style="text-align:right">Бонус $</th><th>Мечта</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <tbody>${APP.team.map(t=>{
+      const br=APP.branches.find(b=>b.id===t.branch_id);
+      const wt=(wishes||[]).find(w=>w.assigned_to===t.email);
+      let wd={};try{wd=JSON.parse(wt?.description||'{}');}catch(e){}
+      return `<tr><td><strong>${t.full_name}</strong><br><small style="color:var(--ink3)">${t.email||''}</small></td>
+        <td><span class="badge badge-${rColor(t.role)}">${roleLabel(t.role)}</span></td>
+        <td>${br?.name||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(t.bonus_wish||0)}</td>
+        <td style="max-width:150px;font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wd.wish||'—'}</td>
+        ${canEdit()?`<td style="white-space:nowrap">
+          <button class="btn sm" onclick="openWishModal('${t.id}','${t.email}','${t.full_name.replace(/'/g,'`')}',${t.bonus_wish||0},'${mo}')">Цель</button>
+          ${t.telegram_id?`<button class="btn sm" onclick="sendTgTo('${t.telegram_id}','${t.full_name.replace(/'/g,'`')}','${mo}')">TG</button>`:''}
+        </td>`:''}
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>
+  <div class="card"><div class="cardH"><h3>Задачи — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Задача</th><th>Кому</th><th>Раздел</th><th>Приоритет</th><th>Дедлайн</th><th>Статус</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <tbody>${(tasks||[]).map(t=>`<tr>
+      <td><strong>${t.title}</strong>${t.description?`<br><small style="color:var(--ink3)">${String(t.description).slice(0,60)}</small>`:''}</td>
+      <td style="font-size:11px">${t.assigned_to}</td>
+      <td><span class="badge badge-gray" style="font-size:9px">${t.section||'—'}</span></td>
+      <td><span class="badge badge-${pColor[t.priority]||'gray'}">${t.priority||'—'}</span></td>
+      <td style="font-size:11px;font-family:var(--mono)">${t.due_date||'—'}</td>
+      <td><span class="badge badge-${sColor[t.status]||'gray'}">${t.status==='pending'?'Ожидает':t.status==='done'?'Выполнено':'Отменено'}</span></td>
+      ${canEdit()?`<td><button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">${t.status==='pending'?'Выполнено':'Открыть'}</button></td>`:''}
+    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Задач нет</td></tr>'}</tbody>
+  </table></div></div>`;
+  html+=wArea('team');
+  html+=recurringRulesPanel('target');
+  document.getElementById('content').innerHTML=html; renderWidgets('team');
+}
+async function toggleTask(id,cur){
+  await APP.db.from('sl_tasks').update({status:cur==='pending'?'done':'pending',updated_at:new Date().toISOString()}).eq('id',id);
+  loadSection('team');
+}
+async function openWishModal(teamId,email,name,bonus,mo){
+  document.getElementById('wsName').value=name;
+  document.getElementById('wsBonus').value=bonus;
+  document.getElementById('wsMonth').value=mo;
+  document.getElementById('wsWish').value='';
+  document.getElementById('wsWish').dataset.email=email;
+  document.getElementById('wsWish').dataset.team=teamId;
+  setTimeout(()=>{
+    const bonusInput=document.getElementById('wsBonus');
+    const impact=document.getElementById('wsImpact');
+    const updateImpact=()=>{
+      const b=parseFloat(bonusInput.value)||0;
+      if(b>0){
+        const c=runCalc();
+        const extraRev=b/(c.targetMargin/100);
+        impact.style.display='block';
+        impact.textContent=`Bu bonus uchun +${fmtD(extraRev)} qoshimcha daromad kerak boladi`;
+      } else { impact.style.display='none'; }
+    };
+    bonusInput.addEventListener('input',updateImpact);
+    updateImpact();
+  },50);
+  const {data}=await APP.db.from('sl_tasks').select('*').eq('section','target').eq('assigned_to',email).eq('month',mo).single();
+  if(data){let d={};try{d=JSON.parse(data.description||'{}');}catch(e){}document.getElementById('wsWish').value=d.wish||'';document.getElementById('wsBonus').value=d.bonus||bonus;}
+  openM('M_wish');
+}
+async function saveWish(){
+  const email=document.getElementById('wsWish').dataset.email;
+  const teamId=document.getElementById('wsWish').dataset.team;
+  const bonus=parseFloat(document.getElementById('wsBonus').value)||0;
+  const wish=document.getElementById('wsWish').value.trim();
+  const mo=document.getElementById('wsMonth').value;
+
+  // Save to sl_team for backward compat
+  await APP.db.from('sl_team').update({bonus_wish:bonus}).eq('id',teamId);
+  const t=APP.team.find(x=>x.id==teamId); if(t) t.bonus_wish=bonus;
+
+  // Save wish+bonus to sl_tasks (section='target')
+  const desc=JSON.stringify({wish,bonus});
+  const {data:ex}=await APP.db.from('sl_tasks').select('id').eq('section','target').eq('assigned_to',email).eq('month',mo).maybeSingle();
+  if(ex?.id){await APP.db.from('sl_tasks').update({description:desc,updated_at:new Date().toISOString()}).eq('id',ex.id);}
+  else{await APP.db.from('sl_tasks').insert({title:'Maqsad '+mo,description:desc,section:'target',month:mo,assigned_to:email,assigned_by:APP.user.email,status:'pending'});}
+
+  // Recalculate total bonus for this month across all team members
+  // Load all target tasks for this month
+  const {data:allWishes}=await APP.db.from('sl_tasks').select('description').eq('section','target').eq('month',mo);
+  let totalBonus=0;
+  (allWishes||[]).forEach(w=>{try{totalBonus+=parseFloat(JSON.parse(w.description||'{}').bonus||0);}catch(e){}});
+  // Save total to params so runCalc can use it
+  await saveP('bonus_'+mo, String(totalBonus));
+
+  closeM('M_wish');
+  // Refresh monthly bonuses in memory
+  APP.monthlyBonuses[mo]=totalBonus;
+  APP.params['bonus_'+mo]=String(totalBonus);
+  loadSection('team');
+}
+function openDailyTaskModal(){
+  document.getElementById('tTitle').value='';
+  document.getElementById('tDesc').value='';
+  document.getElementById('tPrio').value='high';
+  document.getElementById('tSect').value='target';
+  document.getElementById('tDue').value=new Date().toISOString().slice(0,10);
+  document.getElementById('tAssign').innerHTML=APP.team.map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('');
+  openM('M_task');
+}
+
+function openTaskModal(){
+  document.getElementById('tTitle').value=''; document.getElementById('tDesc').value='';
+  document.getElementById('tPrio').value='medium'; document.getElementById('tSect').value='general';
+  document.getElementById('tDue').value=new Date().toISOString().slice(0,10);
+  document.getElementById('tAssign').innerHTML=APP.team.map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('');
+  openM('M_task');
+}
+async function saveTask(){
+  await APP.db.from('sl_tasks').insert({title:document.getElementById('tTitle').value.trim(),description:document.getElementById('tDesc').value.trim(),assigned_to:document.getElementById('tAssign').value,assigned_by:APP.user.email,section:document.getElementById('tSect').value,priority:document.getElementById('tPrio').value,due_date:document.getElementById('tDue').value,month:APP.currentMonth,status:'pending'});
+  closeM('M_task');
+  const sect=document.getElementById('tSect').value;
+  loadSection(sect==='callcenter'?'callcenter':'team');
+}
+async function openTeamModal(id=null){
+  const t = id ? (APP.team.find(x=>String(x.id)===String(id)) || APP.allTeam?.find(x=>String(x.id)===String(id))) : null;
+  const brAll = APP.allBranches || APP.branches;
+  
+  // Build form HTML using string concatenation (no nested template literals)
+  let branchOpts = '<option value="">— Tanlang —</option>';
+  brAll.forEach(b => {
+    const sel = t?.branch_id && String(t.branch_id)===String(b.id) ? ' selected' : '';
+    branchOpts += '<option value="'+b.id+'"'+sel+'>'+b.name+'</option>';
+  });
+  
+  const roles = [
+    ['SALES_STAFF','Sotuvchi'],['BRANCH_MGR','Filial menejer'],
+    ['TOP_MGR','Top-menejer'],['COLLECTOR','Kollektor'],
+    ['CALLCENTER','Koll-markaz'],['CFO','Moliya boshlighi']
+  ];
+  let roleOpts = '';
+  roles.forEach(([v,l]) => {
+    const sel = t?.role===v ? ' selected' : '';
+    roleOpts += '<option value="'+v+'"'+sel+'>'+l+'</option>';
+  });
+
+  document.getElementById('M_team_title').textContent = id ? 'Xodimni tahrirlash' : 'Xodim qoshish';
+  document.getElementById('M_team_body').innerHTML =
+    '<div class="fRow c2">'
+      +'<div class="fG"><label>Ism Familiya</label><input id="tmName" value="'+(t?.full_name||'')+'"></div>'
+      +'<div class="fG"><label>Email</label><input id="tmEmail" type="email" value="'+(t?.email||'')+'"></div>'
+    +'</div>'
+    +'<div class="fRow c2">'
+      +'<div class="fG"><label>Lavozim</label><input id="tmPos" value="'+(t?.position||'')+'"></div>'
+      +'<div class="fG"><label>Rol</label><select id="tmRole">'+roleOpts+'</select></div>'
+    +'</div>'
+    +'<div class="fRow c2">'
+      +'<div class="fG"><label>Filial</label><select id="tmBranch">'+branchOpts+'</select></div>'
+      +'<div class="fG"><label>Maosh $</label><input id="tmSalary" type="number" value="'+(t?.salary_usd||300)+'"></div>'
+    +'</div>'
+    +'<div class="fG"><label>Telegram ID (raqamli)</label><input id="tmTg" value="'+(t?.telegram_id||'')+'"></div>';
+
+  // Store id for saveTeam
+  window._teamEditId = id || null;
+  document.getElementById('M_team_foot').innerHTML = 
+    '<button class="btn" onclick="closeM(\'M_team\')">Bekor</button>' +
+    '<button class="btn primary" onclick="saveTeamFromModal()">Saqlash</button>';
+  
+  openM('M_team');
+}
+
+function saveTeamFromModal(){
+  saveTeam(window._teamEditId);
+}
+
+async function saveTeam(id){
+  const row={full_name:document.getElementById('tmName').value.trim(),email:document.getElementById('tmEmail').value.trim().toLowerCase(),position:document.getElementById('tmPos').value.trim(),role:document.getElementById('tmRole').value,branch_id:document.getElementById('tmBranch').value||null,salary_usd:parseFloat(document.getElementById('tmSalary').value)||0,telegram_id:document.getElementById('tmTg').value.trim()};
+  if(id){await APP.db.from('sl_team').update(row).eq('id',id);}else{await APP.db.from('sl_team').insert(row);}
+  closeM('M_team'); await loadBase(); loadSection(APP.currentSection);
+}
+
+// ════════════════════════════════════════════════
+// FINANCE
+// ════════════════════════════════════════════════
+async function renderFinance(){
+  const c=runCalc(); const mo=APP.currentMonth;
+  const {data:sls}=await APP.db.from('sl_sales').select('*').gte('date',mo+'-01').lte('date',mo+'-31');
+  const sales=sls||[];
+  const totalRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const installRev=sales.filter(x=>x.payment_type==='installment').reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const cashRev=totalRev-installRev;
+  const cashIn=cashRev+installRev/c.installMonths;
+  const cogs=totalRev*(1-c.grossMargin/100);
+  const grossP=totalRev-cogs;
+  const totalBonus=APP.team.reduce((s,t)=>s+parseFloat(t.bonus_wish||0),0);
+  const totalOpex=c.totalFOT+c.totalRent+c.mktBudget+c.otherOpex+totalBonus;
+  const netP=grossP-totalOpex;
+  const pct=c.targetProfit>0?Math.round(netP/c.targetProfit*100):0;
+  const pnlRows=[
+    {l:'Выручка (план)',v:c.netRev,b:false,cls:''},
+    {l:'Выручка (факт)',v:totalRev,b:true,cls:totalRev>=c.netRev?'green':'red'},
+    {l:'Себестоимость',v:-cogs,b:false,cls:'red'},
+    {l:'Валовая прибыль',v:grossP,b:true,cls:'blue'},
+    {l:'',v:null,sep:true},
+    {l:'ФОТ',v:-c.totalFOT,b:false,cls:''},
+    {l:'Аренда',v:-c.totalRent,b:false,cls:''},
+    {l:'Маркетинг',v:-c.mktBudget,b:false,cls:''},
+    {l:'Бонусы сотрудников',v:-totalBonus,b:false,cls:''},
+    {l:'Прочие расходы',v:-c.otherOpex,b:false,cls:''},
+    {l:'Итого расходы',v:-totalOpex,b:true,cls:'red'},
+    {l:'',v:null,sep:true},
+    {l:'Чистая прибыль',v:netP,b:true,cls:netP>=c.targetProfit?'green':'red'},
+    {l:'Чистая маржа %',v:null,str:totalRev>0?(netP/totalRev*100).toFixed(1)+'%':'—',b:true,cls:totalRev>0&&netP/totalRev*100>=c.targetMargin?'green':'amber'},
+  ];
+  let html=mSel()+`<div class="kpiGrid">
+    ${kpi('Выручка факт',fmtD(totalRev),`${Math.round(totalRev/c.netRev*100)}% от плана`,totalRev>=c.netRev?'green':'amber')}
+    ${kpi('Валовая прибыль',fmtD(grossP),`Маржа ${c.grossMargin}%`,'blue')}
+    ${kpi('Операц. расходы',fmtD(totalOpex),'','amber')}
+    ${kpi('Чистая прибыль',fmtD(netP),`${pct}% от плана`,netP>=c.targetProfit?'green':'red')}
+    ${kpi('Cash IN',fmtD(cashIn),`Нал. ${fmtD(cashRev)}`,'green')}
+    ${kpi('Дефицит ликв.',fmtD(Math.max(0,totalRev-cashIn)),`Рассрочка ${c.installPct}%`,'red')}
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+  <div class="card"><div class="cardH"><h3>P&L — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Статья</th><th style="text-align:right">Сумма $</th></tr></thead>
+    <tbody>${pnlRows.map(r=>r.sep?`<tr><td colspan="2" style="padding:2px;background:var(--bg)"></td></tr>`:
+      r.b?`<tr style="font-weight:700;background:var(--bg)"><td>${r.l}</td><td style="text-align:right;font-family:var(--mono);color:var(--${r.cls||'ink'})">${r.str||fmtD(r.v)}</td></tr>`:
+      `<tr><td>${r.l}</td><td style="text-align:right;font-family:var(--mono);color:var(--${r.cls||'ink'})">${r.str||fmtD(r.v)}</td></tr>`
+    ).join('')}</tbody>
+  </table></div></div>
+  <div class="card"><div class="cardH"><h3>Cash Flow — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Статья</th><th style="text-align:right">$</th></tr></thead>
+    <tbody>
+      <tr><td>Продажи наличными</td><td style="text-align:right;font-family:var(--mono)">${fmtD(cashRev)}</td></tr>
+      <tr><td>Поступления рассрочки (1/${c.installMonths})</td><td style="text-align:right;font-family:var(--mono)">${fmtD(installRev/c.installMonths)}</td></tr>
+      <tr style="font-weight:700;background:var(--bg)"><td>ИТОГО Cash IN</td><td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(cashIn)}</td></tr>
+      <tr><td colspan="2" style="padding-top:8px;font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase">Исходящие</td></tr>
+      <tr><td>Себестоимость</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs)}</td></tr>
+      <tr><td>ФОТ</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalFOT)}</td></tr>
+      <tr><td>Аренда</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalRent)}</td></tr>
+      <tr><td>Маркетинг</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.mktBudget)}</td></tr>
+      <tr><td>Прочие + бонусы</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.otherOpex+totalBonus)}</td></tr>
+      <tr style="font-weight:700;background:var(--bg)"><td>ИТОГО Cash OUT</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs+totalOpex)}</td></tr>
+      <tr style="font-weight:700;font-size:14px"><td>Net Cash Flow</td><td style="text-align:right;font-family:var(--mono);color:var(--${cashIn-cogs-totalOpex>=0?'green':'red'})">${fmtD(cashIn-cogs-totalOpex)}</td></tr>
+    </tbody>
+  </table></div></div>
+  </div>
+  <div class="card"><div class="cardH"><h3>Параметры финансов</h3></div><div class="cardB">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">
+      ${pFld('install_pct','Рассрочка % от продаж')}
+      ${pFld('install_months','Срок рассрочки (мес)')}
+      ${pFld('bad_debt_pct','Плохой долг %','number','0.1')}
+      ${pFld('other_opex','Прочие расходы $/мес')}
+    </div>
+  </div></div>`;
+
+  // ACTUAL EXPENSES INPUT
+  const expKey='expenses_'+mo; let exp={};
+  try{exp=JSON.parse(APP.params[expKey]||'{}');}catch(e){}
+  const actFot=parseFloat(exp.fot!==undefined?exp.fot:c.totalFOT);
+  const actRent=parseFloat(exp.rent!==undefined?exp.rent:c.totalRent);
+  const actMkt=parseFloat(exp.mkt!==undefined?exp.mkt:c.mktBudget);
+  const actBonus=parseFloat(exp.bonuses||0);
+  const actOther=parseFloat(exp.other!==undefined?exp.other:c.otherOpex);
+  const actOpex2=actFot+actRent+actMkt+actBonus+actOther;
+  const actNetP=grossP-actOpex2;
+  const moIdx3=APP.months.indexOf(mo);
+  const mPct3=c.normRates[moIdx3>=0?moIdx3:0]||1;
+  const planNetP=c.targetProfit*mPct3;
+  const canFin=['ADMIN','TOP_MGR','CFO'].includes(APP.user?.role||'');
+  const expInputs=['fot','rent','mkt','bonuses','other'];
+  const expLabels=['Ish haqi $','Ijara $','Marketing $','Bonuslar $','Boshqa $'];
+  const expDefaults=[c.totalFOT,c.totalRent,c.mktBudget*mPct3,0,c.otherOpex];
+
+  html+=`<div class="card"><div class="cardH"><h3>Haqiqiy xarajatlar — ${monthLabel(mo)}</h3>
+    <span class="hint">Moliya bolimi kiritadi</span>
+    ${canFin?'<span class="badge badge-green" style="margin-left:auto">Tahrir</span>':''}
+  </div><div class="cardB"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px">
+    ${expInputs.map((f,i)=>`<div class="fG"><label>${expLabels[i]}</label>
+      ${canFin
+        ?`<input class="pInput" type="number" value="${Math.round(parseFloat(exp[f]!==undefined?exp[f]:expDefaults[i]))}" onchange="saveExp('${expKey}','${f}',this.value)" style="font-family:var(--mono);font-weight:600">`
+        :`<div style="padding:8px 10px;font-size:14px;font-weight:700;font-family:var(--mono)">${fmtD(parseFloat(exp[f]!==undefined?exp[f]:expDefaults[i]))}</div>`}
+    </div>`).join('')}
+  </div></div></div>`;
+
+  // PLAN vs FACT TABLE
+  const pvfRows=[
+    {l:'Daromad',plan:c.netRev*mPct3,fact:totalRev,isExp:false},
+    {l:'Yalpi foyda',plan:c.netRev*mPct3*(c.grossMargin/100),fact:grossP,isExp:false},
+    {l:'Ish haqi',plan:c.totalFOT,fact:actFot,isExp:true},
+    {l:'Ijara',plan:c.totalRent,fact:actRent,isExp:true},
+    {l:'Marketing',plan:c.mktBudget*mPct3,fact:actMkt,isExp:true},
+    {l:'Bonuslar',plan:c.totalBonuses*mPct3,fact:actBonus,isExp:true},
+    {l:'Boshqa',plan:c.otherOpex,fact:actOther,isExp:true},
+    {l:'Jami xarajatlar',plan:totalOpex,fact:actOpex2,isExp:true},
+  ];
+  html+=`<div class="card"><div class="cardH"><h3>Reja vs Haqiqat — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Ko'rsatkich</th><th style="text-align:right">Reja $</th><th style="text-align:right">Haqiqat $</th><th style="text-align:right">Farq $</th><th style="text-align:right">%</th></tr></thead>
+    <tbody>${pvfRows.map(r=>{
+      const diff=r.isExp?r.plan-r.fact:r.fact-r.plan;
+      const good=r.isExp?r.fact<=r.plan:r.fact>=r.plan;
+      const pct2=r.plan>0?Math.round(r.fact/r.plan*100):0;
+      return `<tr><td>${r.l}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(r.plan)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${good?'green':'red'})">${fmtD(r.fact)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${diff>=0?'green':'red'})">${diff>=0?'+':''}${fmtD(diff)}</td>
+        <td><span class="badge badge-${good?'green':pct2>=80?'amber':'red'}">${pct2}%</span></td>
+      </tr>`;
+    }).join('')}</tbody>
+    <tfoot><tr class="tFoot"><td>Sof foyda</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(planNetP)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--${actNetP>=planNetP?'green':'red'})">${fmtD(actNetP)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--${actNetP>=planNetP?'green':'red'})">${actNetP>=planNetP?'+':''}${fmtD(actNetP-planNetP)}</td>
+      <td><span class="badge badge-${actNetP>=planNetP?'green':'red'}">${planNetP>0?Math.round(actNetP/planNetP*100):0}%</span></td>
+    </tr></tfoot>
+  </table></div></div>`;
+
+
+  // ── INSTALLMENT CASH FLOW ──
+  const canFin2=['ADMIN','TOP_MGR','CFO'].includes(APP.user?.role||'');
+  let pastMonths2=[];
+  let [pyr2,pmo2]=(APP.params.start_month||'2026-05').split('-').map(Number);
+  for(let i=1;i<=3;i++){pmo2--;if(pmo2<1){pmo2=12;pyr2--;}pastMonths2.unshift(`${pyr2}-${String(pmo2).padStart(2,'0')}`);}
+  const instMonths=[...pastMonths2,...APP.months];
+  const instData={};
+  instMonths.forEach(m=>{try{instData[m]=JSON.parse(APP.params['inst_'+m]||'{}');}catch(e){instData[m]={};} });
+  const totalPortfolio=instMonths.reduce((s,m)=>s+parseFloat(instData[m].sold||0),0);
+  const totalCollected2=instMonths.reduce((s,m)=>s+parseFloat(instData[m].collected||0),0);
+  const totalRemaining2=instMonths.reduce((s,m)=>s+parseFloat(instData[m].remaining||0),0);
+
+  const instRows=instMonths.map(m=>{
+    const d=instData[m]||{};
+    const sold=parseFloat(d.sold||0),coll=parseFloat(d.collected||0),rem=parseFloat(d.remaining||Math.max(0,sold-coll)),exp=parseFloat(d.expected||0);
+    const isPast=m<(APP.params.start_month||'2026-05');
+    return `<tr style="${isPast?'opacity:.7':''}">
+      <td><strong>${monthLabel(m)}</strong>${isPast?' <small style="color:var(--ink4)">(tarix)</small>':''}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(sold)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(coll)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--${rem>0?'amber':'green'})">${fmtD(rem)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--blue)">${fmtD(exp)}</td>
+      <td style="font-size:11px;color:var(--ink3)">${d.note||'—'}</td>
+      ${canFin2?`<td><button class="btn sm primary" onclick="openInstModal('${m}')">Kiritish</button></td>`:''}
+    </tr>`;
+  }).join('');
+
+  html+=`<div class="card"><div class="cardH">
+    <h3>Muddatli tolov — Kassa rejasi</h3>
+    <span class="hint">Moliya jamoasi har oy kiritadi</span>
+    ${canFin2?'<span class="badge badge-green" style="margin-left:auto">Tahrir</span>':''}
+  </div><div class="cardB">
+    <div class="kpiGrid" style="margin-bottom:16px">
+      ${kpi('Jami portfel',fmtD(totalPortfolio),'muddatli sotuvlar','amber')}
+      ${kpi('Undirildi',fmtD(totalCollected2),'haqiqiy tushum','green')}
+      ${kpi('Qoldiq',fmtD(totalRemaining2),'kutilayotgan','blue')}
+      ${kpi('Muddatli ulushi',c.installPct+'%','sotuvlardan','amber')}
+    </div>
+    <div class="tWrap"><table>
+      <thead><tr>
+        <th>Oy</th>
+        <th style="text-align:right">Muddatli sotuvlar $</th>
+        <th style="text-align:right">Tushum $</th>
+        <th style="text-align:right">Qoldiq $</th>
+        <th style="text-align:right">Keyingi oy kutiladi $</th>
+        <th>Izoh</th>
+        ${canFin2?'<th></th>':''}
+      </tr></thead>
+      <tbody>${instRows}</tbody>
+    </table></div>
+  </div></div>`;
+
+  html+=wArea('finance'); document.getElementById('content').innerHTML=html; renderWidgets('finance');
+}
+
+async function openInstModal(mo) {
+  let d={};try{d=JSON.parse(APP.params['inst_'+mo]||'{}');}catch(e){}
+  document.getElementById('M_user_title').textContent='Muddatli tolov — '+monthLabel(mo);
+  document.getElementById('M_user_body').innerHTML=`
+    <div class="fRow c2">
+      <div class="fG"><label>Muddatli sotuvlar $ (bu oy)</label><input id="instSold" type="number" value="${Math.round(d.sold||0)}"></div>
+      <div class="fG"><label>Haqiqiy tushum $ (bu oy)</label><input id="instColl" type="number" value="${Math.round(d.collected||0)}" oninput="document.getElementById('instRem').value=Math.max(0,(parseFloat(document.getElementById('instSold').value)||0)-(parseFloat(this.value)||0))"></div>
+    </div>
+    <div class="fRow c2">
+      <div class="fG"><label>Qoldiq $ (avtomatik)</label><input id="instRem" type="number" value="${Math.round(d.remaining||Math.max(0,(d.sold||0)-(d.collected||0)))}" style="background:var(--bg)"></div>
+      <div class="fG"><label>Keyingi oyda kutiladi $</label><input id="instExp" type="number" value="${Math.round(d.expected||0)}"></div>
+    </div>
+    <div class="fG"><label>Izoh</label><textarea id="instNote" rows="2" style="resize:vertical">${d.note||''}</textarea></div>`;
+  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveInst('${mo}')">Saqlash</button>`;
+  openM('M_user');
+}
+
+async function saveInst(mo){
+  const sold=parseFloat(document.getElementById('instSold').value)||0;
+  const coll=parseFloat(document.getElementById('instColl').value)||0;
+  const rem=parseFloat(document.getElementById('instRem').value)||Math.max(0,sold-coll);
+  const exp=parseFloat(document.getElementById('instExp').value)||0;
+  const note=document.getElementById('instNote').value.trim();
+  await saveP('inst_'+mo,JSON.stringify({sold,collected:coll,remaining:rem,expected:exp,note,updated:new Date().toISOString().slice(0,10)}));
+}
+async function saveExp(expKey,field,val){
+  let exp={};try{exp=JSON.parse(APP.params[expKey]||'{}');}catch(e){}
+  exp[field]=parseFloat(val)||0;
+  await saveP(expKey,JSON.stringify(exp));
+}
+
+// ════════════════════════════════════════════════
+// COLLECTIONS
+// ════════════════════════════════════════════════
+async function renderCollections(){
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn primary" onclick="openCollModal()">+ Должник</button>`;
+  const {data:cols}=await APP.db.from('sl_collections').select('*').order('overdue_days',{ascending:false});
+  const list=cols||[];
+  const totD=list.reduce((s,c)=>s+parseFloat(c.total_debt||0),0);
+  const totP=list.reduce((s,c)=>s+parseFloat(c.paid||0),0);
+  const totR=list.reduce((s,c)=>s+parseFloat(c.remaining||0),0);
+  const ov30=list.filter(c=>c.overdue_days>=30).length;
+  let html=`<div class="kpiGrid">
+    ${kpi('Всего долгов',fmtD(totD),`${list.length} договоров`,'red')}
+    ${kpi('Оплачено',fmtD(totP),totD>0?Math.round(totP/totD*100)+'%':'-','green')}
+    ${kpi('Остаток',fmtD(totR),'','amber')}
+    ${kpi('Просрочка 30+',ov30,'договоров','red')}
+  </div>
+  <div class="card"><div class="cardH"><h3>Должники</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Клиент</th><th>Телефон</th><th>Филиал</th><th style="text-align:right">Долг $</th><th style="text-align:right">Оплачено $</th><th style="text-align:right">Остаток $</th><th style="text-align:right">Дней</th><th>Статус</th><th>Коллектор</th><th>Контакт</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <tbody>${list.map(c=>{
+      const br=APP.branches.find(b=>b.id===c.branch_id);
+      const coll=APP.team.find(t=>t.email===c.collector_email);
+      const sMap={active:'amber',paid:'green',written_off:'gray',legal:'red'};
+      return `<tr>
+        <td><strong>${c.client_name}</strong></td><td style="font-size:11px">${c.phone||'—'}</td>
+        <td>${br?.name||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.total_debt||0)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(c.paid||0)}</td>
+        <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(c.remaining||0)}</td>
+        <td style="text-align:right"><span class="badge badge-${c.overdue_days>=60?'red':c.overdue_days>=30?'amber':'gray'}">${c.overdue_days||0}</span></td>
+        <td><span class="badge badge-${sMap[c.status]||'gray'}">${c.status||'—'}</span></td>
+        <td style="font-size:11px">${coll?.full_name||c.collector_email||'—'}</td>
+        <td style="font-size:11px;font-family:var(--mono)">${c.next_action||'—'}</td>
+        ${canEdit()?`<td><button class="btn sm" onclick="openCollModal('${c.id}')">Ред.</button></td>`:''}
+      </tr>`;
+    }).join('')||'<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--ink3)">Данных нет</td></tr>'}</tbody>
+  </table></div></div>`;
+  html+=wArea('collections'); document.getElementById('content').innerHTML=html; renderWidgets('collections');
+}
+async function openCollModal(id=null){
+  document.getElementById('M_coll_title').textContent=id?'Редактировать':'Добавить должника';
+  const brOpts='<option value="">—</option>'+APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  const cOpts='<option value="">—</option>'+APP.team.filter(t=>t.role==='COLLECTOR').map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('');
+  document.getElementById('clBranch').innerHTML=brOpts;
+  document.getElementById('clColl').innerHTML=cOpts;
+  if(id){
+    const {data}=await APP.db.from('sl_collections').select('*').eq('id',id).single();
+    if(data){
+      document.getElementById('clName').value=data.client_name||'';
+      document.getElementById('clPhone').value=data.phone||'';
+      document.getElementById('clDate').value=data.contract_date||'';
+      document.getElementById('clDebt').value=data.total_debt||'';
+      document.getElementById('clPaid').value=data.paid||'';
+      document.getElementById('clDays').value=data.overdue_days||'';
+      document.getElementById('clNext').value=data.next_action||'';
+      document.getElementById('clNotes').value=data.notes||'';
+      setTimeout(()=>{document.getElementById('clBranch').value=data.branch_id||'';document.getElementById('clColl').value=data.collector_email||'';},50);
+    }
+  } else { ['clName','clPhone','clDate','clDebt','clPaid','clDays','clNext','clNotes'].forEach(x=>document.getElementById(x).value=''); }
+  document.getElementById('M_coll_title').dataset.id=id||'';
+  openM('M_coll');
+}
+async function saveColl(){
+  const id=document.getElementById('M_coll_title').dataset.id;
+  const debt=parseFloat(document.getElementById('clDebt').value)||0;
+  const paid=parseFloat(document.getElementById('clPaid').value)||0;
+  const row={client_name:document.getElementById('clName').value.trim(),phone:document.getElementById('clPhone').value.trim(),branch_id:document.getElementById('clBranch').value||null,contract_date:document.getElementById('clDate').value||null,total_debt:debt,paid,remaining:Math.max(0,debt-paid),overdue_days:parseInt(document.getElementById('clDays').value)||0,next_action:document.getElementById('clNext').value||null,collector_email:document.getElementById('clColl').value,notes:document.getElementById('clNotes').value.trim()};
+  if(id){await APP.db.from('sl_collections').update(row).eq('id',id);}else{await APP.db.from('sl_collections').insert(row);}
+  closeM('M_coll'); loadSection('collections');
+}
+
+// ════════════════════════════════════════════════
+// PROCUREMENT
+// ════════════════════════════════════════════════
+async function renderProcurement(){
+  const c=runCalc();
+  const invM=parseFloat(APP.params.inventory_months||1.5);
+  const wCap=c.netRev*(1-c.grossMargin/100)*invM;
+  let html=`<div style="background:var(--amber-t);border:1px solid var(--amber);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--amber)">Раздел в разработке. Базовые расчёты доступны.</div>
+  <div class="kpiGrid">
+    ${kpi('Единиц нужно/мес',fmt(c.units),'план','blue')}
+    ${kpi('Запас (месяцев)',invM,'от месячного плана','')}
+    ${kpi('Запас (штук)',fmt(Math.ceil(c.units*invM)),'нужно держать','amber')}
+    ${kpi('Оборотный капитал',fmtD(wCap),'на склад','red')}
+  </div>
+  <div class="card"><div class="cardH"><h3>Потребность по моделям</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Модель</th><th>Категория</th><th style="text-align:right">Цена $</th><th style="text-align:right">Себест. $</th><th style="text-align:right">Нужно/мес</th><th style="text-align:right">Запас (шт)</th><th style="text-align:right">Стоимость запаса $</th></tr></thead>
+    <tbody>${APP.models.map(m=>{
+      const u=APP.models.length>0?Math.ceil(c.units/APP.models.length):0;
+      const st=Math.ceil(u*invM);
+      return `<tr><td><strong>${m.name}</strong></td>
+        <td><span class="badge badge-${m.category==='Premium'?'blue':m.category==='Mid'?'green':'gray'}">${m.category||'—'}</span></td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(m.price_usd||0)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(m.cost_usd||0)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${u}</td>
+        <td style="text-align:right;font-family:var(--mono)">${st}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(st*(m.cost_usd||0))}</td>
+      </tr>`;
+    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Нет моделей</td></tr>'}</tbody>
+  </table></div></div>
+  <div class="card"><div class="cardH"><h3>Параметры</h3></div><div class="cardB"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${pFld('inventory_months','Запас (месяцев)','number','0.5')}</div></div></div>`;
+  document.getElementById('content').innerHTML=html;
+}
+
+// ════════════════════════════════════════════════
+// SETTINGS
+// ════════════════════════════════════════════════
+async function renderCallCenter(){
+  const mo = APP.currentMonth;
+  const canCC = ['ADMIN','TOP_MGR','CALLCENTER'].includes(APP.user?.role||'');
+  if(canEdit()) document.getElementById('topbarRight').innerHTML='<button class="btn" onclick="openTgPreview()">TG Preview</button><button class="btn" onclick="openRecurringModal()" style="margin-left:4px">+ Qaytalanadigan</button><button class="btn primary" onclick="openCCTaskModal()" style="margin-left:4px">+ Vazifa</button>';
+
+  const {data:tasks} = await APP.db.from('sl_tasks').select('*').eq('section','callcenter').order('due_date');
+  const {data:daily} = await APP.db.from('sl_tasks').select('*').eq('section','callcenter').eq('due_date', new Date().toISOString().slice(0,10));
+  const allTasks = tasks||[];
+  const pending  = allTasks.filter(t=>t.status==='pending');
+  const done     = allTasks.filter(t=>t.status==='done');
+  const today    = new Date().toISOString().slice(0,10);
+  const todayT   = allTasks.filter(t=>t.due_date===today);
+  const todayDone= todayT.filter(t=>t.status==='done');
+
+  let html = `<div class="kpiGrid">
+    ${kpi('Jami vazifalar', allTasks.length, 'koll-markaz', 'blue')}
+    ${kpi('Bajarilmagan', pending.length, 'ochiq', pending.length>5?'red':'amber')}
+    ${kpi('Bajarilgan', done.length, 'jami', 'green')}
+    ${kpi('Bugun vazifalar', todayT.length, `${todayDone.length} bajarilgan`, todayDone.length===todayT.length&&todayT.length>0?'green':'amber')}
+  </div>`;
+
+  // DAILY TASKS TODAY
+  html += `<div class="card"><div class="cardH">
+    <h3>Bugungi vazifalar — ${today}</h3>
+    <span class="hint">${todayDone.length}/${todayT.length} bajarilgan</span>
+    ${todayT.length>0?`<div style="margin-left:auto"><div class="prog" style="width:120px"><div class="progFill" style="width:${todayT.length>0?Math.round(todayDone.length/todayT.length*100):0}%;background:var(--green)"></div></div></div>`:''}
+  </div><div class="cardB">
+    ${todayT.length?`<div style="display:flex;flex-direction:column;gap:8px">
+      ${todayT.map(t=>{
+        const op=APP.team.find(x=>x.email===t.assigned_to);
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg);border-radius:8px;border-left:3px solid var(--${t.status==='done'?'green':'amber'})">
+          <input type="checkbox" ${t.status==='done'?'checked':''} onchange="toggleTask('${t.id}','${t.status}')" style="accent-color:var(--green);width:16px;height:16px;flex-shrink:0">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;${t.status==='done'?'text-decoration:line-through;color:var(--ink3)':''}">${t.title}</div>
+            ${t.description?`<div style="font-size:11px;color:var(--ink3);margin-top:2px">${t.description}</div>`:''}
+          </div>
+          <div style="font-size:11px;color:var(--ink3)">${op?.full_name||t.assigned_to}</div>
+          <span class="badge badge-${t.status==='done'?'green':'amber'}">${t.status==='done'?'Bajarildi':'Kutilmoqda'}</span>
+        </div>`;
+      }).join('')}
+    </div>`:`<div style="text-align:center;padding:20px;color:var(--ink3)">Bugun vazifa yoq</div>`}
+  </div></div>`;
+
+  // ALL TASKS TABLE
+  const pColor={high:'red',medium:'amber',low:'gray'};
+  html += `<div class="card"><div class="cardH"><h3>Barcha vazifalar</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Vazifa</th><th>Bajaruvchi</th><th>Belgilagan</th><th>Muhimlik</th><th>Muddati</th><th>Holati</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <tbody>${allTasks.map(t=>{
+      const op=APP.team.find(x=>x.email===t.assigned_to);
+      const isToday=t.due_date===today;
+      const isOverdue=t.due_date&&t.due_date<today&&t.status==='pending';
+      return `<tr style="${isOverdue?'background:var(--red-t)':''}">
+        <td>
+          <strong>${t.title}</strong>
+          ${t.description?`<br><small style="color:var(--ink3)">${String(t.description).slice(0,60)}</small>`:''}
+          ${isToday?'<span class="badge badge-blue" style="margin-left:6px;font-size:9px">Bugun</span>':''}
+          ${isOverdue?'<span class="badge badge-red" style="margin-left:6px;font-size:9px">Kechikdi</span>':''}
+        </td>
+        <td>${op?.full_name||t.assigned_to||'—'}</td>
+        <td style="font-size:11px;color:var(--ink3)">${t.assigned_by||'—'}</td>
+        <td><span class="badge badge-${pColor[t.priority]||'gray'}">${t.priority==='high'?'Yuqori':t.priority==='medium'?'Oʻrta':'Past'}</span></td>
+        <td style="font-size:11px;font-family:var(--mono);color:var(--${isOverdue?'red':'ink3'})">${t.due_date||'—'}</td>
+        <td><span class="badge badge-${t.status==='done'?'green':t.status==='pending'?'amber':'gray'}">${t.status==='done'?'Bajarildi':t.status==='pending'?'Kutilmoqda':'Bekor'}</span></td>
+        ${canEdit()?`<td><button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">${t.status==='pending'?'Bajarildi':'Ochish'}</button></td>`:''}
+      </tr>`;
+    }).join('')||`<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Vazifalar yo'q</td></tr>`}</tbody>
+  </table></div></div>`;
+
+  // STATS BY OPERATOR
+  const byOp={};
+  APP.team.filter(t=>t.role==='CALLCENTER').forEach(t=>{byOp[t.email]={name:t.full_name,total:0,done:0};});
+  allTasks.forEach(t=>{
+    if(byOp[t.assigned_to]){byOp[t.assigned_to].total++;if(t.status==='done')byOp[t.assigned_to].done++;}
+  });
+  const opRows=Object.values(byOp);
+  if(opRows.length){
+    html+=`<div class="card"><div class="cardH"><h3>Operatorlar statistikasi</h3></div><div class="cardB tWrap"><table>
+      <thead><tr><th>Operator</th><th style="text-align:right">Jami</th><th style="text-align:right">Bajarildi</th><th style="text-align:right">Kutilmoqda</th><th style="text-align:right">%</th></tr></thead>
+      <tbody>${opRows.map(op=>{
+        const pct2=op.total>0?Math.round(op.done/op.total*100):0;
+        return `<tr><td><strong>${op.name}</strong></td>
+          <td style="text-align:right">${op.total}</td>
+          <td style="text-align:right;color:var(--green)">${op.done}</td>
+          <td style="text-align:right;color:var(--amber)">${op.total-op.done}</td>
+          <td style="text-align:right"><span class="badge badge-${pct2>=80?'green':pct2>=50?'amber':'red'}">${pct2}%</span></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div></div>`;
+  }
+
+  html += recurringRulesPanel('callcenter');
+  document.getElementById('content').innerHTML=html;
+  // Auto-generate recurring tasks on view
+  generateRecurringTasks().then(()=>{}).catch(e=>{});
+}
+
+function openCCTaskModal(){
+  document.getElementById('tTitle').value='';
+  document.getElementById('tDesc').value='';
+  document.getElementById('tPrio').value='medium';
+  document.getElementById('tSect').value='callcenter';
+  document.getElementById('tDue').value=new Date().toISOString().slice(0,10);
+  const ccTeam=APP.team.filter(t=>t.role==='CALLCENTER'||t.role==='ADMIN');
+  document.getElementById('tAssign').innerHTML=ccTeam.length
+    ?ccTeam.map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('')
+    :APP.team.map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('');
+  openM('M_task');
+}
+
+// ══════════════════════════════════════
+// RECURRING TASKS ENGINE
+// ══════════════════════════════════════
+function openRecurringModal(section='general'){
+  document.getElementById('rTitle').value='';
+  document.getElementById('rDesc').value='';
+  document.getElementById('rPrio').value='medium';
+  document.getElementById('rSect').value=section;
+  document.getElementById('rStart').value=new Date().toISOString().slice(0,10);
+  document.getElementById('rEnd').value='';
+  document.getElementById('rAssign').innerHTML=APP.team.map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('');
+  openM('M_recur');
+}
+
+async function saveRecurring(){
+  const rule={
+    title:document.getElementById('rTitle').value.trim(),
+    desc:document.getElementById('rDesc').value.trim(),
+    assigned_to:document.getElementById('rAssign').value,
+    section:document.getElementById('rSect').value,
+    priority:document.getElementById('rPrio').value,
+    freq:document.getElementById('rFreq').value,
+    start:document.getElementById('rStart').value,
+    end:document.getElementById('rEnd').value||null,
+    active:true,
+    created_by:APP.user.email,
+    created_at:new Date().toISOString()
+  };
+  if(!rule.title){alert('Vazifa nomini kiriting');return;}
+  let rules=[];
+  try{rules=JSON.parse(APP.params.recurring_tasks||'[]');}catch(e){}
+  rule.id='r_'+Date.now();
+  rules.push(rule);
+  await saveP('recurring_tasks',JSON.stringify(rules));
+  closeM('M_recur');
+  // Generate tasks for today immediately
+  await generateRecurringTasks();
+  alert('Qaytalanadigan vazifa yaratildi!');
+  loadSection(APP.currentSection);
+}
+
+async function generateRecurringTasks(){
+  let rules=[];
+  try{rules=JSON.parse(APP.params.recurring_tasks||'[]');}catch(e){return;}
+  if(!rules.length) return;
+  const today=new Date().toISOString().slice(0,10);
+  const todayDate=new Date(today);
+  const dow=todayDate.getDay(); // 0=Sun,1=Mon...5=Fri,6=Sat
+
+  for(const rule of rules){
+    if(!rule.active) continue;
+    if(rule.start>today) continue;
+    if(rule.end&&rule.end<today) continue;
+
+    // Check frequency
+    let shouldCreate=false;
+    if(rule.freq==='daily') shouldCreate=true;
+    else if(rule.freq==='weekdays') shouldCreate=dow>=1&&dow<=5;
+    else if(rule.freq==='weekly') shouldCreate=dow===1; // Monday
+    else if(rule.freq==='monthly') shouldCreate=todayDate.getDate()===1;
+
+    if(!shouldCreate) continue;
+
+    // Check if already created today
+    const {data:existing}=await APP.db.from('sl_tasks')
+      .select('id').eq('title',rule.title).eq('assigned_to',rule.assigned_to)
+      .eq('due_date',today).eq('section',rule.section);
+    if(existing&&existing.length>0) continue;
+
+    // Create task
+    await APP.db.from('sl_tasks').insert({
+      title:rule.title,
+      description:rule.desc||'',
+      assigned_to:rule.assigned_to,
+      assigned_by:rule.created_by||'system',
+      section:rule.section,
+      priority:rule.priority||'medium',
+      due_date:today,
+      month:today.slice(0,7),
+      status:'pending'
+    });
+  }
+}
+
+async function deleteRecurringRule(id){
+  let rules=[];
+  try{rules=JSON.parse(APP.params.recurring_tasks||'[]');}catch(e){}
+  rules=rules.filter(r=>r.id!==id);
+  await saveP('recurring_tasks',JSON.stringify(rules));
+  loadSection(APP.currentSection);
+}
+
+async function toggleRecurringRule(id,active){
+  let rules=[];
+  try{rules=JSON.parse(APP.params.recurring_tasks||'[]');}catch(e){}
+  const r=rules.find(x=>x.id===id); if(r) r.active=active;
+  await saveP('recurring_tasks',JSON.stringify(rules));
+  loadSection(APP.currentSection);
+}
+
+function recurringRulesPanel(section){
+  let rules=[];
+  try{rules=JSON.parse(APP.params.recurring_tasks||'[]');}catch(e){}
+  const sectionRules=rules; // show all rules regardless of section
+  if(!sectionRules.length&&!canEdit()) return '';
+  const freqLabel={daily:'Har kuni',weekdays:'Har kuni (DU-JU)',weekly:'Har hafta',monthly:'Har oy'};
+  return `<div class="card"><div class="cardH">
+    <h3>Qaytalanadigan vazifalar qoidalari</h3>
+    ${canEdit()?'<button class="btn primary sm" onclick="openRecurringModal()" style="margin-left:auto">+ Qoida qoshish</button>':''}
+  </div><div class="cardB">
+    ${sectionRules.length?`<div class="tWrap"><table>
+      <thead><tr><th>Vazifa</th><th>Bajaruvchi</th><th>Takrorlash</th><th>Boshlanishi</th><th>Holati</th>${canEdit()?'<th></th>':''}</tr></thead>
+      <tbody>${sectionRules.map(r=>{
+        const op=APP.team.find(t=>t.email===r.assigned_to);
+        return `<tr>
+          <td><strong>${r.title}</strong>${r.desc?`<br><small style="color:var(--ink3)">${r.desc}</small>`:''}</td>
+          <td>${op?.full_name||r.assigned_to}</td>
+          <td><span class="badge badge-blue">${freqLabel[r.freq]||r.freq}</span></td>
+          <td style="font-family:var(--mono);font-size:11px">${r.start}${r.end?` → ${r.end}`:''}</td>
+          <td><span class="badge badge-${r.active?'green':'gray'}">${r.active?'Faol':'Nofaol'}</span></td>
+          ${canEdit()?`<td style="white-space:nowrap">
+            <button class="btn sm" onclick="toggleRecurringRule('${r.id}',${!r.active})">${r.active?'Toʻxtat':'Yoqish'}</button>
+            <button class="btn sm danger" onclick="deleteRecurringRule('${r.id}')">O'ch.</button>
+          </td>`:''}
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`:`<div style="text-align:center;padding:16px;color:var(--ink3)">Qoidalar yo'q. ${canEdit()?'Yuqoridagi tugmani bosing.':''}</div>`}
+  </div></div>`;
+}
+
+// ══════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════
+async function renderLeaderboard(){
+  const c=runCalc(); const mo=APP.currentMonth;
+  const {data:sls}=await APP.db.from('sl_sales').select('*').gte('date',mo+'-01').lte('date',mo+'-31');
+  const sales=sls||[];
+  const moIdx=APP.months.indexOf(mo);
+
+  // Branch ranking
+  const branchRank=APP.branches.map(b=>{
+    const bp=bmp(b,c,moIdx>=0?moIdx:0);
+    const fact=sales.filter(s=>s.branch_id===b.id).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+    const units=sales.filter(s=>s.branch_id===b.id).reduce((s,x)=>s+parseInt(x.qty||1),0);
+    const pct=bp.rev>0?Math.round(fact/bp.rev*100):0;
+    return{b,fact,units,plan:bp.rev,pct};
+  }).sort((a,b)=>b.pct-a.pct);
+
+  // Seller ranking
+  const sellerMap={};
+  sales.forEach(s=>{
+    if(!sellerMap[s.salesperson]) sellerMap[s.salesperson]={email:s.salesperson,rev:0,units:0};
+    sellerMap[s.salesperson].rev+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);
+    sellerMap[s.salesperson].units+=parseInt(s.qty||1);
+  });
+  const sellerRank=Object.values(sellerMap).sort((a,b)=>b.rev-a.rev);
+
+  const medals=['1','2','3'];
+  const medalColors=['amber','blue','green'];
+
+  let html=`<div style="text-align:center;padding:16px 0 8px">
+    <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px">${monthLabel(mo)} — Reyting</div>
+  </div>`;
+
+  // TOP 3 branches visual
+  html+=`<div style="display:flex;align-items:flex-end;justify-content:center;gap:16px;margin-bottom:20px;padding:0 20px">`;
+  const top3=[branchRank[1],branchRank[0],branchRank[2]].filter(Boolean);
+  const heights=[140,180,120];
+  top3.forEach((br,i)=>{
+    const realRank=branchRank.indexOf(br);
+    const podiumH=heights[i];
+    const col=i===1?'var(--amber)':i===0?'var(--blue)':'var(--green)';
+    html+=`<div style="flex:1;display:flex;flex-direction:column;align-items:center;max-width:160px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">${br.b.name}</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:4px">${fmtD(br.fact)}</div>
+      <div style="font-size:20px;font-weight:800;color:${col};margin-bottom:4px">${br.pct}%</div>
+      <div style="width:100%;height:${podiumH}px;background:${col};border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;opacity:.85">
+        <span style="font-size:${i===1?'36':'28'}px;font-weight:800;color:#fff">${realRank+1}</span>
+      </div>
+    </div>`;
+  });
+  html+=`</div>`;
+
+  // Full branch table
+  html+=`<div class="card"><div class="cardH"><h3>Filiallar reytingi — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>O'rin</th><th>Filial</th><th>Shahar</th><th style="text-align:right">Reja $</th><th style="text-align:right">Haqiqat $</th><th style="text-align:right">Dona</th><th style="text-align:right">Bajarish %</th><th style="text-align:right">Qoldi $</th></tr></thead>
+    <tbody>${branchRank.map((br,i)=>{
+      const medal=i<3?['🥇','🥈','🥉'][i]:'';
+      return `<tr style="${i===0?'background:rgba(217,119,6,.05)':''}">
+        <td style="font-size:16px;text-align:center">${medal||i+1}</td>
+        <td><strong>${br.b.name}</strong></td>
+        <td style="color:var(--ink3)">${br.b.city||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(br.plan)}</td>
+        <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${br.pct>=100?'green':br.pct>=70?'amber':'red'})">${fmtD(br.fact)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${br.units}</td>
+        <td style="text-align:right">
+          <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">
+            <div class="prog" style="width:80px"><div class="progFill" style="width:${Math.min(100,br.pct)}%;background:${br.pct>=100?'var(--green)':br.pct>=70?'var(--amber)':'var(--blue)'}"></div></div>
+            <span class="badge badge-${br.pct>=100?'green':br.pct>=70?'amber':'red'}">${br.pct}%</span>
+          </div>
+        </td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${br.pct>=100?'green':'ink3'})">${fmtD(Math.max(0,br.plan-br.fact))}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>`;
+
+  // Seller ranking
+  if(sellerRank.length){
+    html+=`<div class="card"><div class="cardH"><h3>Sotuvchilar reytingi — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+      <thead><tr><th>O'rin</th><th>Sotuvchi</th><th>Filial</th><th style="text-align:right">Sotuv $</th><th style="text-align:right">Dona</th></tr></thead>
+      <tbody>${sellerRank.map((s,i)=>{
+        const t=APP.team.find(x=>x.email===s.email);
+        const br=APP.branches.find(b=>b.id===t?.branch_id);
+        const medal=i<3?['🥇','🥈','🥉'][i]:'';
+        return `<tr style="${i===0?'background:rgba(217,119,6,.05)':''}">
+          <td style="font-size:16px;text-align:center">${medal||i+1}</td>
+          <td><strong>${t?.full_name||s.email}</strong></td>
+          <td style="color:var(--ink3)">${br?.name||'—'}</td>
+          <td style="text-align:right;font-weight:700;font-family:var(--mono);color:var(--${i===0?'amber':'ink'})">${fmtD(s.rev)}</td>
+          <td style="text-align:right;font-family:var(--mono)">${s.units}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div></div>`;
+  }
+
+  document.getElementById('content').innerHTML=html;
+}
+
+// ══════════════════════════════════════
+// INVENTORY
+// ══════════════════════════════════════
+async function renderInventory(){
+  if(canEdit()) document.getElementById('topbarRight').innerHTML='<button class="btn primary" onclick="openInvModal()">+ Kirim/Chiqim</button>';
+  const {data:inv}=await APP.db.from('sl_inventory').select('*,sl_models(name,category),sl_branches(name)').order('date',{ascending:false});
+  const list=inv||[];
+
+  // Calculate balance per model per branch
+  const balMap={};
+  list.forEach(r=>{
+    const key=`${r.branch_id}_${r.model_id}`;
+    if(!balMap[key]) balMap[key]={branch:r.sl_branches?.name||'—',model:r.sl_models?.name||'—',category:r.sl_models?.category||'',qty:0,value:0};
+    balMap[key].qty+=parseInt(r.qty_in||0)-parseInt(r.qty_out||0);
+    balMap[key].value+=parseFloat(r.total_value||0);
+  });
+  const balances=Object.values(balMap).filter(b=>b.qty>0).sort((a,b)=>b.qty-a.qty);
+  const totalQty=balances.reduce((s,b)=>s+b.qty,0);
+  const totalVal=balances.reduce((s,b)=>s+b.value,0);
+  const c=runCalc();
+
+  let html=`<div class="kpiGrid">
+    ${kpi('Jami omborda',totalQty+' dona','barcha filiallar','blue')}
+    ${kpi('Ombor qiymati',fmtD(totalVal),'tannarx bo\'yicha','amber')}
+    ${kpi('Oylik reja',fmt(c.units)+' dona','sotish kerak','')}
+    ${kpi('Ombor (oylar)',totalQty>0&&c.units>0?(totalQty/c.units).toFixed(1)+' oy':'—','qancha vaqtga yetadi',totalQty/c.units>=1?'green':'red')}
+  </div>
+  <div class="card"><div class="cardH"><h3>Joriy qoldiq — barcha filiallar</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Filial</th><th>Model</th><th>Kategoriya</th><th style="text-align:right">Qoldiq (dona)</th><th style="text-align:right">Qiymat $</th><th>Holat</th></tr></thead>
+    <tbody>${balances.map(b=>`<tr>
+      <td>${b.branch}</td>
+      <td><strong>${b.model}</strong></td>
+      <td><span class="badge badge-${b.category==='Premium'?'blue':b.category==='Mid'?'green':'gray'}">${b.category||'—'}</span></td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${b.qty<=2?'red':b.qty<=5?'amber':'green'})">${b.qty}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(b.value)}</td>
+      <td><span class="badge badge-${b.qty<=2?'red':b.qty<=5?'amber':'green'}">${b.qty<=2?'Kam':b.qty<=5?'Yetarli':'Bor'}</span></td>
+    </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--ink3)">Ma\'lumot yo\'q</td></tr>'}</tbody>
+  </table></div></div>
+  <div class="card"><div class="cardH"><h3>Oxirgi harakatlar</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Sana</th><th>Filial</th><th>Model</th><th style="text-align:right">Kirim</th><th style="text-align:right">Chiqim</th><th style="text-align:right">Qoldiq</th><th style="text-align:right">Tannarx $</th></tr></thead>
+    <tbody>${list.slice(0,30).map(r=>`<tr>
+      <td style="font-family:var(--mono);font-size:11px">${r.date}</td>
+      <td>${r.sl_branches?.name||'—'}</td>
+      <td>${r.sl_models?.name||'—'}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--green)">${r.qty_in||0}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--red)">${r.qty_out||0}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700">${r.qty_balance||0}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(r.total_value||0)}</td>
+    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Ma\'lumot yo\'q</td></tr>'}</tbody>
+  </table></div></div>`;
+
+  document.getElementById('content').innerHTML=html;
+}
+
+async function openInvModal(id=null){
+  const brOpts=APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  const mdOpts=APP.models.map(m=>`<option value="${m.id}">${m.name} (tannarx: $${m.cost_usd})</option>`).join('');
+  document.getElementById('M_user_title').textContent='Ombor harakati';
+  document.getElementById('M_user_body').innerHTML=`
+    <div class="fRow c2">
+      <div class="fG"><label>Sana</label><input id="invDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="fG"><label>Filial</label><select id="invBranch">${brOpts}</select></div>
+    </div>
+    <div class="fG" style="margin-bottom:12px"><label>Model</label><select id="invModel" onchange="calcInvTotal()">${mdOpts}</select></div>
+    <div class="fRow c3">
+      <div class="fG"><label>Kirim (dona)</label><input id="invIn" type="number" min="0" value="0" oninput="calcInvTotal()"></div>
+      <div class="fG"><label>Chiqim (dona)</label><input id="invOut" type="number" min="0" value="0" oninput="calcInvTotal()"></div>
+      <div class="fG"><label>Tannarx $ (dona)</label><input id="invCost" type="number" min="0" oninput="calcInvTotal()"></div>
+    </div>
+    <div class="fRow c2" style="margin-top:4px">
+      <div class="fG"><label>Jami qiymat $</label><input id="invTotal" type="number" readonly style="background:var(--bg);font-weight:700"></div>
+      <div class="fG"><label>Eslatma</label><input id="invNote"></div>
+    </div>`;
+  document.getElementById('M_user_foot').innerHTML='<button class="btn" onclick="closeM(\'M_user\')">Bekor</button><button class="btn primary" onclick="saveInv()">Saqlash</button>';
+  openM('M_user');
+  setTimeout(()=>{
+    const sel=document.getElementById('invModel');
+    const opt=sel.options[sel.selectedIndex];
+    const m=APP.models.find(x=>String(x.id)===opt.value);
+    if(m) document.getElementById('invCost').value=m.cost_usd||0;
+    calcInvTotal();
+  },50);
+}
+
+function calcInvTotal(){
+  const inQ=parseInt(document.getElementById('invIn').value)||0;
+  const outQ=parseInt(document.getElementById('invOut').value)||0;
+  const cost=parseFloat(document.getElementById('invCost').value)||0;
+  document.getElementById('invTotal').value=Math.round((inQ-outQ)*cost);
+}
+
+async function saveInv(){
+  const inQ=parseInt(document.getElementById('invIn').value)||0;
+  const outQ=parseInt(document.getElementById('invOut').value)||0;
+  const cost=parseFloat(document.getElementById('invCost').value)||0;
+  await APP.db.from('sl_inventory').insert({
+    date:document.getElementById('invDate').value,
+    branch_id:document.getElementById('invBranch').value,
+    model_id:document.getElementById('invModel').value,
+    qty_in:inQ,qty_out:outQ,qty_balance:inQ-outQ,
+    unit_cost:cost,total_value:Math.round((inQ-outQ)*cost),
+    notes:document.getElementById('invNote').value
+  });
+  closeM('M_user'); loadSection('inventory');
+}
+
+// ══════════════════════════════════════
+// AUTO TELEGRAM — har kuni soat 9:00
+// ══════════════════════════════════════
+function scheduleAutoTg(){
+  const TG_AUTO_KEY='tg_auto_enabled';
+  if(APP.params[TG_AUTO_KEY]!=='true') return;
+  const now=new Date();
+  const next=new Date();
+  next.setHours(9,0,0,0);
+  if(now>next) next.setDate(next.getDate()+1);
+  const ms=next-now;
+  console.log(`Auto TG: ${Math.round(ms/60000)} daqiqadan keyin`);
+  setTimeout(async()=>{
+    const sentKey='tg_sent_'+new Date().toISOString().slice(0,10);
+    if(APP.params[sentKey]==='true') return;
+    await sendTaskNotificationsToAll('daily');
+    await saveP(sentKey,'true');
+    scheduleAutoTg(); // schedule next day
+  },ms);
+}
+
+async function toggleAutoTg(){
+  const cur=APP.params.tg_auto_enabled==='true';
+  await saveP('tg_auto_enabled',cur?'false':'true');
+  if(!cur) scheduleAutoTg();
+  alert(cur?'Avtomatik TG o\'chirildi':'Avtomatik TG yoqildi! Har kuni soat 9:00 da yuboriladi.');
+}
+
+async function renderSettings(){
+  if(!canEdit()){document.getElementById('content').innerHTML='<div style="padding:40px;text-align:center;color:var(--ink3)">Доступ запрещён</div>';return;}
+  const sysParams=[
+    {k:'usd_rate',l:'Курс UZS/USD'},{k:'staff_salary',l:'Зарплата продавца $'},{k:'mgr_salary',l:'Зарплата менеджера $'},
+    {k:'commission_pct',l:'Комиссия продавца %'},{k:'tg_bot_token',l:'Telegram Bot Token'}
+  ];
+  let html=`<div class="card"><div class="cardH"><h3>Пользователи системы</h3><button class="btn primary sm" onclick="openUserModal()" style="margin-left:auto">+ Пользователь</button></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Email</th><th>Имя</th><th>Роль</th><th>Филиал</th><th>Разделы</th><th>Активен</th><th></th></tr></thead>
+    <tbody>${APP.users.map(u=>{
+      const br=APP.branches.find(b=>b.id===u.branch_id);
+      return `<tr><td style="font-size:11px;font-family:var(--mono)">${u.email}</td><td>${u.full_name||'—'}</td>
+        <td><span class="badge badge-${rColor(u.role)}">${roleLabel(u.role)}</span></td>
+        <td>${br?.name||'Все'}</td>
+        <td style="font-size:10px;color:var(--ink3)">${u.sections||'ALL'}</td>
+        <td><span class="badge badge-${u.active?'green':'gray'}">${u.active?'Да':'Нет'}</span></td>
+        <td style="white-space:nowrap">
+          <button class="btn sm" onclick="openUserModal('${u.email}')">Ред.</button>
+          <button class="btn sm" onclick="toggleActive('${u.email}',${u.active})">${u.active?'Деакт.':'Акт.'}</button>
+        </td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+  <div class="card"><div class="cardH"><h3>Системные параметры</h3></div><div class="cardB">
+    ${sysParams.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:12px">${p.l}</div>
+      <input value="${APP.params[p.k]||''}" onchange="saveP('${p.k}',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;width:160px;outline:none">
+    </div>`).join('')}
+  </div></div>
+  <div class="card"><div class="cardH"><h3>Сотрудники команды</h3><button class="btn primary sm" onclick="openTeamModal()" style="margin-left:auto">+ Добавить</button></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Имя</th><th>Роль</th><th>Филиал</th><th style="text-align:right">Зарплата $</th><th></th></tr></thead>
+    <tbody>${APP.team.map(t=>{
+      const br=APP.branches.find(b=>b.id===t.branch_id);
+      return `<tr><td>${t.full_name}<br><small style="color:var(--ink3)">${t.email||''}</small></td>
+        <td><span class="badge badge-${rColor(t.role)}">${roleLabel(t.role)}</span></td>
+        <td>${br?.name||'—'}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
+        <td><button class="btn sm" onclick="openTeamModal('${t.id}')">Ред.</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>
+  </div>
+  <div class="card"><div class="cardH"><h3>Виджеты (кастомизация разделов)</h3><span class="hint">Администратор добавляет виджеты в любой раздел</span></div><div class="cardB">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+      ${['strategy','sales','marketing','branches','team','finance','procurement','collections'].map(s=>{
+        let ws=[];try{ws=JSON.parse(APP.params[`widgets_${s}`]||'[]');}catch(e){}
+        return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+          <div style="font-size:11px;font-weight:700;margin-bottom:4px">${SECTIONS.find(x=>x.id===s)?.label||s}</div>
+          <div style="font-size:11px;color:var(--ink3)">${ws.length} виджет(ов)</div>
+          <button class="btn sm primary" onclick="openWidgetModal('${s}')" style="margin-top:8px">Добавить</button>
+          ${ws.length?`<button class="btn sm danger" onclick="clearWidgets('${s}')" style="margin-top:4px">Очистить</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div></div>`;
+  document.getElementById('content').innerHTML=html;
+}
+async function openUserModal(email=null){
+  const u=email?APP.users.find(x=>x.email===email):null;
+  const brOpts='<option value="">— Все —</option>'+APP.branches.map(b=>`<option value="${b.id}"${u?.branch_id===b.id?' selected':''}>${b.name}</option>`).join('');
+  document.getElementById('M_user_title').textContent=email?'Редактировать пользователя':'Добавить пользователя';
+  document.getElementById('M_user_body').innerHTML=`
+    <div class="fRow c2"><div class="fG"><label>Имя</label><input id="uName" value="${u?.full_name||''}"></div><div class="fG"><label>Email</label><input id="uEmail" type="email" value="${u?.email||''}"${email?' readonly':''}></div></div>
+    <div class="fRow c2"><div class="fG"><label>PIN-код${email?' (оставьте пустым чтобы не менять)':''}</label><input id="uPin" type="password" placeholder="••••••"></div><div class="fG"><label>Telegram ID</label><input id="uTg" value="${u?.telegram_id||''}"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Роль</label><select id="uRole">
+      <option value="ADMIN"${u?.role==='ADMIN'?' selected':''}>Админ</option>
+      <option value="TOP_MGR"${u?.role==='TOP_MGR'?' selected':''}>Топ-менеджер</option>
+      <option value="BRANCH_MGR"${u?.role==='BRANCH_MGR'?' selected':''}>Менеджер фил.</option>
+      <option value="SALES_STAFF"${!u||u?.role==='SALES_STAFF'?' selected':''}>Продавец</option>
+      <option value="COLLECTOR"${u?.role==='COLLECTOR'?' selected':''}>Коллектор</option>
+      <option value="CALLCENTER"${u?.role==='CALLCENTER'?' selected':''}>Колл-центр</option>
+      <option value="USER"${u?.role==='USER'?' selected':''}>Наблюдатель</option>
+    </select></div><div class="fG"><label>Филиал</label><select id="uBranch">${brOpts}</select></div></div>
+    <div class="fG"><label>Разделы (через запятую или ALL)</label><input id="uSects" value="${u?.sections||'ALL'}" placeholder="strategy,sales,marketing,..."></div>`;
+  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Отмена</button><button class="btn primary" onclick="saveUser('${email||''}')">Сохранить</button>`;
+  openM('M_user');
+}
+async function saveUser(email){
+  const pin=document.getElementById('uPin').value.trim();
+  const row={email:email||document.getElementById('uEmail').value.trim().toLowerCase(),full_name:document.getElementById('uName').value.trim(),telegram_id:document.getElementById('uTg').value.trim(),role:document.getElementById('uRole').value,branch_id:document.getElementById('uBranch').value||null,sections:document.getElementById('uSects').value.trim()||'ALL',active:true};
+  if(pin) row.pin_hash=await sha256(pin);
+  if(email){await APP.db.from('sl_users').update(row).eq('email',email);}else{await APP.db.from('sl_users').insert(row);}
+  closeM('M_user'); await loadBase(); loadSection('settings');
+}
+async function toggleActive(email,cur){await APP.db.from('sl_users').update({active:!cur}).eq('email',email);await loadBase();loadSection('settings');}
+async function clearWidgets(s){await saveP(`widgets_${s}`,'[]');}
+
+// ════════════════════════════════════════════════
+// WIDGET SYSTEM
+// ════════════════════════════════════════════════
+let _wSection='';
+function openWidgetModal(s){_wSection=s;openM('M_widget');}
+function wArea(section){
+  let ws=[];try{ws=JSON.parse(APP.params[`widgets_${section}`]||'[]');}catch(e){}
+  if(!canEdit()&&!ws.length) return '';
+  let html='';
+  if(canEdit()) html+=`<div class="wBar"><span style="font-size:11px;font-weight:700;color:var(--blue)">Кастомные виджеты</span><button class="btn primary sm" onclick="openWidgetModal('${section}')">+ Добавить виджет</button><span style="font-size:11px;color:var(--ink3);margin-left:auto">${ws.length} виджет(ов)</span></div>`;
+  ws.forEach((w,i)=>{html+=`<div class="card" id="ws_${section}_${i}"><div class="cardH"><h3>${w.title||w.source}</h3>${canEdit()?`<button class="btn sm danger" onclick="delWidget('${section}',${i})">Удалить</button>`:''}</div><div class="cardB" id="wc_${section}_${i}"><div style="text-align:center;padding:20px;color:var(--ink3)">Загрузка...</div></div></div>`;});
+  return html;
+}
+async function saveWidget(){
+  const type=document.getElementById('wType').value;
+  const source=document.getElementById('wSource').value;
+  const title=document.getElementById('wTitle').value.trim();
+  let ws=[];try{ws=JSON.parse(APP.params[`widgets_${_wSection}`]||'[]');}catch(e){}
+  ws.push({type,source,title:title||source});
+  await saveP(`widgets_${_wSection}`,JSON.stringify(ws)); closeM('M_widget');
+}
+async function delWidget(s,idx){let ws=[];try{ws=JSON.parse(APP.params[`widgets_${s}`]||'[]');}catch(e){}ws.splice(idx,1);await saveP(`widgets_${s}`,JSON.stringify(ws));}
+function renderWidgets(section){
+  let ws=[];try{ws=JSON.parse(APP.params[`widgets_${section}`]||'[]');}catch(e){}
+  const c=runCalc();
+  const dataSrc={
+    sales_by_branch:{labels:APP.branches.map(b=>b.name),data:APP.branches.map(b=>bmp(b,c,APP.months.indexOf(APP.currentMonth)>=0?APP.months.indexOf(APP.currentMonth):0).rev)},
+    sales_by_month:{labels:APP.months.map(monthLabel),data:APP.months.map((_,i)=>APP.branches.reduce((s,b)=>s+bmp(b,c,i).rev,0))},
+    leads_by_branch:{labels:APP.branches.map(b=>b.name),data:APP.branches.map(b=>bmp(b,c,0).leads)},
+    profit_by_branch:{labels:APP.branches.map(b=>b.name),data:APP.branches.map(b=>bmp(b,c,0).profit)},
+    mkt_by_branch:{labels:APP.branches.map(b=>b.name),data:APP.branches.map(b=>c.mktBudget*parseFloat(b.weight||1)/(c.totalWeight||1))},
+  };
+  ws.forEach((w,i)=>{
+    const el=document.getElementById(`wc_${section}_${i}`); if(!el) return;
+    const d=dataSrc[w.source];
+    if(!d){el.innerHTML=`<div style="text-align:center;color:var(--ink3);padding:20px">Источник: ${w.source}</div>`;return;}
+    if(w.type==='table'){el.innerHTML=`<table><thead><tr><th>Название</th><th style="text-align:right">Значение</th></tr></thead><tbody>${d.labels.map((l,j)=>`<tr><td>${l}</td><td style="text-align:right;font-family:var(--mono)">${fmtD(d.data[j])}</td></tr>`).join('')}</tbody></table>`;return;}
+    if(w.type==='kpi'){el.innerHTML=`<div class="kpiGrid">${d.labels.map((l,j)=>kpi(l,fmtD(d.data[j]),'','blue')).join('')}</div>`;return;}
+    const cid=`chart_${section}_${i}`;
+    el.innerHTML=`<canvas id="${cid}" height="80"></canvas>`;
+    if(APP._charts[cid]) APP._charts[cid].destroy();
+    APP._charts[cid]=new Chart(document.getElementById(cid),{type:w.type==='line'?'line':w.type==='pie'?'pie':'bar',data:{labels:d.labels,datasets:[{label:w.title||w.source,data:d.data,backgroundColor:w.type==='pie'?['#2563eb','#059669','#d97706','#dc2626','#7c3aed','#0891b2'].slice(0,d.data.length):'rgba(37,99,235,.75)',borderColor:'#2563eb',borderWidth:w.type==='line'?2:0,fill:w.type==='line',tension:0.4,borderRadius:4}]},options:{responsive:true,plugins:{legend:{display:w.type==='pie'}},scales:w.type!=='pie'?{y:{beginAtZero:true,ticks:{callback:v=>'$'+Math.round(v/1000)+'K'}}}:{}}});
+  });
+}
+
+// ════════════════════════════════════════════════
+// TELEGRAM
+// ════════════════════════════════════════════════
+async function sendTgMsg(chatId,text){
+  const token=APP.params.tg_bot_token;
+  if(!token||token.length<10){alert('Настройте tg_bot_token в Настройках → Системные параметры');return false;}
+  const r=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text,parse_mode:'HTML'})});
+  const res=await r.json(); return res.ok;
+}
+async function sendTgTo(tgId,name,mo){
+  const c=runCalc();
+  const t=APP.team.find(x=>String(x.telegram_id)===String(tgId));
+  const br=APP.branches.find(b=>b.id===t?.branch_id);
+  const plan=br?bmp(br,c,APP.months.indexOf(mo)>=0?APP.months.indexOf(mo):0):{rev:0,units:0};
+  const staff=parseInt(br?.staff_count||1);
+  const myPlan=plan.rev/staff;
+  const msg=`<b>Smartlife — Ваш план</b>\n\n👤 ${name}\n🏪 ${br?.name||'—'}\n📅 ${monthLabel(mo)}\n\n💰 Личный план (выручка): <b>$${Math.round(myPlan).toLocaleString('ru-RU')}</b>\n📱 Единиц продать: <b>${Math.ceil(plan.units/staff)} шт</b>\n📆 Дневной план: <b>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</b>\n\n🎯 Удачи! Ты справишься!`;
+  const ok=await sendTgMsg(tgId,msg);
+  alert(ok?'Уведомление отправлено!':'Ошибка отправки — проверьте Telegram ID и Bot Token');
+}
+// ══════════════════════════════════════
+// TELEGRAM — TASK NOTIFICATIONS
+// ══════════════════════════════════════
+async function sendTaskNotificationsToAll(freq='daily'){
+  const today=new Date().toISOString().slice(0,10);
+  const todayDate=new Date(today);
+  const dow=todayDate.getDay();
+  const isMonday=dow===1;
+  const isFirst=todayDate.getDate()===1;
+  let sent=0,failed=0,skipped=0;
+  for(const member of APP.team){
+    if(!member.telegram_id){skipped++;continue;}
+    const {data:todayTasks}=await APP.db.from('sl_tasks').select('*').eq('assigned_to',member.email).eq('due_date',today).eq('status','pending');
+    let weekTasks=[],monthTasks=[];
+    if(isMonday){const r=await APP.db.from('sl_tasks').select('*').eq('assigned_to',member.email).gte('due_date',today).lte('due_date',addDays(today,6)).eq('status','pending');weekTasks=r.data||[];}
+    if(isFirst){const r=await APP.db.from('sl_tasks').select('*').eq('assigned_to',member.email).eq('month',today.slice(0,7)).eq('status','pending');monthTasks=r.data||[];}
+    const c=runCalc();
+    const br=APP.branches.find(b=>b.id===member.branch_id);
+    const moIdx=APP.months.indexOf(APP.currentMonth);
+    const plan=br?bmp(br,c,moIdx>=0?moIdx:0):{rev:0,units:0};
+    const staffCount=parseInt(br?.staff_count||1);
+    const myPlan=plan.rev/staffCount;
+    const dayPlanAmt=myPlan/26;
+    const lines=[];
+    lines.push(`<b>Smartlife — Salom, ${member.full_name.split(' ')[0]}!</b>`);
+    lines.push(`Sana: ${today}`);
+    lines.push('');
+    if(br){
+      lines.push(`Bugungi sotuv rejasi: <b>$${Math.round(dayPlanAmt).toLocaleString('ru-RU')}</b>`);
+      lines.push(`Oylik reja: $${Math.round(myPlan).toLocaleString('ru-RU')}`);
+      lines.push('');
+    }
+    if((todayTasks||[]).length){
+      lines.push(`Bugungi vazifalar (${(todayTasks||[]).length} ta):`);
+      (todayTasks||[]).slice(0,5).forEach((t,i)=>lines.push(`${i+1}. ${t.title}`));
+      lines.push('');
+    } else {
+      lines.push('Bugun vazifa yoq');
+      lines.push('');
+    }
+    if(isMonday&&weekTasks.length){
+      lines.push(`Haftalik vazifalar (${weekTasks.length} ta):`);
+      weekTasks.slice(0,5).forEach((t,i)=>lines.push(`${i+1}. ${t.title} — ${t.due_date}`));
+      lines.push('');
+    }
+    if(isFirst&&monthTasks.length){
+      lines.push(`Oylik vazifalar (${monthTasks.length} ta):`);
+      monthTasks.slice(0,5).forEach((t,i)=>lines.push(`${i+1}. ${t.title}`));
+      lines.push('');
+    }
+    const wTask=await APP.db.from('sl_tasks').select('*').eq('section','target').eq('assigned_to',member.email).eq('month',APP.currentMonth).maybeSingle();
+    if(wTask.data){let wd={};try{wd=JSON.parse(wTask.data.description||'{}');}catch(e){}if(wd.wish)lines.push(`Maqsad: ${wd.wish}`);if(wd.bonus)lines.push(`Bonus: $${wd.bonus}`);}
+    lines.push('');
+    lines.push('Muvaffaqiyat!');
+    const msg=lines.join('\n');
+    const ok=await sendTgMsg(member.telegram_id,msg);
+    if(ok)sent++;else failed++;
+    await new Promise(r=>setTimeout(r,150));
+  }
+  alert(`Yuborildi: ${sent} | Xato: ${failed} | TG ID yoq: ${skipped}`);
+}
+
+function addDays(dateStr,days){const d=new Date(dateStr);d.setDate(d.getDate()+days);return d.toISOString().slice(0,10);}
+
+async function sendDailyNotifications(){
+  const c=runCalc(); const mo=APP.currentMonth;
+  let sent=0, failed=0;
+  for(const t of APP.team){
+    if(!t.telegram_id) continue;
+    const br=APP.branches.find(b=>b.id===t.branch_id);
+    const plan=br?bmp(br,c,APP.months.indexOf(mo)>=0?APP.months.indexOf(mo):0):{rev:0,units:0};
+    const staff=parseInt(br?.staff_count||1);
+    const myPlan=plan.rev/staff;
+    const msg=`<b>Smartlife — Ежедневный план</b>\n\n👤 ${t.full_name}\n🏪 ${br?.name||'—'}\n📅 ${monthLabel(mo)}\n\n💰 Мой план на месяц: <b>$${Math.round(myPlan).toLocaleString('ru-RU')}</b>\n📆 Дневной план: <b>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</b>\n📱 Продать в месяц: <b>${Math.ceil(plan.units/staff)} шт</b>`;
+    const ok=await sendTgMsg(t.telegram_id,msg);
+    if(ok) sent++; else failed++;
+  }
+  alert(`Отправлено: ${sent} / Ошибок: ${failed}`);
+}
+
+// ════════════════════════════════════════════════
+// SELLER VIEW
+// ════════════════════════════════════════════════
+async function renderSellerView(){
+  const u=APP.user; const c=runCalc(); const mo=yyyymm(); const today=new Date().toISOString().slice(0,10);
+  const [{data:sls},{data:tasks},{data:wTask},{data:allSales}] = await Promise.all([
+    APP.db.from('sl_sales').select('*').eq('salesperson',u.email).gte('date',mo+'-01').lte('date',mo+'-31'),
+    APP.db.from('sl_tasks').select('*').eq('assigned_to',u.email).eq('status','pending').order('due_date'),
+    APP.db.from('sl_tasks').select('*').eq('section','target').eq('assigned_to',u.email).eq('month',mo).maybeSingle(),
+    APP.db.from('sl_sales').select('*').gte('date',mo+'-01').lte('date',mo+'-31')
+  ]);
+  const sales=sls||[];
+  const br=APP.branches.find(b=>String(b.id)===String(u.branch_id));
+  const moIdx=APP.months.indexOf(mo);
+  const plan=br?bmp(br,c,moIdx>=0?moIdx:0):{rev:0,units:0};
+  const tgtKey='target_'+mo+'_'+u.id;
+  const myPlanOverride=parseFloat(APP.params[tgtKey]||0);
+  const staff=parseInt(br?.staff_count||1);
+  const myPlan=myPlanOverride>0?myPlanOverride:plan.rev/staff;
+  const dayPlan=myPlan/26;
+  const factRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const factU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
+  const dayFact=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const mPct=myPlan>0?Math.min(100,factRev/myPlan*100):0;
+  const dPct=dayPlan>0?Math.min(100,dayFact/dayPlan*100):0;
+  let wish={};try{wish=JSON.parse(wTask?.description||'{}');}catch(e){}
+
+  // Branch leaderboard
+  const branchRank=APP.branches.map(b=>{
+    const bp=bmp(b,c,moIdx>=0?moIdx:0);
+    const fact=(allSales||[]).filter(s=>s.branch_id===b.id).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+    const pct=bp.rev>0?Math.round(fact/bp.rev*100):0;
+    return{name:b.name,city:b.city||'',fact,plan:bp.rev,pct,isMe:b.id===u.branch_id};
+  }).sort((a,b)=>b.pct-a.pct);
+
+  const sv=document.getElementById('sellerView');
+  sv.style.background='#0d1b2a';
+  sv.style.minHeight='100vh';
+  sv.style.padding='16px';
+  sv.style.color='#fff';
+
+  sv.innerHTML=`<div style="max-width:520px;margin:0 auto;padding-bottom:40px">
+
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 20px">
+      <div>
+        <div style="font-size:22px;font-weight:800">Salom, ${(u.full_name||u.email).split(' ')[0]}! 👋</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">${br?.name||'—'} · ${today}</div>
+      </div>
+      <button onclick="doLogout()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 14px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;font-family:inherit">Chiqish</button>
+    </div>
+
+    <!-- MAQSAD/BONUS -->
+    ${wish.wish||wish.bonus?`<div style="background:linear-gradient(135deg,rgba(37,99,235,.3),rgba(5,150,105,.2));border:1px solid rgba(37,99,235,.3);border-radius:14px;padding:14px 16px;margin-bottom:12px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.4);margin-bottom:8px">Mening maqsadim</div>
+      ${wish.wish?`<div style="font-size:15px;font-weight:700;margin-bottom:6px">🎯 ${wish.wish}</div>`:''}
+      ${wish.bonus?`<div style="font-size:13px;color:#34d399;">🏆 Bonus: <strong>$${wish.bonus}</strong> — reja bajarilsa!</div>`:''}
+    </div>`:''}
+
+    <!-- OYLIK REJA -->
+    <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">📅 ${mo} — Oylik reja</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Reja</div>
+          <div style="font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px">$${Math.round(myPlan).toLocaleString('ru-RU')}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Haqiqat</div>
+          <div style="font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;color:${mPct>=100?'#34d399':mPct>=70?'#fbbf24':'#f87171'}">$${Math.round(factRev).toLocaleString('ru-RU')}</div>
+        </div>
+      </div>
+      <div style="height:10px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;margin-bottom:8px">
+        <div style="width:${mPct}%;height:100%;background:${mPct>=100?'#10b981':mPct>=70?'#f59e0b':'#3b82f6'};border-radius:5px;transition:width .5s"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4)">
+        <span>${Math.round(mPct)}% bajarildi · ${factU} ta sotildi</span>
+        <span>Qoldi: $${Math.round(Math.max(0,myPlan-factRev)).toLocaleString('ru-RU')}</span>
+      </div>
+    </div>
+
+    <!-- BUGUNGI REJA -->
+    <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">🌅 Bugungi reja</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+        <div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Reja</div>
+          <div style="font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px">$${Math.round(dayPlan).toLocaleString('ru-RU')}</div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Bugun</div>
+          <div style="font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;color:${dPct>=100?'#34d399':dPct>=50?'#fbbf24':'#f87171'}">$${Math.round(dayFact).toLocaleString('ru-RU')}</div>
+        </div>
+      </div>
+      <div style="height:10px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden">
+        <div style="width:${dPct}%;height:100%;background:${dPct>=100?'#10b981':dPct>=50?'#f59e0b':'#3b82f6'};border-radius:5px"></div>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px">${Math.round(dPct)}% · Reja: $${Math.round(dayPlan).toLocaleString('ru-RU')}/kun</div>
+    </div>
+
+    <!-- VAZIFALAR -->
+    ${(tasks||[]).length?`<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">✅ Vazifalar (${(tasks||[]).length} ta)</div>
+      ${(tasks||[]).map(t=>`<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+        <input type="checkbox" onchange="sellerToggleTask('${t.id}',this.checked)" style="accent-color:#3b82f6;width:18px;height:18px;flex-shrink:0;margin-top:2px">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${t.title}</div>
+          ${t.description?`<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${t.description}</div>`:''}
+          ${t.due_date?`<div style="font-size:10px;color:${t.due_date===today?'#fbbf24':'rgba(255,255,255,.3)'};margin-top:4px">${t.due_date===today?'Bugun':'Muddat: '+t.due_date}</div>`:''}
+        </div>
+        <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${t.priority==='high'?'rgba(220,38,38,.2)':t.priority==='medium'?'rgba(217,119,6,.2)':'rgba(100,116,139,.2)'};color:${t.priority==='high'?'#f87171':t.priority==='medium'?'#fbbf24':'#94a3b8'}">${t.priority==='high'?'Muhim':t.priority==='medium'?'Orta':'Past'}</span>
+      </div>`).join('')}
+    </div>`:`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:10px;text-align:center;color:rgba(255,255,255,.3);font-size:13px">Bugun vazifa yoq ✓</div>`}
+
+    <!-- FILIALLAR REYTINGI -->
+    <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">🏆 Filiallar reytingi — ${mo}</div>
+      ${branchRank.map((b,i)=>{
+        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':''+(i+1)+'.';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;margin-bottom:4px;${b.isMe?'background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.3)':''}">
+          <div style="font-size:${i<3?'18':'13'}px;width:28px;text-align:center">${medal}</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:${b.isMe?'700':'500'}">${b.name}${b.isMe?' 👈':''}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4)">${b.city}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:700;color:${b.pct>=100?'#34d399':b.pct>=70?'#fbbf24':'#f87171'}">${b.pct}%</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.4)">$${Math.round(b.fact).toLocaleString('ru-RU')}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+  </div>`;
+}
+async function sellerToggleTask(id,done){
+  await APP.db.from('sl_tasks').update({status:done?'done':'pending',updated_at:new Date().toISOString()}).eq('id',id);
+}
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+function fmt(n){return Math.round(n||0).toLocaleString('ru-RU');}
+function fmtD(n){return '$'+Math.round(n||0).toLocaleString('ru-RU');}
+function yyyymm(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function monthLabel(ym){if(!ym)return'';const[y,m]=ym.split('-');return['Yan','Fev','Mar','Apr','May','Iyun','Iyul','Avg','Sen','Okt','Noy','Dek'][parseInt(m)-1]+' '+y;}
+function canEdit(){return['ADMIN','TOP_MGR'].includes(APP.user?.role||'');}
+function isAdmin(){return APP.user?.role==='ADMIN';}
+
+async function toggleBranchPlan(branchId, makeActive){
+  let inactive=[];
+  try{inactive=JSON.parse(APP.params.inactive_branches||'[]').map(String);}catch(e){}
+  if(makeActive){
+    inactive=inactive.filter(id=>id!==String(branchId));
+  } else {
+    if(!inactive.includes(String(branchId))) inactive.push(String(branchId));
+  }
+  await saveP('inactive_branches', JSON.stringify(inactive));
+  // loadBase reloads branches, then reload section
+  await loadBase();
+  buildNav();
+  loadSection(APP.currentSection);
+}
+function getBranchMax(){let m={};try{m=JSON.parse(APP.params.branch_max||'{}');}catch(e){}return m;}
+async function saveBranchMax(id,val){
+  const m=getBranchMax();m[id]=parseFloat(val)||0;
+  await saveP('branch_max',JSON.stringify(m));
+  // Don't reload - inline edit
+}
+async function saveSellerMax(teamId,val){
+  let sm={};try{sm=JSON.parse(APP.params.seller_max||'{}');}catch(e){}
+  sm[teamId]=parseFloat(val)||0;
+  await saveP('seller_max',JSON.stringify(sm));
+}
+function isAdmin(){return APP.user?.role==='ADMIN';}
+function roleLabel(r){return{ADMIN:'Admin',TOP_MGR:'Top-menejer',BRANCH_MGR:'Filial menejer',SALES_STAFF:'Sotuvchi',USER:'Kuzatuvchi',COLLECTOR:'Kollektor',CALLCENTER:'Call-markaz'}[r]||r;}
+function rColor(r){return{ADMIN:'blue',TOP_MGR:'blue',BRANCH_MGR:'green',SALES_STAFF:'amber',USER:'gray',COLLECTOR:'red',CALLCENTER:'blue'}[r]||'gray';}
+function payL(p){return{cash:'Naqd',card:'Karta',installment:'Muddatli',transfer:'O\'tkazma'}[p]||p||'—';}
+function kpi(l,v,s,cls){return `<div class="kpi${cls?' '+cls:''}"><div class="kpiL">${l}</div><div class="kpiV">${v}</div>${s?`<div class="kpiS">${s}</div>`:''}</div>`;}
+function mSel(){return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-size:11px;color:var(--ink3)">Месяц:</span><select style="border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:12px;background:var(--bg);outline:none" onchange="APP.currentMonth=this.value;loadSection(APP.currentSection)">${APP.months.map(m=>`<option value="${m}"${m===APP.currentMonth?' selected':''}>${monthLabel(m)}</option>`).join('')}</select></div>`;}
+// ══ TG PREVIEW ══
+async function openTgPreview(){
+  const c=runCalc(); const today=new Date().toISOString().slice(0,10);
+  let html='';
+  for(const member of APP.team){
+    const hasTg=!!member.telegram_id;
+    const br=APP.branches.find(b=>b.id===member.branch_id);
+    const moIdx=APP.months.indexOf(APP.currentMonth);
+    const plan=br?bmp(br,c,moIdx>=0?moIdx:0):{rev:0,units:0};
+    const staffCount=parseInt(br?.staff_count||1);
+    const myPlan=plan.rev/staffCount;
+    const {data:todayTasks}=await APP.db.from('sl_tasks').select('title').eq('assigned_to',member.email).eq('due_date',today).eq('status','pending');
+
+    html+=`<div style="border:1px solid var(--${hasTg?'border':'amber'});border-radius:10px;padding:12px;margin-bottom:10px;${!hasTg?'background:var(--amber-t)':''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="width:32px;height:32px;background:var(--${hasTg?'blue':'amber'});border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">${(member.full_name||'?')[0]}</div>
+        <div>
+          <div style="font-weight:700;font-size:13px">${member.full_name}</div>
+          <div style="font-size:11px;color:var(--ink3)">${roleLabel(member.role)} · ${br?.name||'Filial yoq'}</div>
+        </div>
+        ${hasTg
+          ?`<span class="badge badge-green" style="margin-left:auto">TG: ${member.telegram_id}</span>`
+          :`<span class="badge badge-amber" style="margin-left:auto">TG ID yo'q</span>`}
+      </div>
+      ${hasTg?`<div style="background:var(--bg);border-radius:8px;padding:10px;font-size:12px;line-height:1.7">
+        <div>Bugungi sotuv rejasi: <strong>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</strong></div>
+        <div>Oylik reja: <strong>$${Math.round(myPlan).toLocaleString('ru-RU')}</strong></div>
+        ${(todayTasks||[]).length?`<div>Bugungi vazifalar: <strong>${(todayTasks||[]).map(t=>t.title).join(', ')}</strong></div>`:'<div style="color:var(--ink3)">Bugun vazifa yoq</div>'}
+      </div>`:`<div style="font-size:11px;color:var(--amber)">Bu xodimga xabar yuborilmaydi. Sozlamalarda Telegram ID qo'shing.</div>`}
+    </div>`;
+  }
+  document.getElementById('tgPreviewBody').innerHTML=html||'<div style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yoq</div>';
+  openM('M_tgpreview');
+}
+async function confirmSendTg(){
+  closeM('M_tgpreview');
+  await sendTaskNotificationsToAll('daily');
+}
+
+// ══ AI ASSISTANT ══
+const AI_KEY_PARAM='anthropic_api_key';
+let aiHistory=[];
+
+function openAiAssistant(){
+  document.getElementById('aiChat').innerHTML=`<div style="text-align:center;padding:20px;color:var(--ink3);font-size:12px">Salom! Men Smartlife platformasidagi malumotlar asosida tahlil qilaman. Savol bering.</div>`;
+  aiHistory=[];
+  openM('M_ai');
+}
+
+function askAi(q){
+  document.getElementById('aiInput').value=q;
+  sendAiMsg();
+}
+
+async function sendAiMsg(){
+  const input=document.getElementById('aiInput');
+  const q=input.value.trim();
+  if(!q) return;
+  input.value='';
+
+  const apiKey=APP.params[AI_KEY_PARAM];
+  if(!apiKey||apiKey.length<20){
+    addAiMsg('ai','Anthropic API kalit topilmadi. Sozlamalar - anthropic_api_key ga kalitingizni kiriting.');
+    return;
+  }
+
+  addAiMsg('user',q);
+  aiHistory.push({role:'user',content:q});
+  const loadId='ai_load_'+Date.now();
+  addAiMsg('ai','...',loadId);
+
+  // Build context
+  const c=runCalc();
+  const branchMax=getBranchMax();
+  const ctx=`Sen Smartlife kompaniyasi (Uzbekiston, iPhone sotuvi) uchun biznes tahlilchisan.
+
+JORIY MA'LUMOTLAR:
+- Maqsadli foyda: $${c.targetProfit.toLocaleString()}/oy
+- Maqsadli marja: ${c.targetMargin}%
+- O'rtacha chek: $${c.avgCheck}
+- Kerakli daromad: $${Math.round(c.netRev).toLocaleString()}/oy
+- Kerakli lidlar: ${c.totalLeads.toLocaleString()}/oy
+- Do'konga tashrif: ${c.storeVisits.toLocaleString()}/oy
+- Rej oylari: ${c.planMonths} (${APP.months.map(m=>m).join(', ')})
+- FoT: $${Math.round(c.totalFOT).toLocaleString()}/oy
+- Marketing: $${c.mktBudget.toLocaleString()}/oy
+- Jamoa: ${APP.team.length} kishi
+
+FILIALLAR:
+${APP.branches.map(b=>{
+  const max=parseFloat(branchMax[b.id]||0);
+  const planM=bmp(b,c,0);
+  return `- ${b.name} (${b.city}): ogirlik=${b.weight}, sotuvchi=${b.staff_count}, reja=$${Math.round(planM.rev).toLocaleString()}/oy${max?', maks=$'+Math.round(max).toLocaleString():''}`;
+}).join('\n')}
+
+Qisqa, aniq va amaliy javob ber. O'zbek tilida yoz.`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-opus-4-5',max_tokens:800,system:ctx,messages:aiHistory})
+    });
+    const data=await resp.json();
+    if(data.error){throw new Error(data.error.message);}
+    const reply=data.content?.[0]?.text||'Javob olishda xato';
+    aiHistory.push({role:'assistant',content:reply});
+    document.getElementById(loadId).textContent=reply;
+  }catch(e){
+    document.getElementById(loadId).textContent='Xato: '+e.message;
+  }
+}
+
+function addAiMsg(role,text,id=''){
+  const div=document.createElement('div');
+  div.id=id;
+  div.style.cssText=`max-width:90%;padding:10px 13px;border-radius:10px;font-size:13px;line-height:1.6;white-space:pre-wrap;${
+    role==='user'
+    ?'align-self:flex-end;background:var(--blue);color:#fff;margin-left:auto'
+    :'align-self:flex-start;background:var(--bg);border:1px solid var(--border)'}`;
+  div.textContent=text;
+  document.getElementById('aiChat').appendChild(div);
+  div.scrollIntoView({behavior:'smooth'});
+}
+
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+function toggleSidebar(){
+  const sb=document.querySelector('.sidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  sb.classList.toggle('mobileOpen');
+  ov.classList.toggle('show');
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('mobileOpen');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+async function logChange(tbl,row,fld,ov,nv){try{await APP.db.from('sl_change_log').insert({user_email:APP.user?.email||'?',table_name:tbl,row_id:String(row),field:fld,old_value:String(ov),new_value:String(nv)});}catch(e){}}
+</script>
+</body>
+</html>
