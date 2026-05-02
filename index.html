@@ -456,9 +456,11 @@ function runCalc() {
   // bonusRev per month = that month's bonus / margin
   // For base calc (KPI display), use average or current month bonus
   const curMo = APP.currentMonth || APP.months[0] || yyyymm();
-  const totalBonuses = parseFloat(APP.params['bonus_'+curMo]||0);
+  // Sum bonuses across all plan months for display
+  const totalBonuses = APP.months.reduce((s,m)=>s+parseFloat(APP.params['bonus_'+m]||0),0);
+  const curMonthBonus = parseFloat(APP.params['bonus_'+curMo]||0);
   const baseRev  = targetProfit/(targetMargin/100);
-  const bonusRev = totalBonuses/(targetMargin/100);
+  const bonusRev = curMonthBonus/(targetMargin/100); // current month impact on netRev
   const netRev   = baseRev + bonusRev;
   // New funnel: leads → visit (conv_visit%) → buy (conv_buy%)
   const convVisit  = parseFloat(p.conv_visit||8);
@@ -1134,13 +1136,17 @@ async function renderTeam(){
   if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn" onclick="openTaskModal()">+ Задача</button><button class="btn primary" onclick="openTeamModal()" style="margin-left:4px">+ Сотрудник</button>`;
   const {data:tasks}=await APP.db.from('sl_tasks').select('*').eq('month',mo).order('due_date');
   const {data:wishes}=await APP.db.from('sl_tasks').select('*').eq('section','target').eq('month',mo);
-  const totalBonus=APP.team.reduce((s,t)=>s+parseFloat(t.bonus_wish||0),0);
+  // Sum bonuses from sl_params (bonus_YYYY-MM) for current month
+  const totalBonus=parseFloat(APP.params['bonus_'+mo]||0);
+  // Also sum all months for display
+  const totalBonusAllMonths=APP.months.reduce((s,m)=>s+parseFloat(APP.params['bonus_'+m]||0),0);
   const pColor={high:'red',medium:'amber',low:'gray'};
   const sColor={pending:'amber',done:'green',cancelled:'gray'};
   let html=mSel()+`<div class="kpiGrid">
     ${kpi('Сотрудников',APP.team.length,'активных','blue')}
     ${kpi('ФОТ/мес',fmtD(c.totalFOT),'фиксированный','amber')}
-    ${kpi('Желаемые бонусы',fmtD(totalBonus),'при выполнении плана','green')}
+    ${kpi('Желаemые бонусы',fmtD(totalBonus),`${monthLabel(mo)} uchun`,'green')}
+    ${totalBonusAllMonths>totalBonus?kpi('Jami bonuslar (barcha oy)',fmtD(totalBonusAllMonths),`${APP.months.length} oy`,'blue'):''}
     ${kpi('Задач открытых',(tasks||[]).filter(t=>t.status==='pending').length,mo,'')}
   </div>
   <div class="card"><div class="cardH"><h3>Команда — цели и мотивация</h3></div><div class="cardB tWrap"><table>
@@ -1359,7 +1365,10 @@ async function renderFinance(){
   const cashIn=cashRev+installRev/c.installMonths;
   const cogs=totalRev*(1-c.grossMargin/100);
   const grossP=totalRev-cogs;
-  const totalBonus=APP.team.reduce((s,t)=>s+parseFloat(t.bonus_wish||0),0);
+  // Sum bonuses from sl_params (bonus_YYYY-MM) for current month
+  const totalBonus=parseFloat(APP.params['bonus_'+mo]||0);
+  // Also sum all months for display
+  const totalBonusAllMonths=APP.months.reduce((s,m)=>s+parseFloat(APP.params['bonus_'+m]||0),0);
   const totalOpex=c.totalFOT+c.totalRent+c.mktBudget+c.otherOpex+totalBonus;
   const netP=grossP-totalOpex;
   const pct=c.targetProfit>0?Math.round(netP/c.targetProfit*100):0;
