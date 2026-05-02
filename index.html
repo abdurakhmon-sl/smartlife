@@ -1153,10 +1153,12 @@ async function renderTeam(){
         <td><span class="badge badge-${rColor(t.role)}">${roleLabel(t.role)}</span></td>
         <td>${br?.name||'—'}</td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
-        <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(t.bonus_wish||0)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--green)">${(()=>{const wt=(wishes||[]).find(w=>w.assigned_to===t.email);let wd={};try{wd=JSON.parse(wt?.description||'{}');}catch(e){}return fmtD(wd.bonus||0);})()}</td>
         <td style="max-width:150px;font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wd.wish||'—'}</td>
         ${canEdit()?`<td style="white-space:nowrap">
-          <button class="btn sm" onclick="openWishModal('${t.id}','${t.email}','${t.full_name.replace(/'/g,'`')}',${t.bonus_wish||0},'${mo}')">Цель</button>
+          <button class="btn sm" onclick="openWishModal('${t.id}','${t.email}','${t.full_name.replace(/'/g,'`')}','${mo}')">Maqsad</button>
+          <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред.</button>
+          <button class="btn sm danger" onclick="if(confirm('${t.full_name} ni ochirish?'))deleteTeamMember('${t.id}')">O'ch</button>
           ${t.telegram_id?`<button class="btn sm" onclick="sendTgTo('${t.telegram_id}','${t.full_name.replace(/'/g,'`')}','${mo}')">TG</button>`:''}
         </td>`:''}
       </tr>`;
@@ -1182,10 +1184,10 @@ async function toggleTask(id,cur){
   await APP.db.from('sl_tasks').update({status:cur==='pending'?'done':'pending',updated_at:new Date().toISOString()}).eq('id',id);
   loadSection('team');
 }
-async function openWishModal(teamId,email,name,bonus,mo){
+async function openWishModal(teamId,email,name,mo){
   document.getElementById('wsName').value=name;
-  document.getElementById('wsBonus').value=bonus;
   document.getElementById('wsMonth').value=mo;
+  document.getElementById('wsBonus').value=0;
   document.getElementById('wsWish').value='';
   document.getElementById('wsWish').dataset.email=email;
   document.getElementById('wsWish').dataset.team=teamId;
@@ -1215,9 +1217,8 @@ async function saveWish(){
   const wish=document.getElementById('wsWish').value.trim();
   const mo=document.getElementById('wsMonth').value;
 
-  // Save to sl_team for backward compat
-  await APP.db.from('sl_team').update({bonus_wish:bonus}).eq('id',teamId);
-  const t=APP.team.find(x=>x.id==teamId); if(t) t.bonus_wish=bonus;
+  // Don't save to sl_team.bonus_wish — use per-month sl_tasks only
+  // (removing this avoids all months showing same bonus)
 
   // Save wish+bonus to sl_tasks (section='target')
   const desc=JSON.stringify({wish,bonus});
