@@ -365,6 +365,27 @@ async function loadBase() {
   APP.months.forEach(m=>{
     try{APP.monthlyBonuses[m]=parseFloat(APP.params['bonus_'+m]||0);}catch(e){APP.monthlyBonuses[m]=0;}
   });
+  // Also sync bonuses from sl_tasks if params are missing
+  await syncBonusesFromTasks();
+}
+
+async function syncBonusesFromTasks(){
+  // For each month, sum up bonuses from sl_tasks section='target'
+  for(const mo of APP.months){
+    if(parseFloat(APP.params['bonus_'+mo]||0)>0) continue; // already set
+    try{
+      const {data}=await APP.db.from('sl_tasks').select('description').eq('section','target').eq('month',mo);
+      if(!data||!data.length) continue;
+      let total=0;
+      data.forEach(w=>{try{total+=parseFloat(JSON.parse(w.description||'{}').bonus||0);}catch(e){}});
+      if(total>0){
+        APP.params['bonus_'+mo]=String(total);
+        APP.monthlyBonuses[mo]=total;
+        // Save to params silently
+        await APP.db.from('sl_params').upsert({key:'bonus_'+mo,value:String(total),updated_at:new Date().toISOString(),updated_by:'system'},{onConflict:'key'});
+      }
+    }catch(e){}
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -1144,7 +1165,7 @@ async function renderTeam(){
   <div class="card"><div class="cardH"><h3>Задачи — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
     <thead><tr><th>Задача</th><th>Кому</th><th>Раздел</th><th>Приоритет</th><th>Дедлайн</th><th>Статус</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${(tasks||[]).map(t=>`<tr>
-      <td><strong>${t.title}</strong>${t.description?`<br><small style="color:var(--ink3)">${String(t.description).slice(0,60)}</small>`:''}</td>
+      <td><strong>${t.title}</strong>${t.section==='target'?(()=>{let d={};try{d=JSON.parse(t.description||'{}');}catch(e){}return d.wish?`<br><small style="color:var(--green)">🎯 ${d.wish}${d.bonus?' · $'+d.bonus:''}</small>`:''})():t.description?`<br><small style="color:var(--ink3)">${String(t.description).slice(0,60)}</small>`:''}</td>
       <td style="font-size:11px">${t.assigned_to}</td>
       <td><span class="badge badge-gray" style="font-size:9px">${t.section||'—'}</span></td>
       <td><span class="badge badge-${pColor[t.priority]||'gray'}">${t.priority||'—'}</span></td>
@@ -1682,7 +1703,7 @@ async function renderCallCenter(){
       return `<tr style="${isOverdue?'background:var(--red-t)':''}">
         <td>
           <strong>${t.title}</strong>
-          ${t.description?`<br><small style="color:var(--ink3)">${String(t.description).slice(0,60)}</small>`:''}
+          ${t.section==='target'?(()=>{let d={};try{d=JSON.parse(t.description||'{}');}catch(e){}return d.wish?`<br><small style="color:var(--green)">🎯 ${d.wish}${d.bonus?' · $'+d.bonus:''}</small>`:''})():t.description?`<br><small style="color:var(--ink3)">${String(t.description).slice(0,60)}</small>`:''}
           ${isToday?'<span class="badge badge-blue" style="margin-left:6px;font-size:9px">Bugun</span>':''}
           ${isOverdue?'<span class="badge badge-red" style="margin-left:6px;font-size:9px">Kechikdi</span>':''}
         </td>
