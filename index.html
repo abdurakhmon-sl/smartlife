@@ -659,14 +659,25 @@ async function renderStrategy() {
     <span class="hint">Filial qilishi kerak = Bizga kerak foyda + Bonuslar</span>
   </div><div class="cardB tWrap"><table>
     <thead><tr><th>Filial</th><th>Shahar</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
-    <tbody>${rows.map(r=>`<tr>
-      <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
-      ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(x.profit)}</td>`).join('')}
-      <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(r.totProfit)}</td>
-    </tr>`).join('')}</tbody>
+    <tbody>${rows.map(r=>{
+      const share=parseFloat(r.b.weight||1)/(c.totalWeight||1);
+      const grossCols=APP.months.map((m,i)=>{
+        const mBonus=parseFloat(APP.params['bonus_'+m]||0)*share;
+        return r.cols[i].profit + mBonus;
+      });
+      const grossTotal=grossCols.reduce((s,v)=>s+v,0);
+      return `<tr>
+        <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
+        ${grossCols.map(v=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(v)}</td>`).join('')}
+        <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(grossTotal)}</td>
+      </tr>`;
+    }).join('')}</tbody>
     <tfoot><tr class="tFoot"><td colspan="2">JAMI (Gross)</td>
-      ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.cols[i].profit,0))}</td>`).join('')}
-      <td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.totProfit,0))}</td>
+      ${APP.months.map((m,i)=>{
+        const mBonus=parseFloat(APP.params['bonus_'+m]||0);
+        return `<td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.cols[i].profit,0)+mBonus)}</td>`;
+      }).join('')}
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.totProfit,0)+APP.months.reduce((s,m)=>s+parseFloat(APP.params['bonus_'+m]||0),0))}</td>
     </tr></tfoot>
   </table></div></div>`;
 
