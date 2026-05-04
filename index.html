@@ -654,16 +654,42 @@ async function renderStrategy() {
       <td style="text-align:right;font-family:var(--mono)">${fmt(rows.reduce((s,r)=>s+r.totLeads,0))}</td>
     </tr></tfoot>
   </table></div></div>
-  <div class="card"><div class="cardH"><h3>Jadval 3 — Filiallar boyicha foyda</h3><span class="hint">Sof foyda $</span></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Филиал</th><th>Город</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
+  <div class="card"><div class="cardH">
+    <h3>Jadval 3 — Gross foyda (bonuslar BILAN)</h3>
+    <span class="hint">Filial qilishi kerak = Bizga kerak foyda + Bonuslar</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr><th>Filial</th><th>Shahar</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
       ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(x.profit)}</td>`).join('')}
       <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(r.totProfit)}</td>
     </tr>`).join('')}</tbody>
-    <tfoot><tr class="tFoot"><td colspan="2">ИТОГО</td>
+    <tfoot><tr class="tFoot"><td colspan="2">JAMI (Gross)</td>
       ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.cols[i].profit,0))}</td>`).join('')}
       <td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.totProfit,0))}</td>
+    </tr></tfoot>
+  </table></div></div>`;
+
+  // NET PROFIT TABLE — what remains for us after bonuses
+  html += `<div class="card" style="border:2px solid var(--green)"><div class="cardH" style="background:var(--green-t)">
+    <h3 style="color:var(--green)">Jadval 4 — NET foyda (bizga qoladigan, bonuslar chiqarilgan)</h3>
+    <span class="hint">= Maqsadli foyda $${Math.round(c.targetProfit).toLocaleString('ru-RU')}/oy · bu biz xohlaydigan qism</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr><th>Filial</th><th>Shahar</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
+    <tbody>${rows.map(r=>{
+      const share=parseFloat(r.b.weight||1)/(c.totalWeight||1);
+      const netCols=APP.months.map((_,i)=>c.targetProfit*(c.normRates[i]||1)*share);
+      const netTotal=netCols.reduce((s,v)=>s+v,0);
+      return `<tr>
+        <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
+        ${netCols.map(v=>`<td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(v)}</td>`).join('')}
+        <td style="text-align:right;font-weight:700;font-family:var(--mono);color:var(--green)">${fmtD(netTotal)}</td>
+      </tr>`;
+    }).join('')}</tbody>
+    <tfoot><tr class="tFoot" style="background:var(--green-t)">
+      <td colspan="2" style="color:var(--green);font-weight:800">BIZGA QOLADI</td>
+      ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono);color:var(--green);font-weight:800">${fmtD(c.targetProfit*(c.normRates[i]||1))}</td>`).join('')}
+      <td style="text-align:right;font-family:var(--mono);color:var(--green);font-weight:800">${fmtD(c.targetProfit*c.planMonths)}</td>
     </tr></tfoot>
   </table></div></div>`;
 
