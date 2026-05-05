@@ -908,7 +908,7 @@ async function renderSales() {
       <div class="cardB tWrap"><table>
         <thead><tr><th>Filial</th><th>Sotuvchi</th><th style="text-align:right">Oylik maqsad $</th><th style="text-align:right">Kunlik maqsad $</th><th style="text-align:right">Haqiqat $</th><th style="text-align:right">%</th></tr></thead>
         <tbody>${branchesToShow.map(b=>{
-          const staff = APP.team.filter(t=>t.branch_id===b.id&&t.role==='SALES_STAFF');
+          const staff = APP.team.filter(t=>t.branch_id===b.id&&['SALES_STAFF','BRANCH_MGR'].includes(t.role));
           const bp = bmp(b,c,moIdx>=0?moIdx:0);
           const staffCount = staff.length||parseInt(b.staff_count)||1;
           const defaultTarget = bp.rev/staffCount;
