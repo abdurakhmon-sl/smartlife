@@ -644,6 +644,12 @@ async function renderStrategy() {
     ${kpi('Jamoa maoshi/oy',fmtD(c.totalFOT),`${APP.team.length} kishi`,'amber')}
     ${kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')}
   </div>
+  <!-- CHARTS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div class="card"><div class="cardH"><h3>Barcha oylar — Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartAllMonths" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Filiallar bo'yicha</h3></div><div class="cardB"><canvas id="chartCurMonth" height="160"></canvas></div></div>
+  </div>
+
   <div class="card"><div class="cardH"><h3>Muammoli joylar (Bottleneck-tahlil)</h3></div><div class="cardB">
     ${bns.map(b=>`<div class="bn ${b.lvl}"><div class="bnT">${b.t}</div><div class="bnS">${b.d}</div></div>`).join('')}
   </div></div>
@@ -847,6 +853,10 @@ async function renderSales() {
   APP.branches.forEach(b=>byBranch[b.id]={rev:0,units:0});
   sales.forEach(s=>{if(byBranch[s.branch_id]){byBranch[s.branch_id].rev+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);byBranch[s.branch_id].units+=parseInt(s.qty||1);}});
   const moIdx=APP.months.indexOf(mo);
+  // BRANCH_MGR sees only their own branch
+  const visibleBranches = APP.user?.role==='BRANCH_MGR'
+    ? APP.branches.filter(b=>String(b.id)===String(APP.user?.branch_id))
+    : APP.branches;
   let html=mSel()+`<div class="kpiGrid">
     ${kpi('Факт выручки',fmtD(totalRev),`${Math.round(pct)}% от плана`,pct>=100?'green':pct>=70?'amber':'red')}
     ${kpi('Факт единиц',fmt(totalU),`План ${fmt(c.units)} шт`,'')}
@@ -891,7 +901,7 @@ async function renderSales() {
     const myBranch = APP.user?.role==='BRANCH_MGR' 
       ? APP.branches.find(b=>String(b.id)===String(APP.user?.branch_id))
       : null;
-    const branchesToShow = myBranch ? [myBranch] : APP.branches;
+    const branchesToShow = myBranch ? [myBranch] : visibleBranches;
     
     html += `<div class="card">
       <div class="cardH">
@@ -952,7 +962,7 @@ async function renderSales() {
         <th style="text-align:right">Kunlik reja $</th>
         <th style="text-align:right">Bugun $</th>
       </tr></thead>
-      <tbody>${APP.branches.map(b => {
+      <tbody>${visibleBranches.map(b => {
         const bp   = bmp(b, c, moIdx>=0?moIdx:0);
         const fact = byBranch[b.id]||{rev:0,units:0};
         const pct2 = bp.rev>0 ? Math.round(fact.rev/bp.rev*100) : 0;
@@ -996,6 +1006,32 @@ async function renderSales() {
       </tr></tfoot>
     </table></div>
   </div>`;
+
+
+  // Filial rahbari uchun — gross foyda ko'rsatish
+  if(APP.user?.role==='BRANCH_MGR' && visibleBranches.length===1){
+    const myBr=visibleBranches[0];
+    const moIdx3=APP.months.indexOf(mo);
+    const bp3=bmp(myBr,c,moIdx3>=0?moIdx3:0);
+    const share3=parseFloat(myBr.weight||1)/(c.totalWeight||1);
+    const myFact3=(byBranch[myBr.id]||{rev:0});
+    const bTeam3=APP.team.filter(t=>t.branch_id===myBr.id);
+    const bSalary3=bTeam3.reduce((s,t)=>s+parseFloat(t.salary_usd||0),0);
+    const bCogs3=myFact3.rev*(1-c.grossMargin/100);
+    const bGross3=myFact3.rev-bCogs3-parseFloat(myBr.rent_usd||0)-bSalary3-bp3.mkt;
+    const planGross3=bp3.profit;
+    html+=`<div class="card"><div class="cardH">
+      <h3>${myBr.name} — Gross foyda</h3>
+      <span class="hint">${monthLabel(mo)}</span>
+    </div><div class="cardB">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+        ${kpi('Reja gross foyda',fmtD(planGross3),'','')}
+        ${kpi('Haqiqat daromad',fmtD(myFact3.rev),'','blue')}
+        ${kpi('Haqiqat gross foyda',fmtD(bGross3),'',bGross3>=planGross3?'green':'red')}
+        ${kpi('Qoldi',fmtD(Math.max(0,planGross3-bGross3)),'','amber')}
+      </div>
+    </div></div>`;
+  }
 
   html+=wArea('sales'); document.getElementById('content').innerHTML=html; renderWidgets('sales');
 }
@@ -1608,6 +1644,55 @@ async function renderFinance(){
     </table></div>
   </div></div>`;
 
+
+  // ── PER BRANCH P&L ──
+  // Load all branch sales for this month
+  const {data:allBrSls}=await APP.db.from('sl_sales').select('branch_id,unit_price,qty')
+    .gte('date',mo+'-01').lte('date',mo+'-31');
+  const brSalesMap={};
+  APP.branches.forEach(b=>brSalesMap[b.id]=0);
+  (allBrSls||[]).forEach(s=>{if(brSalesMap[s.branch_id]!==undefined)brSalesMap[s.branch_id]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);});
+  const moIdx4=APP.months.indexOf(mo);
+
+  const brPnlRows=APP.branches.map(b=>{
+    const bp4=bmp(b,c,moIdx4>=0?moIdx4:0);
+    let brExp4={};try{brExp4=JSON.parse(APP.params['brexp_'+b.id+'_'+mo]||'{}');}catch(e){}
+    const bFact4=brSalesMap[b.id]||0;
+    const bRent4=parseFloat(brExp4.rent!==undefined?brExp4.rent:b.rent_usd||0);
+    const bTeam4=APP.team.filter(t=>t.branch_id===b.id);
+    const bSal4=parseFloat(brExp4.salary!==undefined?brExp4.salary:bTeam4.reduce((s,t)=>s+parseFloat(t.salary_usd||0),0));
+    const bMkt4=parseFloat(brExp4.mkt!==undefined?brExp4.mkt:bp4.mkt||0);
+    const bExp4=bRent4+bSal4+bMkt4;
+    const bCogs4=bFact4*(1-c.grossMargin/100);
+    const bGross4=bFact4-bCogs4-bExp4;
+    const bPct4=bp4.rev>0?Math.round(bFact4/bp4.rev*100):0;
+    const canEditBr=canEdit();
+    return `<tr>
+      <td><strong>${b.name}</strong><br><small style="color:var(--ink3)">${b.city||''}</small></td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(bp4.rev)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--${bPct4>=100?'green':'red'})">${fmtD(bFact4)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${canEditBr?`<input class="iEdit" type="number" value="${Math.round(bRent4)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','rent',this.value)">`:fmtD(bRent4)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${canEditBr?`<input class="iEdit" type="number" value="${Math.round(bSal4)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','salary',this.value)">`:fmtD(bSal4)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${canEditBr?`<input class="iEdit" type="number" value="${Math.round(bMkt4)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','mkt',this.value)">`:fmtD(bMkt4)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(bExp4)}</td>
+      <td style="text-align:right;font-weight:700;font-family:var(--mono);color:var(--${bGross4>=0?'green':'red'})">${fmtD(bGross4)}</td>
+      <td style="text-align:right"><span class="badge badge-${bPct4>=100?'green':bPct4>=70?'amber':'red'}">${bPct4}%</span></td>
+    </tr>`;
+  }).join('');
+
+  html+=`<div class="card"><div class="cardH">
+    <h3>Filiallar boyicha P&L — ${monthLabel(mo)}</h3>
+    <span class="hint">Ijara, maosh, marketingni inline tahrirlash mumkin</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr>
+      <th>Filial</th><th style="text-align:right">Reja $</th><th style="text-align:right">Haqiqat $</th>
+      <th style="text-align:right">Ijara $</th><th style="text-align:right">Maosh $</th>
+      <th style="text-align:right">Marketing $</th><th style="text-align:right">Jami xarajat $</th>
+      <th style="text-align:right">Gross foyda $</th><th style="text-align:right">%</th>
+    </tr></thead>
+    <tbody>${brPnlRows}</tbody>
+  </table></div></div>`;
+
   html+=wArea('finance'); document.getElementById('content').innerHTML=html; renderWidgets('finance');
 }
 
@@ -1636,6 +1721,13 @@ async function saveInst(mo){
   const note=document.getElementById('instNote').value.trim();
   await saveP('inst_'+mo,JSON.stringify({sold,collected:coll,remaining:rem,expected:exp,note,updated:new Date().toISOString().slice(0,10)}));
 }
+async function saveBrExp(branchId,mo,field,val){
+  const key='brexp_'+branchId+'_'+mo;
+  let d={};try{d=JSON.parse(APP.params[key]||'{}');}catch(e){}
+  d[field]=parseFloat(val)||0;
+  await saveP(key,JSON.stringify(d));
+}
+
 async function saveExp(expKey,field,val){
   let exp={};try{exp=JSON.parse(APP.params[expKey]||'{}');}catch(e){}
   exp[field]=parseFloat(val)||0;
