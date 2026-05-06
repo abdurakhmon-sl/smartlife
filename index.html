@@ -435,14 +435,7 @@ const SECTIONS=[
   {id:'settings',    label:'Sozlamalar',    cat:'Tizim'},
 ];
 function buildNav() {
-  // Branch managers always get sales + team access
-  let sectionsStr = APP.user.sections||'ALL';
-  if(APP.user.role==='BRANCH_MGR' && sectionsStr!=='ALL') {
-    const sArr = sectionsStr.split(',');
-    if(!sArr.includes('sales')) sArr.push('sales');
-    if(!sArr.includes('team')) sArr.push('team');
-    sectionsStr = sArr.join(',');
-  }
+  const sectionsStr = APP.user.sections||'ALL';
   const allowed = sectionsStr==='ALL'?null:sectionsStr.split(',').map(s=>s.trim());
   let html='',lastCat=null;
   SECTIONS.forEach(s=>{
@@ -2477,7 +2470,7 @@ async function renderSellerView(){
   const tgtKey='target_'+mo+'_'+u.id;
   const myPlanOverride=parseFloat(APP.params[tgtKey]||0);
   const staff=parseInt(br?.staff_count||1);
-  const myPlan=myPlanOverride>0?myPlanOverride:plan.rev/staff;
+  const myPlan=myPlanOverride>0?myPlanOverride:(br?plan.rev/staff:0);
   const dayPlan=myPlan/26;
   const factRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
   const factU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
