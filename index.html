@@ -363,7 +363,13 @@ async function startApp(user) {
   // Generate recurring tasks for today on login
   generateRecurringTasks().catch(e=>console.log('recurring:',e));
   scheduleAutoTg(); // auto TG at 9:00 if enabled
-  loadSection('strategy');
+  // Load first allowed section for this user
+  const userSects = APP.user.sections||'ALL';
+  const allowed2 = userSects==='ALL'?null:userSects.split(',').map(s=>s.trim());
+  const firstSection = allowed2
+    ? (SECTIONS.find(s=>allowed2.includes(s.id))?.id || 'strategy')
+    : 'strategy';
+  loadSection(firstSection);
 }
 async function loadBase() {
   const db = APP.db;
@@ -818,7 +824,13 @@ async function saveMonthOverride(key,idx,val){
   APP.params[key]=JSON.stringify(arr);
   await APP.db.from('sl_params').upsert({key,value:JSON.stringify(arr),updated_at:new Date().toISOString(),updated_by:APP.user?.email||''},{onConflict:'key'});
   // Reload calc without full page reload for smoothness
-  loadSection('strategy');
+  // Load first allowed section for this user
+  const userSects = APP.user.sections||'ALL';
+  const allowed2 = userSects==='ALL'?null:userSects.split(',').map(s=>s.trim());
+  const firstSection = allowed2
+    ? (SECTIONS.find(s=>allowed2.includes(s.id))?.id || 'strategy')
+    : 'strategy';
+  loadSection(firstSection);
 }
 
 async function updateGrowth(i,v){let r=[];try{r=JSON.parse(APP.params.month_growth||'[]');}catch(e){}while(r.length<=APP.months.length)r.push(100);r[i]=Math.min(100,Math.max(1,parseFloat(v)||10));r[APP.months.length-1]=100;await saveP('month_growth',JSON.stringify(r));}
