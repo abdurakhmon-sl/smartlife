@@ -1037,16 +1037,26 @@ async function renderSales() {
     const bCogs3=myFact3.rev*(1-c.grossMargin/100);
     const bGross3=myFact3.rev-bCogs3-parseFloat(myBr.rent_usd||0)-bSalary3-bp3.mkt;
     const planGross3=bp3.profit;
+    // Show Jadval 3 gross profit = net profit + bonus share
+    const moIdx4b=APP.months.indexOf(mo);
+    const share4b=parseFloat(myBr.weight||1)/(c.totalWeight||1);
+    const mBonus4b=parseFloat(APP.params['bonus_'+mo]||0)*share4b;
+    const grossPlanBr=bp3.profit + mBonus4b; // same as Jadval 3
+    const pctGross=grossPlanBr>0?Math.round(myFact3.rev/(grossPlanBr/(c.targetMargin/100))*100):0;
     html+=`<div class="card"><div class="cardH">
-      <h3>${myBr.name} — Gross foyda</h3>
-      <span class="hint">${monthLabel(mo)}</span>
+      <h3>${myBr.name} — Gross foyda rejasi (Jadval 3)</h3>
+      <span class="hint">${monthLabel(mo)} · Jadval 3 bilan bir xil</span>
     </div><div class="cardB">
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
-        ${kpi('Reja gross foyda',fmtD(planGross3),'','')}
-        ${kpi('Haqiqat daromad',fmtD(myFact3.rev),'','blue')}
-        ${kpi('Haqiqat gross foyda',fmtD(bGross3),'',bGross3>=planGross3?'green':'red')}
-        ${kpi('Qoldi',fmtD(Math.max(0,planGross3-bGross3)),'','amber')}
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+        ${kpi('Gross foyda rejasi',fmtD(grossPlanBr),'net foyda + bonuslar','')}
+        ${kpi('Haqiqat daromad',fmtD(myFact3.rev),'sotuvlar',pctGross>=100?'green':'red')}
+        ${kpi('Qoldi',fmtD(Math.max(0,grossPlanBr/(c.targetMargin/100)-myFact3.rev)),'daromaddan','amber')}
       </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+        <span>Bajarish: ${pctGross}%</span>
+        <span>${fmtD(myFact3.rev)} / ${fmtD(grossPlanBr/(c.targetMargin/100))}</span>
+      </div>
+      <div class="prog"><div class="progFill" style="width:${Math.min(100,pctGross)}%;background:${pctGross>=100?'var(--green)':pctGross>=70?'var(--amber)':'var(--blue)'}"></div></div>
     </div></div>`;
   }
 
