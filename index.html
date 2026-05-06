@@ -646,8 +646,10 @@ async function renderStrategy() {
   </div>
   <!-- CHARTS -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-    <div class="card"><div class="cardH"><h3>Barcha oylar — Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartAllMonths" height="160"></canvas></div></div>
-    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Filiallar bo'yicha</h3></div><div class="cardB"><canvas id="chartCurMonth" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>Barcha oylar — Daromad: Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartAllMonths" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>Barcha oylar — Foyda: Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartAllProfit" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Daromad: Filiallar bo'yicha</h3></div><div class="cardB"><canvas id="chartCurMonth" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Foyda: Filiallar bo'yicha</h3></div><div class="cardB"><canvas id="chartCurProfit" height="160"></canvas></div></div>
   </div>
 
   <div class="card"><div class="cardH"><h3>Muammoli joylar (Bottleneck-tahlil)</h3></div><div class="cardB">
