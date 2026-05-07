@@ -640,18 +640,26 @@ async function renderStrategy() {
     </div>
   </div></div>
   <div class="kpiGrid">
-    ${kpi('Maqsadli foyda/oy',fmtD(c.targetProfit),`Marja ${c.targetMargin}%`,'green')}
-    ${kpi('Bonuslar (qo\'shimcha)',fmtD(c.totalBonuses),`+${fmtD(c.totalBonuses/c.targetMargin*100)} daromad`,'amber')}
-    ${kpi('Kerakli daromad/oy',fmtD(curMoPlan),`${monthLabel(APP.currentMonth)} · ${fmt(curMoUnits)} dona`,'blue')}
-    ${kpi('Kerakli lidlar/oy',fmt(c.totalLeads),`Konv. ${(c.convRate*100).toFixed(1)}%`,'')}
-    ${kpi("Do'konga tashrif/oy",fmt(c.storeVisits),`${c.convVisit}% lidlardan`,'blue')}
-    ${kpi('Sotib oladi/oy',fmt(c.units),`${c.convBuy}% tashrif buyurganlardan`,'green')}
-    ${kpi('Marketing/oy',fmtD(c.mktBudget),`CPL $${c.cpl}`,'amber')}
-    ${kpi('Reja oylari',c.planMonths,APP.params.start_month||'','')}
-    ${kpi('Faol filiallar',APP.branches.length,`Jami ${(APP.allBranches||APP.branches).length} dan`,(APP.allBranches||APP.branches).length>APP.branches.length?'amber':'')}
-    ${kpi('Jami daromad',fmtD(totalPlan4Mo),`${c.planMonths} oy rejasi`,'blue')}
-    ${kpi('Jamoa maoshi/oy',fmtD(c.totalFOT),`${APP.team.length} kishi`,'amber')}
-    ${kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')}
+    ${(()=>{
+      const _moIdx=APP.months.indexOf(APP.currentMonth||APP.months[0]);
+      const _curMoPlan=APP.branches.reduce((s,b)=>s+bmp(b,c,_moIdx>=0?_moIdx:0).rev,0);
+      const _curMoUnits=APP.branches.reduce((s,b)=>s+bmp(b,c,_moIdx>=0?_moIdx:0).units,0);
+      const _totalPlan=rows.reduce((s,r)=>s+r.totRev,0);
+      return [
+        kpi('Maqsadli foyda/oy',fmtD(c.targetProfit),`Marja ${c.targetMargin}%`,'green'),
+        kpi("Bonuslar (qo'shimcha)",fmtD(c.totalBonuses),`+${fmtD(c.totalBonuses/(c.targetMargin/100))} daromad`,'amber'),
+        kpi('Kerakli daromad/oy',fmtD(_curMoPlan),`${monthLabel(APP.currentMonth||APP.months[0])} · ${fmt(_curMoUnits)} dona`,'blue'),
+        kpi('Kerakli lidlar/oy',fmt(Math.ceil(_curMoUnits/c.convRate)),`Konv. ${(c.convRate*100).toFixed(1)}%`,''),
+    
+    
+    
+    
+    
+        kpi('Jami daromad',fmtD(_totalPlan),`${c.planMonths} oy rejasi`,'blue'),
+        kpi('Jamoa maoshi/oy',fmtD(c.totalFOT),`${APP.team.length} kishi`,'amber'),
+        kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')
+      ].join('');
+    })()}
   </div>
   <!-- CHARTS -->
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
@@ -1782,8 +1790,9 @@ async function renderFinance(){
   APP.branches.forEach(b=>brSalesMap[b.id]=0);
   (allBrSls||[]).forEach(s=>{if(brSalesMap[s.branch_id]!==undefined)brSalesMap[s.branch_id]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);});
   const moIdx4=APP.months.indexOf(mo);
+  const planRev=APP.branches.reduce((s,b)=>s+bmp(b,c,moIdx4>=0?moIdx4:0).rev,0);
 
-  const brPnlRows=APP.branches.map(b=>{
+  const brPnlData=APP.branches.map(b=>{
     const bp4=bmp(b,c,moIdx4>=0?moIdx4:0);
     let brExp4={};try{brExp4=JSON.parse(APP.params['brexp_'+b.id+'_'+mo]||'{}');}catch(e){}
     const bFact4=brSalesMap[b.id]||0;
@@ -1794,20 +1803,9 @@ async function renderFinance(){
     const bExp4=bRent4+bSal4+bMkt4;
     const bCogs4=bFact4*(1-c.grossMargin/100);
     const bGross4=bFact4-bCogs4-bExp4;
-    const bPct4=bp4.rev>0?Math.round(bFact4/bp4.rev*100):0;
-    const canEditBr=canEdit();
-    return `<tr>
-      <td><strong>${b.name}</strong><br><small style="color:var(--ink3)">${b.city||''}</small></td>
-      <td style="text-align:right;font-family:var(--mono)">${fmtD(bp4.rev)}</td>
-      <td style="text-align:right;font-family:var(--mono);color:var(--${bPct4>=100?'green':'red'})">${fmtD(bFact4)}</td>
-      <td style="text-align:right;font-family:var(--mono)">${canEditBr?`<input class="iEdit" type="number" value="${Math.round(bRent4)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','rent',this.value)">`:fmtD(bRent4)}</td>
-      <td style="text-align:right;font-family:var(--mono)">${canEditBr?`<input class="iEdit" type="number" value="${Math.round(bSal4)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','salary',this.value)">`:fmtD(bSal4)}</td>
-      <td style="text-align:right;font-family:var(--mono)">${canEditBr?`<input class="iEdit" type="number" value="${Math.round(bMkt4)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','mkt',this.value)">`:fmtD(bMkt4)}</td>
-      <td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(bExp4)}</td>
-      <td style="text-align:right;font-weight:700;font-family:var(--mono);color:var(--${bGross4>=0?'green':'red'})">${fmtD(bGross4)}</td>
-      <td style="text-align:right"><span class="badge badge-${bPct4>=100?'green':bPct4>=70?'amber':'red'}">${bPct4}%</span></td>
-    </tr>`;
-  }).join('');
+        const bPct4=bp4.rev>0?Math.round(bFact4/bp4.rev*100):0;
+    return {id:b.id,name:b.name,city:b.city||'',plan:bp4.rev,fact:bFact4,rent:bRent4,sal:bSal4,mkt:bMkt4,exp:bExp4,gross:bGross4,pct:bPct4};
+  });;
 
   // ── PER BRANCH P&L TABLE ──
   const totBrRev=brPnlData.reduce((s,b)=>s+b.fact,0);
