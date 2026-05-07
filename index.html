@@ -171,7 +171,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
   <div class="mH"><h3 id="M_coll_title">Должник</h3><button class="mX" onclick="closeM('M_coll')">✕</button></div>
   <div class="mB">
     <div class="fRow c2"><div class="fG"><label>Клиент</label><input id="clName"></div><div class="fG"><label>Телефон</label><input id="clPhone"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Филиал</label><select id="clBranch"></select></div><div class="fG"><label>Дата договора</label><input id="clDate" type="date"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Filial</label><select id="clBranch"></select></div><div class="fG"><label>Sana договора</label><input id="clDate" type="date"></div></div>
     <div class="fRow c3"><div class="fG"><label>Долг $</label><input id="clDebt" type="number"></div><div class="fG"><label>Оплачено $</label><input id="clPaid" type="number"></div><div class="fG"><label>Дней просрочки</label><input id="clDays" type="number"></div></div>
     <div class="fRow c2" style="margin-top:4px"><div class="fG"><label>Следующий контакт</label><input id="clNext" type="date"></div><div class="fG"><label>Коллектор</label><select id="clColl"></select></div></div>
     <div class="fG" style="margin-top:8px"><label>Примечание</label><textarea id="clNotes" rows="2" style="resize:vertical"></textarea></div>
@@ -682,7 +682,7 @@ async function renderStrategy() {
     </tr></tfoot>
   </table></div></div>
   <div class="card"><div class="cardH"><h3>Jadval 2 — Filiallar boyicha lidlar</h3><span class="hint">Reja bajarish uchun kerakli lidlar</span></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Филиал</th><th>Город</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
+    <thead><tr><th>Filial</th><th>Город</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
       ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${fmt(x.leads)}</td>`).join('')}
@@ -819,7 +819,85 @@ async function renderStrategy() {
   html += wArea('strategy');
   document.getElementById('content').innerHTML=html;
   renderWidgets('strategy');
+  // Render charts after DOM is ready
+  setTimeout(()=>renderStrategyCharts(rows,c),150);
 }
+
+async function renderStrategyCharts(rows,c){
+  try{
+    // Load actual sales for all plan months
+    const firstM=APP.months[0], lastM=APP.months[APP.months.length-1];
+    const {data:sls}=await APP.db.from('sl_sales').select('date,unit_price,qty')
+      .gte('date',firstM+'-01').lte('date',lastM+'-31');
+    const allSales={};
+    APP.months.forEach(m=>allSales[m]=0);
+    (sls||[]).forEach(s=>{
+      const mo=s.date?.slice(0,7);
+      if(mo&&allSales[mo]!==undefined) allSales[mo]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);
+    });
+
+    // Chart 1: All months revenue
+    const ctx1=document.getElementById('chartAllMonths');
+    if(ctx1){
+      if(APP._charts.chartAllMonths) APP._charts.chartAllMonths.destroy();
+      APP._charts.chartAllMonths=new Chart(ctx1,{type:'bar',data:{
+        labels:APP.months.map(m=>monthLabel(m)),
+        datasets:[
+          {label:'Reja $',data:APP.months.map((_,i)=>Math.round(rows.reduce((s,r)=>s+r.cols[i].rev,0))),backgroundColor:'rgba(37,99,235,0.7)',borderRadius:4},
+          {label:'Haqiqat $',data:APP.months.map(m=>Math.round(allSales[m]||0)),backgroundColor:'rgba(5,150,105,0.7)',borderRadius:4}
+        ]
+      },options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+Math.round(v/1000)+'K'}}}}});
+    }
+
+    // Chart 2: All months profit
+    const ctx3=document.getElementById('chartAllProfit');
+    if(ctx3){
+      if(APP._charts.chartAllProfit) APP._charts.chartAllProfit.destroy();
+      APP._charts.chartAllProfit=new Chart(ctx3,{type:'bar',data:{
+        labels:APP.months.map(m=>monthLabel(m)),
+        datasets:[
+          {label:'Reja foyda $',data:APP.months.map((_,i)=>Math.round(rows.reduce((s,r)=>s+r.cols[i].profit,0))),backgroundColor:'rgba(37,99,235,0.7)',borderRadius:4},
+          {label:'Haqiqat foyda $',data:APP.months.map(m=>Math.round((allSales[m]||0)*(c.targetMargin/100))),backgroundColor:'rgba(5,150,105,0.7)',borderRadius:4}
+        ]
+      },options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+Math.round(v/1000)+'K'}}}}});
+    }
+
+    // Load current month by branch
+    const curIdx=APP.months.indexOf(APP.currentMonth);
+    const {data:curSls}=await APP.db.from('sl_sales').select('branch_id,unit_price,qty')
+      .gte('date',APP.currentMonth+'-01').lte('date',APP.currentMonth+'-31');
+    const brFact={};
+    APP.branches.forEach(b=>brFact[b.id]=0);
+    (curSls||[]).forEach(s=>{if(brFact[s.branch_id]!==undefined)brFact[s.branch_id]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);});
+
+    // Chart 3: Current month revenue by branch
+    const ctx2=document.getElementById('chartCurMonth');
+    if(ctx2){
+      if(APP._charts.chartCurMonth) APP._charts.chartCurMonth.destroy();
+      APP._charts.chartCurMonth=new Chart(ctx2,{type:'bar',data:{
+        labels:APP.branches.map(b=>b.name),
+        datasets:[
+          {label:'Reja $',data:APP.branches.map(b=>Math.round(bmp(b,c,curIdx>=0?curIdx:0).rev)),backgroundColor:'rgba(37,99,235,0.7)',borderRadius:4},
+          {label:'Haqiqat $',data:APP.branches.map(b=>Math.round(brFact[b.id]||0)),backgroundColor:'rgba(5,150,105,0.7)',borderRadius:4}
+        ]
+      },options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+Math.round(v/1000)+'K'}}}}});
+    }
+
+    // Chart 4: Current month profit by branch
+    const ctx4=document.getElementById('chartCurProfit');
+    if(ctx4){
+      if(APP._charts.chartCurProfit) APP._charts.chartCurProfit.destroy();
+      APP._charts.chartCurProfit=new Chart(ctx4,{type:'bar',data:{
+        labels:APP.branches.map(b=>b.name),
+        datasets:[
+          {label:'Reja foyda $',data:APP.branches.map(b=>Math.round(bmp(b,c,curIdx>=0?curIdx:0).profit)),backgroundColor:'rgba(37,99,235,0.7)',borderRadius:4},
+          {label:'Haqiqat foyda $',data:APP.branches.map(b=>Math.round((brFact[b.id]||0)*(c.targetMargin/100))),backgroundColor:'rgba(5,150,105,0.7)',borderRadius:4}
+        ]
+      },options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+Math.round(v/1000)+'K'}}}}});
+    }
+  }catch(e){console.error('Chart error:',e);}
+}
+
 async function saveMonthOverride(key,idx,val){
   let arr=[];try{arr=JSON.parse(APP.params[key]||'[]');}catch(e){}
   while(arr.length<=idx) arr.push(null);
@@ -867,12 +945,15 @@ async function renderSales() {
   const todayRev=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
   const totalDays=daysInMonth(mo);
   const daysPassed=workingDaysSoFar(mo);
-  const dayPlanTotal=c.netRev/totalDays;  // per day based on actual days
-  const shouldByToday=dayPlanTotal*daysPassed; // what should have been done by today
+  // Monthly plan = sum of all branches from bmp() for this month (Jadval 1)
+  const moIdx2=APP.months.indexOf(mo);
+  const monthPlan=APP.branches.reduce((s,b)=>s+bmp(b,c,moIdx2>=0?moIdx2:0).rev,0);
+  const dayPlanTotal=monthPlan/totalDays;
+  const shouldByToday=dayPlanTotal*daysPassed;
   const remainingDays=Math.max(1,totalDays-daysPassed);
-  const remainingTarget=Math.max(0,c.netRev-totalRev); // what's left
-  const newDailyPlan=remainingTarget/remainingDays; // adjusted daily plan
-  const pct=c.netRev>0?Math.min(100,totalRev/c.netRev*100):0;
+  const remainingTarget=Math.max(0,monthPlan-totalRev);
+  const newDailyPlan=remainingTarget/remainingDays;
+  const pct=monthPlan>0?Math.min(100,totalRev/monthPlan*100):0;
   const pctByToday=shouldByToday>0?Math.min(100,totalRev/shouldByToday*100):0;
   const byBranch={};
   APP.branches.forEach(b=>byBranch[b.id]={rev:0,units:0});
@@ -883,15 +964,15 @@ async function renderSales() {
     ? APP.branches.filter(b=>String(b.id)===String(APP.user?.branch_id))
     : APP.branches;
   let html=mSel()+`<div class="kpiGrid">
-    ${kpi('Haqiqat daromad',fmtD(totalRev),`${Math.round(pct)}% — oylik rejadan`,pct>=100?'green':pct>=70?'amber':'red')}
+    ${kpi('Haqiqat daromad',fmtD(totalRev),`${Math.round(pct)}% — reja ${fmtD(monthPlan)}`,pct>=100?'green':pct>=70?'amber':'red')}
     ${kpi('Bugunga kerak edi',fmtD(shouldByToday),`${daysPassed} kunlik reja · ${Math.round(pctByToday)}% bajardi`,pctByToday>=100?'green':pctByToday>=80?'amber':'red')}
     ${kpi('Bugun',fmtD(todayRev),`Kunlik reja: ${fmtD(dayPlanTotal)}`,todayRev>=dayPlanTotal?'green':'amber')}
     ${kpi('Qolgan kunlik reja',fmtD(newDailyPlan),`${remainingDays} kun qoldi · Tuzatilgan plan`,'blue')}
-    ${kpi('Qoldi (oy)',fmtD(remainingTarget),`${Math.max(0,c.units-totalU)} dona`,'amber')}
+    ${kpi('Qoldi (oy)',fmtD(remainingTarget),`Reja: ${fmtD(monthPlan)}`,'amber')}
   </div>
   <div class="card"><div class="cardB">
     <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-      <span>Bajarish — ${monthLabel(mo)}</span>
+      <span>Bajarish — ${monthLabel(mo)} · Reja: ${fmtD(monthPlan)}</span>
       <span>
         <strong>${Math.round(pct)}%</strong> oylik ·
         <strong style="color:var(--${pctByToday>=100?'green':'amber'})">${Math.round(pctByToday)}%</strong> bugunga rejadan
@@ -899,8 +980,8 @@ async function renderSales() {
     </div>
     <div class="prog"><div class="progFill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>=70?'var(--amber)':'var(--blue)'}"></div></div>
   </div></div>
-  <div class="card"><div class="cardH"><h3>По филиалам — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Филиал</th><th>Менеджер</th><th style="text-align:right">Факт $</th><th style="text-align:right">Факт шт</th><th style="text-align:right">План $</th><th style="text-align:right">Выполн.</th><th style="text-align:right">Осталось</th></tr></thead>
+  <div class="card"><div class="cardH"><h3>Filiallar boyicha — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Filial</th><th>Menejer</th><th style="text-align:right">Haqiqat $</th><th style="text-align:right">Haqiqat dona</th><th style="text-align:right">Reja $</th><th style="text-align:right">Bajarish</th><th style="text-align:right">Qoldi</th></tr></thead>
     <tbody>${visibleBranches.map(b=>{
       const d=byBranch[b.id]||{rev:0,units:0};
       const bp=bmp(b,c,moIdx>=0?moIdx:0);
@@ -926,7 +1007,7 @@ async function renderSales() {
         <td><span class="badge badge-${s.payment_type==='cash'?'green':s.payment_type==='installment'?'amber':'blue'}">${payL(s.payment_type)}</span></td>
         ${(canEdit()||(APP.user?.role==='BRANCH_MGR'&&String(s.branch_id)===String(APP.user?.branch_id)))?
           `<td style="white-space:nowrap">
-            <button class="btn sm" data-sid="${s.id}" data-price="${s.unit_price}" data-pay="${s.payment_type}" data-seller="${s.salesperson||''}" onclick="editSaleClick(this)">Ред.</button>
+            <button class="btn sm" data-sid="${s.id}" data-price="${s.unit_price}" data-pay="${s.payment_type}" data-seller="${s.salesperson||''}" onclick="editSaleClick(this)">Ред</button>
             <button class="btn sm danger" data-sid="${s.id}" onclick="delSaleClick(this)">Och</button>
           </td>`
           :'<td></td>'}
@@ -1092,10 +1173,10 @@ async function openSaleModal(){
   const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}">${m.name} ($${m.price_usd})</option>`).join('');
   document.getElementById('M_user_title').textContent='Новая продажа';
   document.getElementById('M_user_body').innerHTML=`
-    <div class="fRow c2"><div class="fG"><label>Дата</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="fG"><label>Филиал</label><select id="sBranch">${brOpts}</select></div></div>
-    <div class="fRow c2"><div class="fG"><label>Модель</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Цена $</label><input id="sPrice" type="number"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Кол-во</label><input id="sQty" type="number" value="1" min="1"></div><div class="fG"><label>Оплата</label><select id="sPayType"><option value="cash">Наличные</option><option value="installment">Рассрочка</option><option value="card">Карта</option><option value="transfer">Перевод</option></select></div></div>
-    <div class="fG"><label>Продавец (email)</label><input id="sSeller" value="${APP.user.email}"></div>`;
+    <div class="fRow c2"><div class="fG"><label>Sana</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="fG"><label>Filial</label><select id="sBranch">${brOpts}</select></div></div>
+    <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Цена $</label><input id="sPrice" type="number"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Кол-во</label><input id="sQty" type="number" value="1" min="1"></div><div class="fG"><label>Tolov</label><select id="sPayType"><option value="cash">Наличные</option><option value="installment">Рассрочка</option><option value="card">Карта</option><option value="transfer">Перевод</option></select></div></div>
+    <div class="fG"><label>Sotuvchi (email)</label><input id="sSeller" value="${APP.user.email}"></div>`;
   document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Отмена</button><button class="btn primary" onclick="saveSale()">Сохранить</button>`;
   openM('M_user'); setTimeout(()=>setModelPrice(),50);
 }
@@ -1140,7 +1221,7 @@ async function renderMarketing(){
     </div>`).join('')}
   </div></div>
   <div class="card"><div class="cardH"><h3>Бюджет по филиалам</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Филиал</th><th>Вес</th><th style="text-align:right">Бюджет $/мес</th><th style="text-align:right">Платных лидов</th><th style="text-align:right">+ Орган.</th><th style="text-align:right">Итого лидов</th><th style="text-align:right">Ожид. продаж</th></tr></thead>
+    <thead><tr><th>Filial</th><th>Вес</th><th style="text-align:right">Бюджет $/мес</th><th style="text-align:right">Платных лидов</th><th style="text-align:right">+ Орган.</th><th style="text-align:right">Итого лидов</th><th style="text-align:right">Ожид. продаж</th></tr></thead>
     <tbody>${APP.branches.map(b=>{
       const sh=parseFloat(b.weight||1)/(c.totalWeight||1);
       const bgt=c.mktBudget*sh,pl=c.cpl>0?Math.ceil(bgt/c.cpl):0;
@@ -1162,7 +1243,7 @@ async function renderMarketing(){
 // ════════════════════════════════════════════════
 async function renderBranches(){
   const c=runCalc();
-  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn primary" onclick="openBranchModal()">+ Филиал</button>`;
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn primary" onclick="openBranchModal()">+ Filial</button>`;
   // BRANCH TOGGLE UI
   let inactiveIds=[];
   try{inactiveIds=JSON.parse(APP.params.inactive_branches||'[]').map(String);}catch(e){}
@@ -1200,7 +1281,7 @@ async function renderBranches(){
     ${kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')}
   </div>
   <div class="card"><div class="cardH"><h3>Список филиалов</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Филиал</th><th>Город</th><th style="text-align:right">Вес</th><th style="text-align:right">Сотруд.</th><th style="text-align:right">Аренда $</th><th>Менеджер</th><th style="text-align:right">План/мес $</th><th style="text-align:right">Шт/мес</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <thead><tr><th>Filial</th><th>Город</th><th style="text-align:right">Вес</th><th style="text-align:right">Сотруд.</th><th style="text-align:right">Аренда $</th><th>Menejer</th><th style="text-align:right">План/мес $</th><th style="text-align:right">Шт/мес</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.branches.map(b=>{
       const plan=bmp(b,c,0);
       const mgr=APP.team.find(t=>t.branch_id===b.id&&t.role==='BRANCH_MGR');
@@ -1210,12 +1291,12 @@ async function renderBranches(){
         <td>${mgr?.full_name||'<span style="color:var(--ink4)">—</span>'}</td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(plan.rev)}</td>
         <td style="text-align:right;font-family:var(--mono)">${plan.units}</td>
-        ${canEdit()?`<td><button class="btn sm" onclick="openBranchModal(${b.id})">Ред.</button></td>`:''}
+        ${canEdit()?`<td><button class="btn sm" onclick="openBranchModal(${b.id})">Ред</button></td>`:''}
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
   <div class="card"><div class="cardH"><h3>Сотрудники по филиалам</h3><span class="hint">Привязка и управление</span>${canEdit()?'<button class="btn sm primary" onclick="openTeamModal()" style="margin-left:auto">+ Сотрудник</button>':''}</div><div class="cardB tWrap"><table>
-    <thead><tr><th>Сотрудник</th><th>Email</th><th>Роль</th><th>Филиал</th><th style="text-align:right">Зарплата $</th><th>Telegram ID</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <thead><tr><th>Сотрудник</th><th>Email</th><th>Роль</th><th>Filial</th><th style="text-align:right">Зарплата $</th><th>Telegram ID</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
       return `<tr><td><strong>${t.full_name}</strong></td><td style="font-size:11px;color:var(--ink3)">${t.email||'—'}</td>
@@ -1224,7 +1305,7 @@ async function renderBranches(){
         <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
         <td style="font-family:var(--mono);font-size:11px">${t.telegram_id||'—'}</td>
         ${canEdit()?`<td style="white-space:nowrap">
-          <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред.</button>
+          <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button>
           <button class="btn sm danger" onclick="deleteTeamMember('${t.id}','${t.full_name}')">O'ch</button>
         </td>`:''}
       </tr>`;
@@ -1298,7 +1379,7 @@ async function renderTeam(){
     ${kpi('Задач открытых',(tasks||[]).filter(t=>t.status==='pending').length,mo,'')}
   </div>
   <div class="card"><div class="cardH"><h3>Команда — цели и мотивация</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Сотрудник</th><th>Роль</th><th>Филиал</th><th style="text-align:right">Зарплата $</th><th style="text-align:right">Бонус $</th><th>Мечта</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <thead><tr><th>Сотрудник</th><th>Роль</th><th>Filial</th><th style="text-align:right">Зарплата $</th><th style="text-align:right">Бонус $</th><th>Мечта</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
       const wt=(wishes||[]).find(w=>w.assigned_to===t.email);
@@ -1311,7 +1392,7 @@ async function renderTeam(){
         <td style="max-width:150px;font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wd.wish||'—'}</td>
         ${canEdit()?`<td style="white-space:nowrap">
           <button class="btn sm" onclick="openWishModal('${t.id}','${t.email}','${t.full_name.replace(/'/g,'`')}','${mo}')">Maqsad</button>
-          <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред.</button>
+          <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button>
           <button class="btn sm danger" onclick="if(confirm('${t.full_name} ni ochirish?'))deleteTeamMember('${t.id}')">O'ch</button>
           ${t.telegram_id?`<button class="btn sm" onclick="sendTgTo('${t.telegram_id}','${t.full_name.replace(/'/g,'`')}','${mo}')">TG</button>`:''}
         </td>`:''}
@@ -1546,7 +1627,7 @@ async function renderFinance(){
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
   <div class="card"><div class="cardH"><h3>P&L — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Статья</th><th style="text-align:right">Сумма $</th></tr></thead>
+    <thead><tr><th>Статья</th><th style="text-align:right">Summa $</th></tr></thead>
     <tbody>${pnlRows.map(r=>r.sep?`<tr><td colspan="2" style="padding:2px;background:var(--bg)"></td></tr>`:
       r.b?`<tr style="font-weight:700;background:var(--bg)"><td>${r.l}</td><td style="text-align:right;font-family:var(--mono);color:var(--${r.cls||'ink'})">${r.str||fmtD(r.v)}</td></tr>`:
       `<tr><td>${r.l}</td><td style="text-align:right;font-family:var(--mono);color:var(--${r.cls||'ink'})">${r.str||fmtD(r.v)}</td></tr>`
@@ -1800,7 +1881,7 @@ async function renderCollections(){
     ${kpi('Просрочка 30+',ov30,'договоров','red')}
   </div>
   <div class="card"><div class="cardH"><h3>Должники</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Клиент</th><th>Телефон</th><th>Филиал</th><th style="text-align:right">Долг $</th><th style="text-align:right">Оплачено $</th><th style="text-align:right">Остаток $</th><th style="text-align:right">Дней</th><th>Статус</th><th>Коллектор</th><th>Контакт</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <thead><tr><th>Клиент</th><th>Телефон</th><th>Filial</th><th style="text-align:right">Долг $</th><th style="text-align:right">Оплачено $</th><th style="text-align:right">Остаток $</th><th style="text-align:right">Дней</th><th>Статус</th><th>Коллектор</th><th>Контакт</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${list.map(c=>{
       const br=APP.branches.find(b=>b.id===c.branch_id);
       const coll=APP.team.find(t=>t.email===c.collector_email);
@@ -1815,7 +1896,7 @@ async function renderCollections(){
         <td><span class="badge badge-${sMap[c.status]||'gray'}">${c.status||'—'}</span></td>
         <td style="font-size:11px">${coll?.full_name||c.collector_email||'—'}</td>
         <td style="font-size:11px;font-family:var(--mono)">${c.next_action||'—'}</td>
-        ${canEdit()?`<td><button class="btn sm" onclick="openCollModal('${c.id}')">Ред.</button></td>`:''}
+        ${canEdit()?`<td><button class="btn sm" onclick="openCollModal('${c.id}')">Ред</button></td>`:''}
       </tr>`;
     }).join('')||'<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--ink3)">Данных нет</td></tr>'}</tbody>
   </table></div></div>`;
@@ -1868,7 +1949,7 @@ async function renderProcurement(){
     ${kpi('Оборотный капитал',fmtD(wCap),'на склад','red')}
   </div>
   <div class="card"><div class="cardH"><h3>Потребность по моделям</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Модель</th><th>Категория</th><th style="text-align:right">Цена $</th><th style="text-align:right">Себест. $</th><th style="text-align:right">Нужно/мес</th><th style="text-align:right">Запас (шт)</th><th style="text-align:right">Стоимость запаса $</th></tr></thead>
+    <thead><tr><th>Model</th><th>Категория</th><th style="text-align:right">Цена $</th><th style="text-align:right">Себест. $</th><th style="text-align:right">Нужно/мес</th><th style="text-align:right">Запас (шт)</th><th style="text-align:right">Стоимость запаса $</th></tr></thead>
     <tbody>${APP.models.map(m=>{
       const u=APP.models.length>0?Math.ceil(c.units/APP.models.length):0;
       const st=Math.ceil(u*invM);
@@ -2367,7 +2448,7 @@ async function renderSettings(){
     {k:'commission_pct',l:'Комиссия продавца %'},{k:'tg_bot_token',l:'Telegram Bot Token'}
   ];
   let html=`<div class="card"><div class="cardH"><h3>Пользователи системы</h3><button class="btn primary sm" onclick="openUserModal()" style="margin-left:auto">+ Пользователь</button></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Email</th><th>Имя</th><th>Роль</th><th>Филиал</th><th>Разделы</th><th>Активен</th><th></th></tr></thead>
+    <thead><tr><th>Email</th><th>Имя</th><th>Роль</th><th>Filial</th><th>Разделы</th><th>Активен</th><th></th></tr></thead>
     <tbody>${APP.users.map(u=>{
       const br=APP.branches.find(b=>b.id===u.branch_id);
       return `<tr><td style="font-size:11px;font-family:var(--mono)">${u.email}</td><td>${u.full_name||'—'}</td>
@@ -2376,7 +2457,7 @@ async function renderSettings(){
         <td style="font-size:10px;color:var(--ink3)">${u.sections||'ALL'}</td>
         <td><span class="badge badge-${u.active?'green':'gray'}">${u.active?'Да':'Нет'}</span></td>
         <td style="white-space:nowrap">
-          <button class="btn sm" onclick="openUserModal('${u.email}')">Ред.</button>
+          <button class="btn sm" onclick="openUserModal('${u.email}')">Ред</button>
           <button class="btn sm" onclick="toggleActive('${u.email}',${u.active})">${u.active?'Деакт.':'Акт.'}</button>
         </td>
       </tr>`;
@@ -2390,14 +2471,14 @@ async function renderSettings(){
     </div>`).join('')}
   </div></div>
   <div class="card"><div class="cardH"><h3>Сотрудники команды</h3><button class="btn primary sm" onclick="openTeamModal()" style="margin-left:auto">+ Добавить</button></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Имя</th><th>Роль</th><th>Филиал</th><th style="text-align:right">Зарплата $</th><th></th></tr></thead>
+    <thead><tr><th>Имя</th><th>Роль</th><th>Filial</th><th style="text-align:right">Зарплата $</th><th></th></tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
       return `<tr><td>${t.full_name}<br><small style="color:var(--ink3)">${t.email||''}</small></td>
         <td><span class="badge badge-${rColor(t.role)}">${roleLabel(t.role)}</span></td>
         <td>${br?.name||'—'}</td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
-        <td><button class="btn sm" onclick="openTeamModal('${t.id}')">Ред.</button></td>
+        <td><button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button></td>
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
@@ -2427,12 +2508,12 @@ async function openUserModal(email=null){
     <div class="fRow c2"><div class="fG"><label>Роль</label><select id="uRole">
       <option value="ADMIN"${u?.role==='ADMIN'?' selected':''}>Админ</option>
       <option value="TOP_MGR"${u?.role==='TOP_MGR'?' selected':''}>Топ-менеджер</option>
-      <option value="BRANCH_MGR"${u?.role==='BRANCH_MGR'?' selected':''}>Менеджер фил.</option>
-      <option value="SALES_STAFF"${!u||u?.role==='SALES_STAFF'?' selected':''}>Продавец</option>
+      <option value="BRANCH_MGR"${u?.role==='BRANCH_MGR'?' selected':''}>Menejer фил.</option>
+      <option value="SALES_STAFF"${!u||u?.role==='SALES_STAFF'?' selected':''}>Sotuvchi</option>
       <option value="COLLECTOR"${u?.role==='COLLECTOR'?' selected':''}>Коллектор</option>
       <option value="CALLCENTER"${u?.role==='CALLCENTER'?' selected':''}>Колл-центр</option>
       <option value="USER"${u?.role==='USER'?' selected':''}>Наблюдатель</option>
-    </select></div><div class="fG"><label>Филиал</label><select id="uBranch">${brOpts}</select></div></div>
+    </select></div><div class="fG"><label>Filial</label><select id="uBranch">${brOpts}</select></div></div>
     <div class="fG"><label>Разделы (через запятую или ALL)</label><input id="uSects" value="${u?.sections||'ALL'}" placeholder="strategy,sales,marketing,..."></div>`;
   document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Отмена</button><button class="btn primary" onclick="saveUser('${email||''}')">Сохранить</button>`;
   openM('M_user');
@@ -2508,7 +2589,7 @@ async function sendTgTo(tgId,name,mo){
   const plan=br?bmp(br,c,APP.months.indexOf(mo)>=0?APP.months.indexOf(mo):0):{rev:0,units:0};
   const staff=parseInt(br?.staff_count||1);
   const myPlan=plan.rev/staff;
-  const msg=`<b>Smartlife — Ваш план</b>\n\n👤 ${name}\n🏪 ${br?.name||'—'}\n📅 ${monthLabel(mo)}\n\n💰 Личный план (выручка): <b>$${Math.round(myPlan).toLocaleString('ru-RU')}</b>\n📱 Единиц продать: <b>${Math.ceil(plan.units/staff)} шт</b>\n📆 Дневной план: <b>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</b>\n\n🎯 Удачи! Ты справишься!`;
+  const msg=`<b>Smartlife — Ваш план</b>\n\n👤 ${name}\n🏪 ${br?.name||'—'}\n📅 ${monthLabel(mo)}\n\n💰 Личный план (выручка): <b>$${Math.round(myPlan).toLocaleString('ru-RU')}</b>\n📱 Единиц продать: <b>${Math.ceil(plan.units/staff)} шт</b>\n📆 Kunlik reja: <b>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</b>\n\n🎯 Удачи! Ты справишься!`;
   const ok=await sendTgMsg(tgId,msg);
   alert(ok?'Уведомление отправлено!':'Ошибка отправки — проверьте Telegram ID и Bot Token');
 }
@@ -2585,7 +2666,7 @@ async function sendDailyNotifications(){
     const plan=br?bmp(br,c,APP.months.indexOf(mo)>=0?APP.months.indexOf(mo):0):{rev:0,units:0};
     const staff=parseInt(br?.staff_count||1);
     const myPlan=plan.rev/staff;
-    const msg=`<b>Smartlife — Ежедневный план</b>\n\n👤 ${t.full_name}\n🏪 ${br?.name||'—'}\n📅 ${monthLabel(mo)}\n\n💰 Мой план на месяц: <b>$${Math.round(myPlan).toLocaleString('ru-RU')}</b>\n📆 Дневной план: <b>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</b>\n📱 Продать в месяц: <b>${Math.ceil(plan.units/staff)} шт</b>`;
+    const msg=`<b>Smartlife — Ежедневный план</b>\n\n👤 ${t.full_name}\n🏪 ${br?.name||'—'}\n📅 ${monthLabel(mo)}\n\n💰 Мой план на месяц: <b>$${Math.round(myPlan).toLocaleString('ru-RU')}</b>\n📆 Kunlik reja: <b>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</b>\n📱 Продать в месяц: <b>${Math.ceil(plan.units/staff)} шт</b>`;
     const ok=await sendTgMsg(t.telegram_id,msg);
     if(ok) sent++; else failed++;
   }
