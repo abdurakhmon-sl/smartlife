@@ -902,15 +902,21 @@ async function renderSales() {
     }).join('')}</tbody>
   </table></div></div>
   <div class="card"><div class="cardH"><h3>Последние продажи</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Дата</th><th>Филиал</th><th>Модель</th><th>Продавец</th><th style="text-align:right">Сумма $</th><th>Оплата</th></tr></thead>
+    <thead><tr><th>Sana</th><th>Filial</th><th>Model</th><th>Sotuvchi</th><th style="text-align:right">Summa $</th><th>Tolov</th><th></th></tr></thead>
     <tbody>${sales.slice(0,30).map(s=>{
       const br=APP.branches.find(b=>b.id===s.branch_id);
       return `<tr><td style="font-family:var(--mono);font-size:11px">${s.date}</td><td>${br?.name||'—'}</td><td>${s.sl_models?.name||'—'}</td>
         <td>${s.salesperson||'—'}</td>
         <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(parseFloat(s.unit_price||0)*parseInt(s.qty||1))}</td>
         <td><span class="badge badge-${s.payment_type==='cash'?'green':s.payment_type==='installment'?'amber':'blue'}">${payL(s.payment_type)}</span></td>
+        ${(canEdit()||(APP.user?.role==='BRANCH_MGR'&&String(s.branch_id)===String(APP.user?.branch_id)))?
+          `<td style="white-space:nowrap">
+            <button class="btn sm" data-sid="${s.id}" data-price="${s.unit_price}" data-pay="${s.payment_type}" data-seller="${s.salesperson||''}" onclick="editSaleClick(this)">Ред.</button>
+            <button class="btn sm danger" data-sid="${s.id}" onclick="delSaleClick(this)">Och</button>
+          </td>`
+          :'<td></td>'}
       </tr>`;
-    }).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--ink3)">Продаж нет</td></tr>'}</tbody>
+    }).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--ink3)">Sotuvlar yoq</td></tr>'}</tbody>
   </table></div></div>`;
 
   // BRANCH MANAGER TARGETS
@@ -2918,13 +2924,15 @@ function previewExcel(input){
       const date = row[0] ? String(row[0]).trim() : '';
       const branchName = row[1] ? String(row[1]).trim() : '';
       const seller = row[2] ? String(row[2]).trim() : '';
-      const amount = parseFloat(String(row[3]||'').replace(/[^0-9.]/g,''));
+      const rawAmt = String(row[3]||'').trim();
+      const amount = parseFloat(rawAmt.replace(/[^0-9.-]/g,''));
       const payType = String(row[4]||'naqd').trim().toLowerCase();
 
       const branch = APP.branches.find(b=>b.name.toLowerCase()===branchName.toLowerCase());
       if(!branch) { errors.push(`Qator ${lineNum}: "${branchName}" filiali topilmadi`); return; }
       if(!date) { errors.push(`Qator ${lineNum}: sana bo'sh`); return; }
-      if(!amount || isNaN(amount)) { errors.push(`Qator ${lineNum}: summa noto'g'ri`); return; }
+      if(isNaN(amount)) { errors.push(`Qator ${lineNum}: summa noto'g'ri`); return; }
+      if(amount === 0 && String(row[3]||'').trim() === '') { errors.push(`Qator ${lineNum}: summa bo'sh`); return; }
 
       const payMap = {'naqd':'cash','muddatli':'installment','karta':'card','otkazma':'transfer','cash':'cash','installment':'installment','card':'card','transfer':'transfer'};
       const payTypeEn = payMap[payType] || 'cash';
