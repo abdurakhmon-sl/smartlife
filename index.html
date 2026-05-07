@@ -865,7 +865,15 @@ async function renderSales() {
   const totalU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
   const today=new Date().toISOString().slice(0,10);
   const todayRev=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const totalDays=daysInMonth(mo);
+  const daysPassed=workingDaysSoFar(mo);
+  const dayPlanTotal=c.netRev/totalDays;  // per day based on actual days
+  const shouldByToday=dayPlanTotal*daysPassed; // what should have been done by today
+  const remainingDays=Math.max(1,totalDays-daysPassed);
+  const remainingTarget=Math.max(0,c.netRev-totalRev); // what's left
+  const newDailyPlan=remainingTarget/remainingDays; // adjusted daily plan
   const pct=c.netRev>0?Math.min(100,totalRev/c.netRev*100):0;
+  const pctByToday=shouldByToday>0?Math.min(100,totalRev/shouldByToday*100):0;
   const byBranch={};
   APP.branches.forEach(b=>byBranch[b.id]={rev:0,units:0});
   sales.forEach(s=>{if(byBranch[s.branch_id]){byBranch[s.branch_id].rev+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);byBranch[s.branch_id].units+=parseInt(s.qty||1);}});
@@ -875,13 +883,20 @@ async function renderSales() {
     ? APP.branches.filter(b=>String(b.id)===String(APP.user?.branch_id))
     : APP.branches;
   let html=mSel()+`<div class="kpiGrid">
-    ${kpi('Факт выручки',fmtD(totalRev),`${Math.round(pct)}% от плана`,pct>=100?'green':pct>=70?'amber':'red')}
-    ${kpi('Факт единиц',fmt(totalU),`План ${fmt(c.units)} шт`,'')}
-    ${kpi('Сегодня',fmtD(todayRev),`Дневной план ${fmtD(c.netRev/26)}`,todayRev>=c.netRev/26?'green':'amber')}
-    ${kpi('Осталось',fmtD(Math.max(0,c.netRev-totalRev)),`${Math.max(0,c.units-totalU)} шт`,'amber')}
+    ${kpi('Haqiqat daromad',fmtD(totalRev),`${Math.round(pct)}% — oylik rejadan`,pct>=100?'green':pct>=70?'amber':'red')}
+    ${kpi('Bugunga kerak edi',fmtD(shouldByToday),`${daysPassed} kunlik reja · ${Math.round(pctByToday)}% bajardi`,pctByToday>=100?'green':pctByToday>=80?'amber':'red')}
+    ${kpi('Bugun',fmtD(todayRev),`Kunlik reja: ${fmtD(dayPlanTotal)}`,todayRev>=dayPlanTotal?'green':'amber')}
+    ${kpi('Qolgan kunlik reja',fmtD(newDailyPlan),`${remainingDays} kun qoldi · Tuzatilgan plan`,'blue')}
+    ${kpi('Qoldi (oy)',fmtD(remainingTarget),`${Math.max(0,c.units-totalU)} dona`,'amber')}
   </div>
   <div class="card"><div class="cardB">
-    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span>Выполнение ${monthLabel(mo)}</span><strong>${Math.round(pct)}%</strong></div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
+      <span>Bajarish — ${monthLabel(mo)}</span>
+      <span>
+        <strong>${Math.round(pct)}%</strong> oylik ·
+        <strong style="color:var(--${pctByToday>=100?'green':'amber'})">${Math.round(pctByToday)}%</strong> bugunga rejadan
+      </span>
+    </div>
     <div class="prog"><div class="progFill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>=70?'var(--amber)':'var(--blue)'}"></div></div>
   </div></div>
   <div class="card"><div class="cardH"><h3>По филиалам — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
@@ -2596,7 +2611,12 @@ async function renderSellerView(){
   const myPlanOverride=parseFloat(APP.params[tgtKey]||0);
   const staff=parseInt(br?.staff_count||1);
   const myPlan=myPlanOverride>0?myPlanOverride:(br?plan.rev/staff:0);
-  const dayPlan=myPlan/26;
+  const totalDaysSv=daysInMonth(mo);
+  const daysPasdSv=workingDaysSoFar(mo);
+  const dayPlan=myPlan/totalDaysSv;
+  const shouldByTodaySv=dayPlan*daysPasdSv;
+  const remainingDaysSv=Math.max(1,totalDaysSv-daysPasdSv);
+  const newDayPlanSv=Math.max(0,myPlan-factRev)/remainingDaysSv;
   const factRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
   const factU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
   const dayFact=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
@@ -2724,6 +2744,21 @@ function fmtD(n){return '$'+Math.round(n||0).toLocaleString('ru-RU');}
 function yyyymm(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
 function monthLabel(ym){if(!ym)return'';const[y,m]=ym.split('-');return['Yan','Fev','Mar','Apr','May','Iyun','Iyul','Avg','Sen','Okt','Noy','Dek'][parseInt(m)-1]+' '+y;}
 function canEdit(){return['ADMIN','TOP_MGR'].includes(APP.user?.role||'');}
+function daysInMonth(ym){
+  if(!ym) return 30;
+  const [y,m]=ym.split('-').map(Number);
+  return new Date(y,m,0).getDate();
+}
+function workingDaysSoFar(ym){
+  // Days passed so far in the month (including today)
+  if(!ym) return new Date().getDate();
+  const today=new Date();
+  const [y,m]=ym.split('-').map(Number);
+  const curYear=today.getFullYear(), curMonth=today.getMonth()+1;
+  if(y===curYear&&m===curMonth) return today.getDate();
+  if(y<curYear||(y===curYear&&m<curMonth)) return daysInMonth(ym); // past month - full
+  return 0; // future month
+}
 function canBranchMgr(branchId){
   if(canEdit()) return true;
   if(APP.user?.role==='BRANCH_MGR' && String(APP.user?.branch_id)===String(branchId)) return true;
