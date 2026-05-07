@@ -151,21 +151,21 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
 <div class="modal" id="M_task"><div class="mBox">
   <div class="mH"><h3>Задача</h3><button class="mX" onclick="closeM('M_task')">✕</button></div>
   <div class="mB">
-    <div class="fG" style="margin-bottom:12px"><label>Название</label><input id="tTitle"></div>
+    <div class="fG" style="margin-bottom:12px"><label>Nomi</label><input id="tTitle"></div>
     <div class="fG" style="margin-bottom:12px"><label>Описание</label><textarea id="tDesc" rows="2" style="resize:vertical"></textarea></div>
     <div class="fRow c2"><div class="fG"><label>Кому</label><select id="tAssign"></select></div><div class="fG"><label>Раздел</label><select id="tSect"><option value="general">Общая</option><option value="sales">Продажи</option><option value="marketing">Маркетинг</option><option value="finance">Финансы</option><option value="target">Цель</option></select></div></div>
     <div class="fRow c2" style="margin-top:12px"><div class="fG"><label>Приоритет</label><select id="tPrio"><option value="high">Высокий</option><option value="medium" selected>Средний</option><option value="low">Низкий</option></select></div><div class="fG"><label>Дедлайн</label><input id="tDue" type="date"></div></div>
   </div>
-  <div class="mF"><button class="btn" onclick="closeM('M_task')">Отмена</button><button class="btn primary" onclick="saveTask()">Сохранить</button></div>
+  <div class="mF"><button class="btn" onclick="closeM('M_task')">Bekor</button><button class="btn primary" onclick="saveTask()">Saqlash</button></div>
 </div></div>
 <div class="modal" id="M_wish"><div class="mBox">
-  <div class="mH"><h3>Цель и мотивация</h3><button class="mX" onclick="closeM('M_wish')">✕</button></div>
+  <div class="mH"><h3>Maqsad va motivatsiya</h3><button class="mX" onclick="closeM('M_wish')">✕</button></div>
   <div class="mB">
-    <div class="fG" style="margin-bottom:12px"><label>Сотрудник</label><input id="wsName" readonly style="background:var(--bg)"></div>
-    <div class="fRow c2"><div class="fG"><label>Желаемый бонус ($)</label><input id="wsBonus" type="number" min="0" step="50"></div><div class="fG"><label>Месяц</label><input id="wsMonth" type="month"></div></div>
-    <div class="fG" style="margin-top:12px"><label>Мечта (что хочет при выполнении плана)</label><textarea id="wsWish" rows="3" style="resize:vertical" placeholder="Купить машину, поехать в отпуск..."></textarea></div>
+    <div class="fG" style="margin-bottom:12px"><label>Xodim</label><input id="wsName" readonly style="background:var(--bg)"></div>
+    <div class="fRow c2"><div class="fG"><label>Xohlagan bonus ($)</label><input id="wsBonus" type="number" min="0" step="50"></div><div class="fG"><label>Месяц</label><input id="wsMonth" type="month"></div></div>
+    <div class="fG" style="margin-top:12px"><label>Мечта (что хочет reja bajarilganda)</label><textarea id="wsWish" rows="3" style="resize:vertical" placeholder="Mashina, sayohat..."></textarea></div>
   </div>
-  <div class="mF"><button class="btn" onclick="closeM('M_wish')">Отмена</button><button class="btn primary" onclick="saveWish()">Сохранить</button></div>
+  <div class="mF"><button class="btn" onclick="closeM('M_wish')">Bekor</button><button class="btn primary" onclick="saveWish()">Saqlash</button></div>
 </div></div>
 <div class="modal" id="M_coll"><div class="mBox">
   <div class="mH"><h3 id="M_coll_title">Должник</h3><button class="mX" onclick="closeM('M_coll')">✕</button></div>
@@ -173,10 +173,10 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
     <div class="fRow c2"><div class="fG"><label>Клиент</label><input id="clName"></div><div class="fG"><label>Телефон</label><input id="clPhone"></div></div>
     <div class="fRow c2"><div class="fG"><label>Filial</label><select id="clBranch"></select></div><div class="fG"><label>Sana договора</label><input id="clDate" type="date"></div></div>
     <div class="fRow c3"><div class="fG"><label>Долг $</label><input id="clDebt" type="number"></div><div class="fG"><label>Оплачено $</label><input id="clPaid" type="number"></div><div class="fG"><label>Дней просрочки</label><input id="clDays" type="number"></div></div>
-    <div class="fRow c2" style="margin-top:4px"><div class="fG"><label>Следующий контакт</label><input id="clNext" type="date"></div><div class="fG"><label>Коллектор</label><select id="clColl"></select></div></div>
+    <div class="fRow c2" style="margin-top:4px"><div class="fG"><label>Следующий контакт</label><input id="clNext" type="date"></div><div class="fG"><label>Kollektor</label><select id="clColl"></select></div></div>
     <div class="fG" style="margin-top:8px"><label>Примечание</label><textarea id="clNotes" rows="2" style="resize:vertical"></textarea></div>
   </div>
-  <div class="mF"><button class="btn" onclick="closeM('M_coll')">Отмена</button><button class="btn primary" onclick="saveColl()">Сохранить</button></div>
+  <div class="mF"><button class="btn" onclick="closeM('M_coll')">Bekor</button><button class="btn primary" onclick="saveColl()">Saqlash</button></div>
 </div></div>
 <div class="modal" id="M_recur"><div class="mBox" style="max-width:560px">
   <div class="mH"><h3>Qaytalanadigan vazifa</h3><button class="mX" onclick="closeM('M_recur')">✕</button></div>
@@ -185,7 +185,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
     <div class="fG" style="margin-bottom:12px"><label>Tavsif</label><textarea id="rDesc" rows="2" style="resize:vertical"></textarea></div>
     <div class="fRow c3">
       <div class="fG"><label>Bajaruvchi</label><select id="rAssign"></select></div>
-      <div class="fG"><label>Bo'lim</label><select id="rSect">
+      <div class="fG"><label>Bolim</label><select id="rSect">
         <option value="general">Umumiy</option>
         <option value="callcenter">Koll-markaz</option>
         <option value="sales">Sotuvlar</option>
@@ -278,13 +278,13 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
 </div></div>
 
 <div class="modal" id="M_widget"><div class="mBox">
-  <div class="mH"><h3>Добавить виджет</h3><button class="mX" onclick="closeM('M_widget')">✕</button></div>
+  <div class="mH"><h3>Qoshish виджет</h3><button class="mX" onclick="closeM('M_widget')">✕</button></div>
   <div class="mB">
     <div class="fG" style="margin-bottom:12px"><label>Тип виджета</label><select id="wType"><option value="bar">Bar Chart</option><option value="line">Line Chart</option><option value="pie">Pie Chart</option><option value="kpi">KPI карточки</option><option value="table">Таблица</option></select></div>
     <div class="fG" style="margin-bottom:12px"><label>Источник данных</label><select id="wSource"><option value="sales_by_branch">Продажи по филиалам</option><option value="sales_by_month">Продажи по месяцам</option><option value="leads_by_branch">Лиды по филиалам</option><option value="profit_by_branch">Прибыль по филиалам</option><option value="mkt_by_branch">Маркетинг по филиалам</option></select></div>
     <div class="fG"><label>Заголовок (опционально)</label><input id="wTitle" placeholder="Автоматически"></div>
   </div>
-  <div class="mF"><button class="btn" onclick="closeM('M_widget')">Отмена</button><button class="btn primary" onclick="saveWidget()">Добавить</button></div>
+  <div class="mF"><button class="btn" onclick="closeM('M_widget')">Bekor</button><button class="btn primary" onclick="saveWidget()">Qoshish</button></div>
 </div></div>
 
 <script>
@@ -436,6 +436,7 @@ const SECTIONS=[
   {id:'branches',    label:'Filiallar',     cat:null},
   {id:'team',        label:'Jamoa',         cat:'Boshqaruv'},
   {id:'finance',     label:'Moliya',        cat:null},
+  {id:'bugun',      label:'Kunlik nazorat', cat:null},
   {id:'leaderboard', label:'Reyting',        cat:null},
   {id:'inventory',   label:'Ombor',          cat:null},
   {id:'procurement', label:'Zakup / OK',    cat:null},
@@ -460,7 +461,7 @@ function loadSection(id) {
   const nav=document.getElementById(`nav_${id}`); if(nav) nav.classList.add('act');
   document.getElementById('topbarTitle').textContent=SECTIONS.find(s=>s.id===id)?.label||id;
   document.getElementById('topbarRight').innerHTML='';
-  const fns={strategy:renderStrategy,sales:renderSales,marketing:renderMarketing,branches:renderBranches,team:renderTeam,finance:renderFinance,procurement:renderProcurement,collections:renderCollections,callcenter:renderCallCenter,leaderboard:renderLeaderboard,inventory:renderInventory,settings:renderSettings};
+  const fns={strategy:renderStrategy,sales:renderSales,marketing:renderMarketing,branches:renderBranches,team:renderTeam,finance:renderFinance,procurement:renderProcurement,collections:renderCollections,callcenter:renderCallCenter,bugun:renderBugun,leaderboard:renderLeaderboard,inventory:renderInventory,settings:renderSettings};
   if(fns[id]) fns[id]();
 }
 
@@ -636,7 +637,7 @@ async function renderStrategy() {
           </tr>
         </tbody>
       </table></div>
-      <div style="font-size:11px;color:var(--ink3);margin-top:6px">Bo'sh qolsa — yuqoridagi umumiy qiymat ishlatiladi</div>
+      <div style="font-size:11px;color:var(--ink3);margin-top:6px">Bosh qolsa — yuqoridagi umumiy qiymat ishlatiladi</div>
     </div>
   </div></div>
   <div class="kpiGrid">
@@ -647,7 +648,7 @@ async function renderStrategy() {
       const _totalPlan=rows.reduce((s,r)=>s+r.totRev,0);
       return [
         kpi('Maqsadli foyda/oy',fmtD(c.targetProfit),`Marja ${c.targetMargin}%`,'green'),
-        kpi("Bonuslar (qo'shimcha)",fmtD(c.totalBonuses),`+${fmtD(c.totalBonuses/(c.targetMargin/100))} daromad`,'amber'),
+        kpi("Bonuslar (qoshimcha)",fmtD(c.totalBonuses),`+${fmtD(c.totalBonuses/(c.targetMargin/100))} daromad`,'amber'),
         kpi('Kerakli daromad/oy',fmtD(_curMoPlan),`${monthLabel(APP.currentMonth||APP.months[0])} · ${fmt(_curMoUnits)} dona`,'blue'),
         kpi('Kerakli lidlar/oy',fmt(Math.ceil(_curMoUnits/c.convRate)),`Konv. ${(c.convRate*100).toFixed(1)}%`,''),
     
@@ -665,15 +666,15 @@ async function renderStrategy() {
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
     <div class="card"><div class="cardH"><h3>Barcha oylar — Daromad: Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartAllMonths" height="160"></canvas></div></div>
     <div class="card"><div class="cardH"><h3>Barcha oylar — Foyda: Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartAllProfit" height="160"></canvas></div></div>
-    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Daromad: Filiallar bo'yicha</h3></div><div class="cardB"><canvas id="chartCurMonth" height="160"></canvas></div></div>
-    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Foyda: Filiallar bo'yicha</h3></div><div class="cardB"><canvas id="chartCurProfit" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Daromad: Filiallar boyicha</h3></div><div class="cardB"><canvas id="chartCurMonth" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Foyda: Filiallar boyicha</h3></div><div class="cardB"><canvas id="chartCurProfit" height="160"></canvas></div></div>
   </div>
 
   <div class="card"><div class="cardH"><h3>Muammoli joylar (Bottleneck-tahlil)</h3></div><div class="cardB">
     ${bns.map(b=>`<div class="bn ${b.lvl}"><div class="bnT">${b.t}</div><div class="bnS">${b.d}</div></div>`).join('')}
   </div></div>
-  <div class="card"><div class="cardH"><h3>Jadval 1 — Filiallар boyicha sotuvlar</h3><span class="hint">Daromad $ va dona | og'irlikni toghridan to'g'ri tahrirlash mumkin</span></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Filial</th><th>Shahar</th><th>Og'irlik</th>${mH}<th style="text-align:right">Jami $</th>${mHU}<th style="text-align:right">Jami dona</th></tr></thead>
+  <div class="card"><div class="cardH"><h3>Jadval 1 — Filiallar boyicha sotuvlar</h3><span class="hint">Daromad $ va dona | og'irlikni toghridan to'g'ri tahrirlash mumkin</span></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Filial</th><th>Shahar</th><th>Ogirlik</th>${mH}<th style="text-align:right">Jami $</th>${mHU}<th style="text-align:right">Jami dona</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
       <td>${canEdit()?`<input class="iEdit" type="number" value="${r.b.weight}" step="0.25" min="0.25" max="10" onchange="updW(${r.b.id},this.value)">`:r.b.weight}</td>
@@ -682,7 +683,7 @@ async function renderStrategy() {
       ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${x.units}</td>`).join('')}
       <td style="text-align:right;font-weight:700;font-family:var(--mono)">${r.totUnits}</td>
     </tr>`).join('')}</tbody>
-    <tfoot><tr class="tFoot"><td colspan="3">ИТОГО</td>
+    <tfoot><tr class="tFoot"><td colspan="3">JAMI</td>
       ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.cols[i].rev,0))}</td>`).join('')}
       <td style="text-align:right;font-family:var(--mono)">${fmtD(rows.reduce((s,r)=>s+r.totRev,0))}</td>
       ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${rows.reduce((s,r)=>s+r.cols[i].units,0)}</td>`).join('')}
@@ -690,13 +691,13 @@ async function renderStrategy() {
     </tr></tfoot>
   </table></div></div>
   <div class="card"><div class="cardH"><h3>Jadval 2 — Filiallar boyicha lidlar</h3><span class="hint">Reja bajarish uchun kerakli lidlar</span></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Filial</th><th>Город</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
+    <thead><tr><th>Filial</th><th>Shahar</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
       ${r.cols.map(x=>`<td style="text-align:right;font-family:var(--mono)">${fmt(x.leads)}</td>`).join('')}
       <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmt(r.totLeads)}</td>
     </tr>`).join('')}</tbody>
-    <tfoot><tr class="tFoot"><td colspan="2">ИТОГО</td>
+    <tfoot><tr class="tFoot"><td colspan="2">JAMI</td>
       ${APP.months.map((_,i)=>`<td style="text-align:right;font-family:var(--mono)">${fmt(rows.reduce((s,r)=>s+r.cols[i].leads,0))}</td>`).join('')}
       <td style="text-align:right;font-family:var(--mono)">${fmt(rows.reduce((s,r)=>s+r.totLeads,0))}</td>
     </tr></tfoot>
@@ -1005,7 +1006,7 @@ async function renderSales() {
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
-  <div class="card"><div class="cardH"><h3>Последние продажи</h3></div><div class="cardB tWrap"><table>
+  <div class="card"><div class="cardH"><h3>Oxirgi sotuvlar</h3></div><div class="cardB tWrap"><table>
     <thead><tr><th>Sana</th><th>Filial</th><th>Model</th><th>Sotuvchi</th><th style="text-align:right">Summa $</th><th>Tolov</th><th></th></tr></thead>
     <tbody>${sales.slice(0,30).map(s=>{
       const br=APP.branches.find(b=>b.id===s.branch_id);
@@ -1044,7 +1045,7 @@ async function renderSales() {
           const defaultTarget = bp.rev/staffCount;
           
           if(!staff.length) {
-            return `<tr><td><strong>${b.name}</strong></td><td colspan="5" style="color:var(--ink4)">Sotuvchilar yo'q</td></tr>`;
+            return `<tr><td><strong>${b.name}</strong></td><td colspan="5" style="color:var(--ink4)">Sotuvchilar yoq</td></tr>`;
           }
           
           return staff.map(t=>{
@@ -1185,7 +1186,7 @@ async function openSaleModal(){
     <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Цена $</label><input id="sPrice" type="number"></div></div>
     <div class="fRow c2"><div class="fG"><label>Кол-во</label><input id="sQty" type="number" value="1" min="1"></div><div class="fG"><label>Tolov</label><select id="sPayType"><option value="cash">Наличные</option><option value="installment">Рассрочка</option><option value="card">Карта</option><option value="transfer">Перевод</option></select></div></div>
     <div class="fG"><label>Sotuvchi (email)</label><input id="sSeller" value="${APP.user.email}"></div>`;
-  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Отмена</button><button class="btn primary" onclick="saveSale()">Сохранить</button>`;
+  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveSale()">Saqlash</button>`;
   openM('M_user'); setTimeout(()=>setModelPrice(),50);
 }
 function setModelPrice(){const sel=document.getElementById('sModel');const opt=sel.options[sel.selectedIndex];document.getElementById('sPrice').value=opt?.dataset.price||'';}
@@ -1229,7 +1230,7 @@ async function renderMarketing(){
     </div>`).join('')}
   </div></div>
   <div class="card"><div class="cardH"><h3>Бюджет по филиалам</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Filial</th><th>Вес</th><th style="text-align:right">Бюджет $/мес</th><th style="text-align:right">Платных лидов</th><th style="text-align:right">+ Орган.</th><th style="text-align:right">Итого лидов</th><th style="text-align:right">Ожид. продаж</th></tr></thead>
+    <thead><tr><th>Filial</th><th>Ogirlik</th><th style="text-align:right">Бюджет $/мес</th><th style="text-align:right">Платных лидов</th><th style="text-align:right">+ Орган.</th><th style="text-align:right">Jami лидов</th><th style="text-align:right">Ожид. продаж</th></tr></thead>
     <tbody>${APP.branches.map(b=>{
       const sh=parseFloat(b.weight||1)/(c.totalWeight||1);
       const bgt=c.mktBudget*sh,pl=c.cpl>0?Math.ceil(bgt/c.cpl):0;
@@ -1276,7 +1277,7 @@ async function renderBranches(){
     }).join('');
     html+=`<div class="card"><div class="cardH">
       <h3>Reja uchun faol filiallar</h3>
-      <span class="hint">Faol: ${APP.branches.length} / Jami: ${allBr.length} — O'chirilgan filiallar barcha hisob va jadvallardan chiqadi</span>
+      <span class="hint">Faol: ${APP.branches.length} / Jami: ${allBr.length} — Ochirilgan filiallar barcha hisob va jadvallardan chiqadi</span>
     </div><div class="cardB">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px">${toggleCards}</div>
     </div></div>`;
@@ -1284,12 +1285,12 @@ async function renderBranches(){
 
   html+=`<div class="kpiGrid">
     ${kpi('Faol filiallar',APP.branches.length,'rejada','blue')}
-    ${kpi('Городов',[...new Set(APP.branches.map(b=>b.city).filter(Boolean))].length,'','','')}
-    ${kpi('Сотрудников',APP.team.length,'в команде','')}
+    ${kpi('Shaharlar',[...new Set(APP.branches.map(b=>b.city).filter(Boolean))].length,'','','')}
+    ${kpi('Xodimlar',APP.team.length,'jamoada','')}
     ${kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')}
   </div>
-  <div class="card"><div class="cardH"><h3>Список филиалов</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Filial</th><th>Город</th><th style="text-align:right">Вес</th><th style="text-align:right">Сотруд.</th><th style="text-align:right">Аренда $</th><th>Menejer</th><th style="text-align:right">План/мес $</th><th style="text-align:right">Шт/мес</th>${canEdit()?'<th></th>':''}</tr></thead>
+  <div class="card"><div class="cardH"><h3>Filiallar royxati</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Filial</th><th>Shahar</th><th style="text-align:right">Ogirlik</th><th style="text-align:right">Xodim</th><th style="text-align:right">Ijara $</th><th>Menejer</th><th style="text-align:right">План/мес $</th><th style="text-align:right">Шт/мес</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.branches.map(b=>{
       const plan=bmp(b,c,0);
       const mgr=APP.team.find(t=>t.branch_id===b.id&&t.role==='BRANCH_MGR');
@@ -1303,21 +1304,21 @@ async function renderBranches(){
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
-  <div class="card"><div class="cardH"><h3>Сотрудники по филиалам</h3><span class="hint">Привязка и управление</span>${canEdit()?'<button class="btn sm primary" onclick="openTeamModal()" style="margin-left:auto">+ Сотрудник</button>':''}</div><div class="cardB tWrap"><table>
-    <thead><tr><th>Сотрудник</th><th>Email</th><th>Роль</th><th>Filial</th><th style="text-align:right">Зарплата $</th><th>Telegram ID</th>${canEdit()?'<th></th>':''}</tr></thead>
+  <div class="card"><div class="cardH"><h3>Xodimlar filiallar boyicha</h3><span class="hint">Boglash va boshqarish</span>${canEdit()?'<button class="btn sm primary" onclick="openTeamModal()" style="margin-left:auto">+ Xodim</button>':''}</div><div class="cardB tWrap"><table>
+    <thead><tr><th>Xodim</th><th>Email</th><th>Rol</th><th>Filial</th><th style="text-align:right">Maosh $</th><th>Telegram ID</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
       return `<tr><td><strong>${t.full_name}</strong></td><td style="font-size:11px;color:var(--ink3)">${t.email||'—'}</td>
         <td><span class="badge badge-${rColor(t.role)}">${roleLabel(t.role)}</span></td>
-        <td>${br?.name||'<span style="color:var(--ink4)">Не привязан</span>'}</td>
+        <td>${br?.name||'<span style="color:var(--ink4)">Biriktirilmagan</span>'}</td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
         <td style="font-family:var(--mono);font-size:11px">${t.telegram_id||'—'}</td>
         ${canEdit()?`<td style="white-space:nowrap">
           <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button>
-          <button class="btn sm danger" onclick="deleteTeamMember('${t.id}','${t.full_name}')">O'ch</button>
+          <button class="btn sm danger" onclick="deleteTeamMember('${t.id}')">Och</button>
         </td>`:''}
       </tr>`;
-    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Нет сотрудников</td></tr>'}</tbody>
+    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yoq</td></tr>'}</tbody>
   </table></div></div>`;
 
   // BRANCH MAX INPUT — for admins and branch managers
@@ -1351,12 +1352,12 @@ async function renderBranches(){
 }
 async function openBranchModal(id=null){
   const b=id?APP.branches.find(x=>x.id===id):null;
-  document.getElementById('M_user_title').textContent=id?'Редактировать филиал':'Добавить филиал';
+  document.getElementById('M_user_title').textContent=id?'Filialni tahrirlash':'Filial qoshish';
   document.getElementById('M_user_body').innerHTML=`
-    <div class="fRow c2"><div class="fG"><label>Название</label><input id="brName" value="${b?.name||''}"></div><div class="fG"><label>Город</label><input id="brCity" value="${b?.city||''}"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Вес (доля плана)</label><input id="brWeight" type="number" step="0.25" min="0.25" value="${b?.weight||1}"></div><div class="fG"><label>Кол-во сотрудников</label><input id="brStaff" type="number" min="1" value="${b?.staff_count||2}"></div></div>
-    <div class="fG"><label>Аренда $/мес</label><input id="brRent" type="number" value="${b?.rent_usd||500}"></div>`;
-  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Отмена</button><button class="btn primary" onclick="saveBranch(${id||'null'})">Сохранить</button>`;
+    <div class="fRow c2"><div class="fG"><label>Nomi</label><input id="brName" value="${b?.name||''}"></div><div class="fG"><label>Shahar</label><input id="brCity" value="${b?.city||''}"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Ogirlik (доля плана)</label><input id="brWeight" type="number" step="0.25" min="0.25" value="${b?.weight||1}"></div><div class="fG"><label>Кол-во сотрудников</label><input id="brStaff" type="number" min="1" value="${b?.staff_count||2}"></div></div>
+    <div class="fG"><label>Ijara $/мес</label><input id="brRent" type="number" value="${b?.rent_usd||500}"></div>`;
+  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveBranch(${id||'null'})">Saqlash</button>`;
   openM('M_user');
 }
 async function saveBranch(id){
@@ -1370,7 +1371,7 @@ async function saveBranch(id){
 // ════════════════════════════════════════════════
 async function renderTeam(){
   const c=runCalc(); const mo=APP.currentMonth;
-  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn" onclick="openTaskModal()">+ Задача</button><button class="btn primary" onclick="openTeamModal()" style="margin-left:4px">+ Сотрудник</button>`;
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn" onclick="openTaskModal()">+ Задача</button><button class="btn primary" onclick="openTeamModal()" style="margin-left:4px">+ Xodim</button>`;
   const {data:tasks}=await APP.db.from('sl_tasks').select('*').eq('month',mo).order('due_date');
   const {data:wishes}=await APP.db.from('sl_tasks').select('*').eq('section','target').eq('month',mo);
   // Sum bonuses from sl_params (bonus_YYYY-MM) for current month
@@ -1380,14 +1381,14 @@ async function renderTeam(){
   const pColor={high:'red',medium:'amber',low:'gray'};
   const sColor={pending:'amber',done:'green',cancelled:'gray'};
   let html=mSel()+`<div class="kpiGrid">
-    ${kpi('Сотрудников',APP.team.length,'активных','blue')}
-    ${kpi('ФОТ/мес',fmtD(c.totalFOT),'фиксированный','amber')}
+    ${kpi('Xodimlar',APP.team.length,'faol','blue')}
+    ${kpi('ФОТ/мес',fmtD(c.totalFOT),'belgilangan','amber')}
     ${kpi('Желаemые бонусы',fmtD(totalBonus),`${monthLabel(mo)} uchun`,'green')}
     ${totalBonusAllMonths>totalBonus?kpi('Jami bonuslar (barcha oy)',fmtD(totalBonusAllMonths),`${APP.months.length} oy`,'blue'):''}
-    ${kpi('Задач открытых',(tasks||[]).filter(t=>t.status==='pending').length,mo,'')}
+    ${kpi('Ochiq vazifalar',(tasks||[]).filter(t=>t.status==='pending').length,mo,'')}
   </div>
-  <div class="card"><div class="cardH"><h3>Команда — цели и мотивация</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Сотрудник</th><th>Роль</th><th>Filial</th><th style="text-align:right">Зарплата $</th><th style="text-align:right">Бонус $</th><th>Мечта</th>${canEdit()?'<th></th>':''}</tr></thead>
+  <div class="card"><div class="cardH"><h3>Jamoa — maqsadlar va motivatsiya</h3></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Xodim</th><th>Rol</th><th>Filial</th><th style="text-align:right">Maosh $</th><th style="text-align:right">Бонус $</th><th>Мечта</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
       const wt=(wishes||[]).find(w=>w.assigned_to===t.email);
@@ -1401,13 +1402,13 @@ async function renderTeam(){
         ${canEdit()?`<td style="white-space:nowrap">
           <button class="btn sm" onclick="openWishModal('${t.id}','${t.email}','${t.full_name.replace(/'/g,'`')}','${mo}')">Maqsad</button>
           <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button>
-          <button class="btn sm danger" onclick="if(confirm('${t.full_name} ni ochirish?'))deleteTeamMember('${t.id}')">O'ch</button>
+          <button class="btn sm danger" onclick="if(confirm('${t.full_name} ni ochirish?'))deleteTeamMember('${t.id}')">Och</button>
           ${t.telegram_id?`<button class="btn sm" onclick="sendTgTo('${t.telegram_id}','${t.full_name.replace(/'/g,'`')}','${mo}')">TG</button>`:''}
         </td>`:''}
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
-  <div class="card"><div class="cardH"><h3>Задачи — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+  <div class="card"><div class="cardH"><h3>Vazifalar — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
     <thead><tr><th>Задача</th><th>Кому</th><th>Раздел</th><th>Приоритет</th><th>Дедлайн</th><th>Статус</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${(tasks||[]).map(t=>`<tr>
       <td><strong>${t.title}</strong>${t.section==='target'?(()=>{let d={};try{d=JSON.parse(t.description||'{}');}catch(e){}return d.wish?`<br><small style="color:var(--green)">🎯 ${d.wish}${d.bonus?' · $'+d.bonus:''}</small>`:''})():t.description?`<br><small style="color:var(--ink3)">${String(t.description).slice(0,60)}</small>`:''}</td>
@@ -1620,7 +1621,7 @@ async function renderFinance(){
     {l:'Маркетинг',v:-c.mktBudget,b:false,cls:''},
     {l:'Бонусы сотрудников',v:-totalBonus,b:false,cls:''},
     {l:'Прочие расходы',v:-c.otherOpex,b:false,cls:''},
-    {l:'Итого расходы',v:-totalOpex,b:true,cls:'red'},
+    {l:'Jami расходы',v:-totalOpex,b:true,cls:'red'},
     {l:'',v:null,sep:true},
     {l:'Чистая прибыль',v:netP,b:true,cls:netP>=c.targetProfit?'green':'red'},
     {l:'Чистая маржа %',v:null,str:totalRev>0?(netP/totalRev*100).toFixed(1)+'%':'—',b:true,cls:totalRev>0&&netP/totalRev*100>=c.targetMargin?'green':'amber'},
@@ -1646,14 +1647,14 @@ async function renderFinance(){
     <tbody>
       <tr><td>Продажи наличными</td><td style="text-align:right;font-family:var(--mono)">${fmtD(cashRev)}</td></tr>
       <tr><td>Поступления рассрочки (1/${c.installMonths})</td><td style="text-align:right;font-family:var(--mono)">${fmtD(installRev/c.installMonths)}</td></tr>
-      <tr style="font-weight:700;background:var(--bg)"><td>ИТОГО Cash IN</td><td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(cashIn)}</td></tr>
+      <tr style="font-weight:700;background:var(--bg)"><td>JAMI Cash IN</td><td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(cashIn)}</td></tr>
       <tr><td colspan="2" style="padding-top:8px;font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase">Исходящие</td></tr>
       <tr><td>Себестоимость</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs)}</td></tr>
       <tr><td>ФОТ</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalFOT)}</td></tr>
       <tr><td>Аренда</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalRent)}</td></tr>
       <tr><td>Маркетинг</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.mktBudget)}</td></tr>
       <tr><td>Прочие + бонусы</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.otherOpex+totalBonus)}</td></tr>
-      <tr style="font-weight:700;background:var(--bg)"><td>ИТОГО Cash OUT</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs+totalOpex)}</td></tr>
+      <tr style="font-weight:700;background:var(--bg)"><td>JAMI Cash OUT</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs+totalOpex)}</td></tr>
       <tr style="font-weight:700;font-size:14px"><td>Net Cash Flow</td><td style="text-align:right;font-family:var(--mono);color:var(--${cashIn-cogs-totalOpex>=0?'green':'red'})">${fmtD(cashIn-cogs-totalOpex)}</td></tr>
     </tbody>
   </table></div></div>
@@ -1818,7 +1819,7 @@ async function renderFinance(){
 
   html+=`<div class="card"><div class="cardH">
     <h3>Filiallar boyicha P&L — ${monthLabel(mo)}</h3>
-    <span class="hint">Ijara, maosh, marketingni o'zgartirish mumkin</span>
+    <span class="hint">Ijara, maosh, marketingni ozgartirish mumkin</span>
   </div><div class="cardB tWrap"><table>
     <thead><tr>
       <th>Filial</th>
@@ -1880,7 +1881,7 @@ async function renderFinance(){
   }).join('');
   html+=`<div class="card"><div class="cardH">
     <h3>Filiallar boyicha Cash Flow — ${monthLabel(mo)}</h3>
-    <span class="hint">To'lov turlari bo'yicha</span>
+    <span class="hint">To'lov turlari boyicha</span>
   </div><div class="cardB tWrap"><table>
     <thead><tr>
       <th>Filial</th>
@@ -1953,7 +1954,7 @@ async function renderCollections(){
     ${kpi('Просрочка 30+',ov30,'договоров','red')}
   </div>
   <div class="card"><div class="cardH"><h3>Должники</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Клиент</th><th>Телефон</th><th>Filial</th><th style="text-align:right">Долг $</th><th style="text-align:right">Оплачено $</th><th style="text-align:right">Остаток $</th><th style="text-align:right">Дней</th><th>Статус</th><th>Коллектор</th><th>Контакт</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <thead><tr><th>Клиент</th><th>Телефон</th><th>Filial</th><th style="text-align:right">Долг $</th><th style="text-align:right">Оплачено $</th><th style="text-align:right">Остаток $</th><th style="text-align:right">Дней</th><th>Статус</th><th>Kollektor</th><th>Контакт</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${list.map(c=>{
       const br=APP.branches.find(b=>b.id===c.branch_id);
       const coll=APP.team.find(t=>t.email===c.collector_email);
@@ -1975,7 +1976,7 @@ async function renderCollections(){
   html+=wArea('collections'); document.getElementById('content').innerHTML=html; renderWidgets('collections');
 }
 async function openCollModal(id=null){
-  document.getElementById('M_coll_title').textContent=id?'Редактировать':'Добавить должника';
+  document.getElementById('M_coll_title').textContent=id?'Tahrirlash':'Qoshish';
   const brOpts='<option value="">—</option>'+APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
   const cOpts='<option value="">—</option>'+APP.team.filter(t=>t.role==='COLLECTOR').map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('');
   document.getElementById('clBranch').innerHTML=brOpts;
@@ -2107,7 +2108,7 @@ async function renderCallCenter(){
         <td><span class="badge badge-${t.status==='done'?'green':t.status==='pending'?'amber':'gray'}">${t.status==='done'?'Bajarildi':t.status==='pending'?'Kutilmoqda':'Bekor'}</span></td>
         ${canEdit()?`<td><button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">${t.status==='pending'?'Bajarildi':'Ochish'}</button></td>`:''}
       </tr>`;
-    }).join('')||`<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Vazifalar yo'q</td></tr>`}</tbody>
+    }).join('')||`<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Vazifalar yoq</td></tr>`}</tbody>
   </table></div></div>`;
 
   // STATS BY OPERATOR
@@ -2258,7 +2259,7 @@ function recurringRulesPanel(section){
   if(!sectionRules.length&&!canEdit()) return '';
   const freqLabel={daily:'Har kuni',weekdays:'Har kuni (DU-JU)',weekly:'Har hafta',monthly:'Har oy'};
   return `<div class="card"><div class="cardH">
-    <h3>Qaytalanadigan vazifalar qoidalari</h3>
+    <h3>Qaytalanadigan vazifalar</h3>
     ${canEdit()?'<button class="btn primary sm" onclick="openRecurringModal()" style="margin-left:auto">+ Qoida qoshish</button>':''}
   </div><div class="cardB">
     ${sectionRules.length?`<div class="tWrap"><table>
@@ -2273,17 +2274,158 @@ function recurringRulesPanel(section){
           <td><span class="badge badge-${r.active?'green':'gray'}">${r.active?'Faol':'Nofaol'}</span></td>
           ${canEdit()?`<td style="white-space:nowrap">
             <button class="btn sm" onclick="toggleRecurringRule('${r.id}',${!r.active})">${r.active?'Toʻxtat':'Yoqish'}</button>
-            <button class="btn sm danger" onclick="deleteRecurringRule('${r.id}')">O'ch.</button>
+            <button class="btn sm danger" onclick="deleteRecurringRule('${r.id}')">Och.</button>
           </td>`:''}
         </tr>`;
       }).join('')}</tbody>
-    </table></div>`:`<div style="text-align:center;padding:16px;color:var(--ink3)">Qoidalar yo'q. ${canEdit()?'Yuqoridagi tugmani bosing.':''}</div>`}
+    </table></div>`:`<div style="text-align:center;padding:16px;color:var(--ink3)">Qoidalar yoq. ${canEdit()?'Yuqoridagi tugmani bosing.':''}</div>`}
   </div></div>`;
 }
 
 // ══════════════════════════════════════
 // LEADERBOARD
 // ══════════════════════════════════════
+async function renderBugun(){
+  const c=runCalc();
+  const mo=APP.currentMonth;
+  const today=new Date().toISOString().slice(0,10);
+  const totalDays=daysInMonth(mo);
+  const daysPassed=workingDaysSoFar(mo);
+  const moIdx=APP.months.indexOf(mo);
+
+  // Load today's and month's sales
+  const [{data:todaySls},{data:monthSls}] = await Promise.all([
+    APP.db.from('sl_sales').select('branch_id,salesperson,unit_price,qty').eq('date',today),
+    APP.db.from('sl_sales').select('branch_id,salesperson,unit_price,qty').gte('date',mo+'-01').lte('date',mo+'-31')
+  ]);
+
+  // Compute branch maps
+  const todayMap={}, monthMap={};
+  APP.branches.forEach(b=>{todayMap[b.id]=0; monthMap[b.id]=0;});
+  (todaySls||[]).forEach(s=>{if(todayMap[s.branch_id]!==undefined)todayMap[s.branch_id]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);});
+  (monthSls||[]).forEach(s=>{if(monthMap[s.branch_id]!==undefined)monthMap[s.branch_id]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);});
+
+  const visibleBr = APP.user?.role==='BRANCH_MGR'
+    ? APP.branches.filter(b=>String(b.id)===String(APP.user?.branch_id))
+    : APP.branches;
+
+  // Branch table
+  const brRows = visibleBr.map(b=>{
+    const bp=bmp(b,c,moIdx>=0?moIdx:0);
+    const dayPlan=bp.rev/totalDays;
+    const shouldToday=dayPlan*daysPassed;
+    const todayFact=todayMap[b.id]||0;
+    const monthFact=monthMap[b.id]||0;
+    const behind=shouldToday-monthFact; // how much behind plan
+    const remainingDays=Math.max(1,totalDays-daysPassed);
+    const newDayPlan=Math.max(0,bp.rev-monthFact)/remainingDays;
+    const pctToday=shouldToday>0?Math.round(monthFact/shouldToday*100):0;
+    const pctMonth=bp.rev>0?Math.round(monthFact/bp.rev*100):0;
+    return {b,bp,dayPlan,shouldToday,todayFact,monthFact,behind,newDayPlan,pctToday,pctMonth};
+  });
+
+  const totShouldToday=brRows.reduce((s,r)=>s+r.shouldToday,0);
+  const totMonthFact=brRows.reduce((s,r)=>s+r.monthFact,0);
+  const totTodayFact=brRows.reduce((s,r)=>s+r.todayFact,0);
+  const totBehind=brRows.reduce((s,r)=>s+r.behind,0);
+
+  let html=`<div class="kpiGrid">
+    ${kpi('Bugunga reja edi',fmtD(totShouldToday),`${daysPassed} kun × kunlik reja`,'blue')}
+    ${kpi('Oylik fakt',fmtD(totMonthFact),`${Math.round(totMonthFact/totShouldToday*100)}% bajarildi`,totMonthFact>=totShouldToday?'green':'red')}
+    ${kpi('Bugun sotuv',fmtD(totTodayFact),'bugungi haqiqat',totTodayFact>0?'green':'amber')}
+    ${kpi('Farq (reja − fakt)',fmtD(Math.abs(totBehind)),totBehind<=0?'Rejadan ilgari ✓':'Rejadan ortda ✗',totBehind<=0?'green':'red')}
+  </div>
+
+  <div class="card"><div class="cardH">
+    <h3>Filiallar — ${today} sanasiga qadar bajarish</h3>
+    <span class="hint">${daysPassed} kun o'tdi · ${totalDays-daysPassed} kun qoldi</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr>
+      <th>Filial</th>
+      <th style="text-align:right">Oylik reja $</th>
+      <th style="text-align:right">Bugunga qadar reja $</th>
+      <th style="text-align:right">Bajarildi $</th>
+      <th style="text-align:right">Bugun $</th>
+      <th style="text-align:right">Farq $</th>
+      <th style="text-align:right">Tuzatilgan kunlik $</th>
+      <th style="text-align:right">%</th>
+    </tr></thead>
+    <tbody>${brRows.map(r=>`<tr>
+      <td><strong>${r.b.name}</strong><br><small style="color:var(--ink3)">${r.b.city||''}</small></td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(r.bp.rev)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(r.shouldToday)}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${r.monthFact>=r.shouldToday?'green':'red'})">${fmtD(r.monthFact)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--${r.todayFact>0?'green':'ink3'})">${fmtD(r.todayFact)}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${r.behind<=0?'green':'red'})">${r.behind<=0?'▲ +':'▼ −'}${fmtD(Math.abs(r.behind))}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--blue)">${fmtD(r.newDayPlan)}</td>
+      <td><div style="display:flex;align-items:center;gap:6px">
+        <div class="prog" style="width:60px"><div class="progFill" style="width:${Math.min(100,r.pctToday)}%;background:${r.pctToday>=100?'var(--green)':r.pctToday>=70?'var(--amber)':'var(--blue)'}"></div></div>
+        <span class="badge badge-${r.pctToday>=100?'green':r.pctToday>=70?'amber':'red'}">${r.pctToday}%</span>
+      </div></td>
+    </tr>`).join('')}
+    <tr class="tFoot">
+      <td>JAMI</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(brRows.reduce((s,r)=>s+r.bp.rev,0))}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(totShouldToday)}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${totMonthFact>=totShouldToday?'green':'red'})">${fmtD(totMonthFact)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(totTodayFact)}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${totBehind<=0?'green':'red'})">${totBehind<=0?'▲ +':'▼ −'}${fmtD(Math.abs(totBehind))}</td>
+      <td colspan="2"></td>
+    </tr>
+    </tbody>
+  </table></div></div>`;
+
+  // Seller breakdown (bugun)
+  const sellerMap={};
+  (monthSls||[]).forEach(s=>{
+    if(!sellerMap[s.salesperson]) sellerMap[s.salesperson]={email:s.salesperson,monthRev:0};
+    sellerMap[s.salesperson].monthRev+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);
+  });
+  (todaySls||[]).forEach(s=>{
+    if(!sellerMap[s.salesperson]) sellerMap[s.salesperson]={email:s.salesperson,monthRev:0};
+    sellerMap[s.salesperson].todayRev=(sellerMap[s.salesperson].todayRev||0)+parseFloat(s.unit_price||0)*parseInt(s.qty||1);
+  });
+
+  const sellers=APP.team.filter(t=>['SALES_STAFF','BRANCH_MGR'].includes(t.role));
+  if(sellers.length){
+    html+=`<div class="card"><div class="cardH"><h3>Sotuvchilar — bugungi holat</h3></div><div class="cardB tWrap"><table>
+      <thead><tr>
+        <th>Sotuvchi</th><th>Filial</th>
+        <th style="text-align:right">Oylik reja $</th>
+        <th style="text-align:right">Bugunga qadar reja $</th>
+        <th style="text-align:right">Bajarildi $</th>
+        <th style="text-align:right">Bugun $</th>
+        <th style="text-align:right">Farq $</th>
+        <th style="text-align:right">Tuzatilgan kunlik $</th>
+        <th style="text-align:right">%</th>
+      </tr></thead>
+      <tbody>${sellers.filter(t=>!APP.user?.branch_id||(APP.user?.role!=='BRANCH_MGR')||String(t.branch_id)===String(APP.user?.branch_id)).map(t=>{
+        const br=APP.branches.find(b=>b.id===t.branch_id);
+        const tgtKey='target_'+mo+'_'+t.id;
+        const tgt=parseFloat(APP.params[tgtKey]||0);
+        const dayTgt=tgt/totalDays;
+        const shouldTodaySeller=dayTgt*daysPassed;
+        const mFact=(sellerMap[t.email]?.monthRev||0);
+        const todayFact=(sellerMap[t.email]?.todayRev||0);
+        const pct=shouldTodaySeller>0?Math.round(mFact/shouldTodaySeller*100):0;
+        return `<tr>
+          <td><strong>${t.full_name}</strong></td>
+          <td style="color:var(--ink3)">${br?.name||'—'}</td>
+          <td style="text-align:right;font-family:var(--mono)">${fmtD(tgt)}</td>
+          <td style="text-align:right;font-family:var(--mono)">${fmtD(shouldTodaySeller)}</td>
+          <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${mFact>=shouldTodaySeller?'green':'red'})">${fmtD(mFact)}</td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--${todayFact>0?'green':'ink3'})">${fmtD(todayFact)}</td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--${mFact>=shouldTodaySeller?'green':'red'});font-weight:700">${mFact>=shouldTodaySeller?'▲ +':'▼ −'}${fmtD(Math.abs(mFact-shouldTodaySeller))}</td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--blue)">${fmtD(tgt>0?Math.max(0,tgt-mFact)/Math.max(1,totalDays-daysPassed):0)}</td>
+          <td><span class="badge badge-${pct>=100?'green':pct>=70?'amber':'red'}">${pct}%</span></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div></div>`;
+  }
+
+  document.getElementById('content').innerHTML=html;
+}
+
 async function renderLeaderboard(){
   const c=runCalc(); const mo=APP.currentMonth;
   const {data:sls}=await APP.db.from('sl_sales').select('*').gte('date',mo+'-01').lte('date',mo+'-31');
@@ -2516,11 +2658,11 @@ async function toggleAutoTg(){
 async function renderSettings(){
   if(!canEdit()){document.getElementById('content').innerHTML='<div style="padding:40px;text-align:center;color:var(--ink3)">Доступ запрещён</div>';return;}
   const sysParams=[
-    {k:'usd_rate',l:'Курс UZS/USD'},{k:'staff_salary',l:'Зарплата продавца $'},{k:'mgr_salary',l:'Зарплата менеджера $'},
-    {k:'commission_pct',l:'Комиссия продавца %'},{k:'tg_bot_token',l:'Telegram Bot Token'}
+    {k:'usd_rate',l:'Курс UZS/USD'},{k:'staff_salary',l:'Зарплата sotuvchi $'},{k:'mgr_salary',l:'Зарплата менеджера $'},
+    {k:'commission_pct',l:'Комиссия sotuvchi %'},{k:'tg_bot_token',l:'Telegram Bot Token'}
   ];
-  let html=`<div class="card"><div class="cardH"><h3>Пользователи системы</h3><button class="btn primary sm" onclick="openUserModal()" style="margin-left:auto">+ Пользователь</button></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Email</th><th>Имя</th><th>Роль</th><th>Filial</th><th>Разделы</th><th>Активен</th><th></th></tr></thead>
+  let html=`<div class="card"><div class="cardH"><h3>Tizim foydalanuvchilari</h3><button class="btn primary sm" onclick="openUserModal()" style="margin-left:auto">+ Foydalanuvchi</button></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Email</th><th>Ism</th><th>Rol</th><th>Filial</th><th>Разделы</th><th>Faol</th><th></th></tr></thead>
     <tbody>${APP.users.map(u=>{
       const br=APP.branches.find(b=>b.id===u.branch_id);
       return `<tr><td style="font-size:11px;font-family:var(--mono)">${u.email}</td><td>${u.full_name||'—'}</td>
@@ -2530,20 +2672,20 @@ async function renderSettings(){
         <td><span class="badge badge-${u.active?'green':'gray'}">${u.active?'Да':'Нет'}</span></td>
         <td style="white-space:nowrap">
           <button class="btn sm" onclick="openUserModal('${u.email}')">Ред</button>
-          <button class="btn sm" onclick="toggleActive('${u.email}',${u.active})">${u.active?'Деакт.':'Акт.'}</button>
+          <button class="btn sm" onclick="toggleActive('${u.email}',${u.active})">${u.active?'Och':'Акт.'}</button>
         </td>
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-  <div class="card"><div class="cardH"><h3>Системные параметры</h3></div><div class="cardB">
+  <div class="card"><div class="cardH"><h3>Tizim parametrlari</h3></div><div class="cardB">
     ${sysParams.map(p=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
       <div style="flex:1;font-size:12px">${p.l}</div>
       <input value="${APP.params[p.k]||''}" onchange="saveP('${p.k}',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;width:160px;outline:none">
     </div>`).join('')}
   </div></div>
-  <div class="card"><div class="cardH"><h3>Сотрудники команды</h3><button class="btn primary sm" onclick="openTeamModal()" style="margin-left:auto">+ Добавить</button></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Имя</th><th>Роль</th><th>Filial</th><th style="text-align:right">Зарплата $</th><th></th></tr></thead>
+  <div class="card"><div class="cardH"><h3>Jamoa xodimlari</h3><button class="btn primary sm" onclick="openTeamModal()" style="margin-left:auto">+ Qoshish</button></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Ism</th><th>Rol</th><th>Filial</th><th style="text-align:right">Maosh $</th><th></th></tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
       return `<tr><td>${t.full_name}<br><small style="color:var(--ink3)">${t.email||''}</small></td>
@@ -2555,14 +2697,14 @@ async function renderSettings(){
     }).join('')}</tbody>
   </table></div></div>
   </div>
-  <div class="card"><div class="cardH"><h3>Виджеты (кастомизация разделов)</h3><span class="hint">Администратор добавляет виджеты в любой раздел</span></div><div class="cardB">
+  <div class="card"><div class="cardH"><h3>Vidjetlar (bolimlarni sozlash)</h3><span class="hint">Администратор добавляет виджеты в любой раздел</span></div><div class="cardB">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
       ${['strategy','sales','marketing','branches','team','finance','procurement','collections'].map(s=>{
         let ws=[];try{ws=JSON.parse(APP.params[`widgets_${s}`]||'[]');}catch(e){}
         return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
           <div style="font-size:11px;font-weight:700;margin-bottom:4px">${SECTIONS.find(x=>x.id===s)?.label||s}</div>
-          <div style="font-size:11px;color:var(--ink3)">${ws.length} виджет(ов)</div>
-          <button class="btn sm primary" onclick="openWidgetModal('${s}')" style="margin-top:8px">Добавить</button>
+          <div style="font-size:11px;color:var(--ink3)">${ws.length} vijet</div>
+          <button class="btn sm primary" onclick="openWidgetModal('${s}')" style="margin-top:8px">Qoshish</button>
           ${ws.length?`<button class="btn sm danger" onclick="clearWidgets('${s}')" style="margin-top:4px">Очистить</button>`:''}
         </div>`;
       }).join('')}
@@ -2573,21 +2715,21 @@ async function renderSettings(){
 async function openUserModal(email=null){
   const u=email?APP.users.find(x=>x.email===email):null;
   const brOpts='<option value="">— Все —</option>'+APP.branches.map(b=>`<option value="${b.id}"${u?.branch_id===b.id?' selected':''}>${b.name}</option>`).join('');
-  document.getElementById('M_user_title').textContent=email?'Редактировать пользователя':'Добавить пользователя';
+  document.getElementById('M_user_title').textContent=email?'Tahrirlash пользователя':'Qoshish пользователя';
   document.getElementById('M_user_body').innerHTML=`
-    <div class="fRow c2"><div class="fG"><label>Имя</label><input id="uName" value="${u?.full_name||''}"></div><div class="fG"><label>Email</label><input id="uEmail" type="email" value="${u?.email||''}"${email?' readonly':''}></div></div>
+    <div class="fRow c2"><div class="fG"><label>Ism</label><input id="uName" value="${u?.full_name||''}"></div><div class="fG"><label>Email</label><input id="uEmail" type="email" value="${u?.email||''}"${email?' readonly':''}></div></div>
     <div class="fRow c2"><div class="fG"><label>PIN-код${email?' (оставьте пустым чтобы не менять)':''}</label><input id="uPin" type="password" placeholder="••••••"></div><div class="fG"><label>Telegram ID</label><input id="uTg" value="${u?.telegram_id||''}"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Роль</label><select id="uRole">
+    <div class="fRow c2"><div class="fG"><label>Rol</label><select id="uRole">
       <option value="ADMIN"${u?.role==='ADMIN'?' selected':''}>Админ</option>
       <option value="TOP_MGR"${u?.role==='TOP_MGR'?' selected':''}>Топ-менеджер</option>
       <option value="BRANCH_MGR"${u?.role==='BRANCH_MGR'?' selected':''}>Menejer фил.</option>
       <option value="SALES_STAFF"${!u||u?.role==='SALES_STAFF'?' selected':''}>Sotuvchi</option>
-      <option value="COLLECTOR"${u?.role==='COLLECTOR'?' selected':''}>Коллектор</option>
+      <option value="COLLECTOR"${u?.role==='COLLECTOR'?' selected':''}>Kollektor</option>
       <option value="CALLCENTER"${u?.role==='CALLCENTER'?' selected':''}>Колл-центр</option>
       <option value="USER"${u?.role==='USER'?' selected':''}>Наблюдатель</option>
     </select></div><div class="fG"><label>Filial</label><select id="uBranch">${brOpts}</select></div></div>
-    <div class="fG"><label>Разделы (через запятую или ALL)</label><input id="uSects" value="${u?.sections||'ALL'}" placeholder="strategy,sales,marketing,..."></div>`;
-  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Отмена</button><button class="btn primary" onclick="saveUser('${email||''}')">Сохранить</button>`;
+    <div class="fG"><label>Bolimlar</label><input id="uSects" value="${u?.sections||'ALL'}" placeholder="strategy,sales,marketing,..."></div>`;
+  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveUser('${email||''}')">Saqlash</button>`;
   openM('M_user');
 }
 async function saveUser(email){
@@ -2609,8 +2751,8 @@ function wArea(section){
   let ws=[];try{ws=JSON.parse(APP.params[`widgets_${section}`]||'[]');}catch(e){}
   if(!canEdit()&&!ws.length) return '';
   let html='';
-  if(canEdit()) html+=`<div class="wBar"><span style="font-size:11px;font-weight:700;color:var(--blue)">Кастомные виджеты</span><button class="btn primary sm" onclick="openWidgetModal('${section}')">+ Добавить виджет</button><span style="font-size:11px;color:var(--ink3);margin-left:auto">${ws.length} виджет(ов)</span></div>`;
-  ws.forEach((w,i)=>{html+=`<div class="card" id="ws_${section}_${i}"><div class="cardH"><h3>${w.title||w.source}</h3>${canEdit()?`<button class="btn sm danger" onclick="delWidget('${section}',${i})">Удалить</button>`:''}</div><div class="cardB" id="wc_${section}_${i}"><div style="text-align:center;padding:20px;color:var(--ink3)">Загрузка...</div></div></div>`;});
+  if(canEdit()) html+=`<div class="wBar"><span style="font-size:11px;font-weight:700;color:var(--blue)">Maxsus vidjetlar</span><button class="btn primary sm" onclick="openWidgetModal('${section}')">+ Qoshish виджет</button><span style="font-size:11px;color:var(--ink3);margin-left:auto">${ws.length} vijet</span></div>`;
+  ws.forEach((w,i)=>{html+=`<div class="card" id="ws_${section}_${i}"><div class="cardH"><h3>${w.title||w.source}</h3>${canEdit()?`<button class="btn sm danger" onclick="delWidget('${section}',${i})">Ochirish</button>`:''}</div><div class="cardB" id="wc_${section}_${i}"><div style="text-align:center;padding:20px;color:var(--ink3)">Загрузка...</div></div></div>`;});
   return html;
 }
 async function saveWidget(){
@@ -2636,7 +2778,7 @@ function renderWidgets(section){
     const el=document.getElementById(`wc_${section}_${i}`); if(!el) return;
     const d=dataSrc[w.source];
     if(!d){el.innerHTML=`<div style="text-align:center;color:var(--ink3);padding:20px">Источник: ${w.source}</div>`;return;}
-    if(w.type==='table'){el.innerHTML=`<table><thead><tr><th>Название</th><th style="text-align:right">Значение</th></tr></thead><tbody>${d.labels.map((l,j)=>`<tr><td>${l}</td><td style="text-align:right;font-family:var(--mono)">${fmtD(d.data[j])}</td></tr>`).join('')}</tbody></table>`;return;}
+    if(w.type==='table'){el.innerHTML=`<table><thead><tr><th>Nomi</th><th style="text-align:right">Значение</th></tr></thead><tbody>${d.labels.map((l,j)=>`<tr><td>${l}</td><td style="text-align:right;font-family:var(--mono)">${fmtD(d.data[j])}</td></tr>`).join('')}</tbody></table>`;return;}
     if(w.type==='kpi'){el.innerHTML=`<div class="kpiGrid">${d.labels.map((l,j)=>kpi(l,fmtD(d.data[j]),'','blue')).join('')}</div>`;return;}
     const cid=`chart_${section}_${i}`;
     el.innerHTML=`<canvas id="${cid}" height="80"></canvas>`;
@@ -2650,7 +2792,7 @@ function renderWidgets(section){
 // ════════════════════════════════════════════════
 async function sendTgMsg(chatId,text){
   const token=APP.params.tg_bot_token;
-  if(!token||token.length<10){alert('Настройте tg_bot_token в Настройках → Системные параметры');return false;}
+  if(!token||token.length<10){alert('Настройте tg_bot_token в Настройках → Tizim parametrlari');return false;}
   const r=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text,parse_mode:'HTML'})});
   const res=await r.json(); return res.ok;
 }
@@ -2972,7 +3114,7 @@ async function openTgPreview(){
         </div>
         ${hasTg
           ?`<span class="badge badge-green" style="margin-left:auto">TG: ${member.telegram_id}</span>`
-          :`<span class="badge badge-amber" style="margin-left:auto">TG ID yo'q</span>`}
+          :`<span class="badge badge-amber" style="margin-left:auto">TG ID yoq</span>`}
       </div>
       ${hasTg?`<div style="background:var(--bg);border-radius:8px;padding:10px;font-size:12px;line-height:1.7">
         <div>Bugungi sotuv rejasi: <strong>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</strong></div>
@@ -3126,9 +3268,9 @@ function previewExcel(input){
 
       const branch = APP.branches.find(b=>b.name.toLowerCase()===branchName.toLowerCase());
       if(!branch) { errors.push(`Qator ${lineNum}: "${branchName}" filiali topilmadi`); return; }
-      if(!date) { errors.push(`Qator ${lineNum}: sana bo'sh`); return; }
+      if(!date) { errors.push(`Qator ${lineNum}: sana bosh`); return; }
       if(isNaN(amount)) { errors.push(`Qator ${lineNum}: summa noto'g'ri`); return; }
-      if(amount === 0 && String(row[3]||'').trim() === '') { errors.push(`Qator ${lineNum}: summa bo'sh`); return; }
+      if(amount === 0 && String(row[3]||'').trim() === '') { errors.push(`Qator ${lineNum}: summa bosh`); return; }
 
       const payMap = {'naqd':'cash','muddatli':'installment','karta':'card','otkazma':'transfer','cash':'cash','installment':'installment','card':'card','transfer':'transfer'};
       const payTypeEn = payMap[payType] || 'cash';
