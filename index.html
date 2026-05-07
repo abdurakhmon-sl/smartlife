@@ -642,14 +642,14 @@ async function renderStrategy() {
   <div class="kpiGrid">
     ${kpi('Maqsadli foyda/oy',fmtD(c.targetProfit),`Marja ${c.targetMargin}%`,'green')}
     ${kpi('Bonuslar (qo\'shimcha)',fmtD(c.totalBonuses),`+${fmtD(c.totalBonuses/c.targetMargin*100)} daromad`,'amber')}
-    ${kpi('Kerakli daromad/oy',fmtD(c.netRev),`${fmt(c.units)} dona · bonuslar bilan`,'blue')}
+    ${kpi('Kerakli daromad/oy',fmtD(curMoPlan),`${monthLabel(APP.currentMonth)} · ${fmt(curMoUnits)} dona`,'blue')}
     ${kpi('Kerakli lidlar/oy',fmt(c.totalLeads),`Konv. ${(c.convRate*100).toFixed(1)}%`,'')}
     ${kpi("Do'konga tashrif/oy",fmt(c.storeVisits),`${c.convVisit}% lidlardan`,'blue')}
     ${kpi('Sotib oladi/oy',fmt(c.units),`${c.convBuy}% tashrif buyurganlardan`,'green')}
     ${kpi('Marketing/oy',fmtD(c.mktBudget),`CPL $${c.cpl}`,'amber')}
     ${kpi('Reja oylari',c.planMonths,APP.params.start_month||'','')}
     ${kpi('Faol filiallar',APP.branches.length,`Jami ${(APP.allBranches||APP.branches).length} dan`,(APP.allBranches||APP.branches).length>APP.branches.length?'amber':'')}
-    ${kpi('Jami daromad',fmtD(c.netRev*c.planMonths),`за ${c.planMonths} мес`,'blue')}
+    ${kpi('Jami daromad',fmtD(totalPlan4Mo),`${c.planMonths} oy rejasi`,'blue')}
     ${kpi('Jamoa maoshi/oy',fmtD(c.totalFOT),`${APP.team.length} kishi`,'amber')}
     ${kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')}
   </div>
@@ -1776,7 +1776,7 @@ async function renderFinance(){
 
   // ── PER BRANCH P&L ──
   // Load all branch sales for this month
-  const {data:allBrSls}=await APP.db.from('sl_sales').select('branch_id,unit_price,qty')
+  const {data:allBrSls}=await APP.db.from('sl_sales').select('branch_id,unit_price,qty,payment_type')
     .gte('date',mo+'-01').lte('date',mo+'-31');
   const brSalesMap={};
   APP.branches.forEach(b=>brSalesMap[b.id]=0);
@@ -1858,41 +1858,42 @@ async function renderFinance(){
     </tbody>
   </table></div></div>`;
 
-  // ── PER BRANCH CASH FLOW ──
+  // ── PER BRANCH CASH FLOW (pre-computed from allBrSls) ──
+  const cfMap={};
+  APP.branches.forEach(b=>cfMap[b.id]={cash:0,installment:0,card:0,transfer:0,total:0});
+  (allBrSls||[]).forEach(s=>{
+    if(!cfMap[s.branch_id]) return;
+    const amt=parseFloat(s.unit_price||0)*parseInt(s.qty||1);
+    cfMap[s.branch_id].total+=amt;
+    cfMap[s.branch_id][s.payment_type]=(cfMap[s.branch_id][s.payment_type]||0)+amt;
+  });
+  const cfRows=APP.branches.map(b=>{
+    const cf=cfMap[b.id]||{cash:0,installment:0,card:0,transfer:0,total:0};
+    const cashPct=cf.total>0?Math.round(cf.cash/cf.total*100):0;
+    return `<tr>
+      <td><strong>${b.name}</strong></td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700">${fmtD(cf.total)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(cf.cash)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--amber)">${fmtD(cf.installment||0)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(cf.card||0)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(cf.transfer||0)}</td>
+      <td style="text-align:right"><span class="badge badge-${cashPct>=70?'green':'amber'}">${cashPct}%</span></td>
+    </tr>`;
+  }).join('');
   html+=`<div class="card"><div class="cardH">
     <h3>Filiallar boyicha Cash Flow — ${monthLabel(mo)}</h3>
-    <span class="hint">Naqd va muddatli to'lovlar</span>
+    <span class="hint">To'lov turlari bo'yicha</span>
   </div><div class="cardB tWrap"><table>
     <thead><tr>
       <th>Filial</th>
-      <th style="text-align:right">Jami sotuv $</th>
+      <th style="text-align:right">Jami $</th>
       <th style="text-align:right">Naqd $</th>
       <th style="text-align:right">Muddatli $</th>
       <th style="text-align:right">Karta $</th>
       <th style="text-align:right">O'tkazma $</th>
       <th style="text-align:right">Naqd %</th>
     </tr></thead>
-    <tbody>${await Promise.all(APP.branches.map(async b=>{
-      const {data:bCF}=await APP.db.from('sl_sales').select('unit_price,qty,payment_type')
-        .eq('branch_id',b.id).gte('date',mo+'-01').lte('date',mo+'-31');
-      const cf={cash:0,installment:0,card:0,transfer:0,total:0};
-      (bCF||[]).forEach(s=>{
-        const amt=parseFloat(s.unit_price||0)*parseInt(s.qty||1);
-        cf.total+=amt;
-        cf[s.payment_type]=(cf[s.payment_type]||0)+amt;
-      });
-      const cashPct=cf.total>0?Math.round(cf.cash/cf.total*100):0;
-      return `<tr>
-        <td><strong>${b.name}</strong></td>
-        <td style="text-align:right;font-family:var(--mono);font-weight:700">${fmtD(cf.total)}</td>
-        <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(cf.cash)}</td>
-        <td style="text-align:right;font-family:var(--mono);color:var(--amber)">${fmtD(cf.installment)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(cf.card)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(cf.transfer)}</td>
-        <td style="text-align:right"><span class="badge badge-${cashPct>=70?'green':'amber'}">${cashPct}%</span></td>
-      </tr>`;
-    })).then(cfRows=>cfRows.join(''))}
-    </tbody>
+    <tbody>${cfRows}</tbody>
   </table></div></div>`;
 
   html+=wArea('finance'); document.getElementById('content').innerHTML=html; renderWidgets('finance');
