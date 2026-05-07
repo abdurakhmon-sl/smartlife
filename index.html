@@ -1809,17 +1809,90 @@ async function renderFinance(){
     </tr>`;
   }).join('');
 
+  // ── PER BRANCH P&L TABLE ──
+  const totBrRev=brPnlData.reduce((s,b)=>s+b.fact,0);
+  const totBrPlan=brPnlData.reduce((s,b)=>s+b.plan,0);
+  const totBrRent=brPnlData.reduce((s,b)=>s+b.rent,0);
+  const totBrSal=brPnlData.reduce((s,b)=>s+b.sal,0);
+  const totBrMkt=brPnlData.reduce((s,b)=>s+b.mkt,0);
+  const totBrExp=brPnlData.reduce((s,b)=>s+b.exp,0);
+  const totBrGross=brPnlData.reduce((s,b)=>s+b.gross,0);
+
   html+=`<div class="card"><div class="cardH">
     <h3>Filiallar boyicha P&L — ${monthLabel(mo)}</h3>
-    <span class="hint">Ijara, maosh, marketingni inline tahrirlash mumkin</span>
+    <span class="hint">Ijara, maosh, marketingni o'zgartirish mumkin</span>
   </div><div class="cardB tWrap"><table>
     <thead><tr>
-      <th>Filial</th><th style="text-align:right">Reja $</th><th style="text-align:right">Haqiqat $</th>
-      <th style="text-align:right">Ijara $</th><th style="text-align:right">Maosh $</th>
-      <th style="text-align:right">Marketing $</th><th style="text-align:right">Jami xarajat $</th>
-      <th style="text-align:right">Gross foyda $</th><th style="text-align:right">%</th>
+      <th>Filial</th>
+      <th style="text-align:right">Reja $</th>
+      <th style="text-align:right">Haqiqat $</th>
+      <th style="text-align:right">Ijara $</th>
+      <th style="text-align:right">Maosh $</th>
+      <th style="text-align:right">Marketing $</th>
+      <th style="text-align:right">Xarajat $</th>
+      <th style="text-align:right">Gross foyda $</th>
+      <th style="text-align:right">%</th>
     </tr></thead>
-    <tbody>${brPnlRows}</tbody>
+    <tbody>${brPnlData.map(b=>`<tr>
+      <td><strong>${b.name}</strong><br><small style="color:var(--ink3)">${b.city}</small></td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(b.plan)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--${b.pct>=100?'green':'red'})">${fmtD(b.fact)}</td>
+      <td style="text-align:right">${canEdit()?`<input class="iEdit" type="number" value="${Math.round(b.rent)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','rent',this.value)">`:fmtD(b.rent)}</td>
+      <td style="text-align:right">${canEdit()?`<input class="iEdit" type="number" value="${Math.round(b.sal)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','salary',this.value)">`:fmtD(b.sal)}</td>
+      <td style="text-align:right">${canEdit()?`<input class="iEdit" type="number" value="${Math.round(b.mkt)}" style="width:80px" onchange="saveBrExp('${b.id}','${mo}','mkt',this.value)">`:fmtD(b.mkt)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(b.exp)}</td>
+      <td style="text-align:right;font-weight:700;font-family:var(--mono);color:var(--${b.gross>=0?'green':'red'})">${fmtD(b.gross)}</td>
+      <td><span class="badge badge-${b.pct>=100?'green':b.pct>=70?'amber':'red'}">${b.pct}%</span></td>
+    </tr>`).join('')}
+    <tr class="tFoot">
+      <td>JAMI</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(totBrPlan)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(totBrRev)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(totBrRent)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(totBrSal)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(totBrMkt)}</td>
+      <td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(totBrExp)}</td>
+      <td style="text-align:right;font-weight:700;font-family:var(--mono);color:var(--${totBrGross>=0?'green':'red'})">${fmtD(totBrGross)}</td>
+      <td></td>
+    </tr>
+    </tbody>
+  </table></div></div>`;
+
+  // ── PER BRANCH CASH FLOW ──
+  html+=`<div class="card"><div class="cardH">
+    <h3>Filiallar boyicha Cash Flow — ${monthLabel(mo)}</h3>
+    <span class="hint">Naqd va muddatli to'lovlar</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr>
+      <th>Filial</th>
+      <th style="text-align:right">Jami sotuv $</th>
+      <th style="text-align:right">Naqd $</th>
+      <th style="text-align:right">Muddatli $</th>
+      <th style="text-align:right">Karta $</th>
+      <th style="text-align:right">O'tkazma $</th>
+      <th style="text-align:right">Naqd %</th>
+    </tr></thead>
+    <tbody>${await Promise.all(APP.branches.map(async b=>{
+      const {data:bCF}=await APP.db.from('sl_sales').select('unit_price,qty,payment_type')
+        .eq('branch_id',b.id).gte('date',mo+'-01').lte('date',mo+'-31');
+      const cf={cash:0,installment:0,card:0,transfer:0,total:0};
+      (bCF||[]).forEach(s=>{
+        const amt=parseFloat(s.unit_price||0)*parseInt(s.qty||1);
+        cf.total+=amt;
+        cf[s.payment_type]=(cf[s.payment_type]||0)+amt;
+      });
+      const cashPct=cf.total>0?Math.round(cf.cash/cf.total*100):0;
+      return `<tr>
+        <td><strong>${b.name}</strong></td>
+        <td style="text-align:right;font-family:var(--mono);font-weight:700">${fmtD(cf.total)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(cf.cash)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--amber)">${fmtD(cf.installment)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(cf.card)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(cf.transfer)}</td>
+        <td style="text-align:right"><span class="badge badge-${cashPct>=70?'green':'amber'}">${cashPct}%</span></td>
+      </tr>`;
+    })).then(cfRows=>cfRows.join(''))}
+    </tbody>
   </table></div></div>`;
 
   html+=wArea('finance'); document.getElementById('content').innerHTML=html; renderWidgets('finance');
@@ -2692,15 +2765,15 @@ async function renderSellerView(){
   const myPlanOverride=parseFloat(APP.params[tgtKey]||0);
   const staff=parseInt(br?.staff_count||1);
   const myPlan=myPlanOverride>0?myPlanOverride:(br?plan.rev/staff:0);
+  const factRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const factU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
+  const dayFact=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
   const totalDaysSv=daysInMonth(mo);
   const daysPasdSv=workingDaysSoFar(mo);
   const dayPlan=myPlan/totalDaysSv;
   const shouldByTodaySv=dayPlan*daysPasdSv;
   const remainingDaysSv=Math.max(1,totalDaysSv-daysPasdSv);
   const newDayPlanSv=Math.max(0,myPlan-factRev)/remainingDaysSv;
-  const factRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
-  const factU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
-  const dayFact=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
   const mPct=myPlan>0?Math.min(100,factRev/myPlan*100):0;
   const dPct=dayPlan>0?Math.min(100,dayFact/dayPlan*100):0;
   let wish={};try{wish=JSON.parse(wTask?.description||'{}');}catch(e){}
