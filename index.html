@@ -2910,7 +2910,7 @@ function previewExcel(input){
   reader.onload = function(e){
     const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
     const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false});
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, dateNF:'DD.MM.YYYY'});
     if(rows.length < 2){ alert('Fayl bosh'); return; }
 
     // Skip header row
@@ -2921,7 +2921,15 @@ function previewExcel(input){
 
     dataRows.forEach((row, i) => {
       const lineNum = i + 2;
-      const date = row[0] ? String(row[0]).trim() : '';
+      const rawDate = row[0] ? String(row[0]).trim() : '';
+      // Convert DD.MM.YYYY or DD/MM/YYYY to YYYY-MM-DD
+      let date = rawDate;
+      if(rawDate.match(/^\d{2}[.\/]\d{2}[.\/]\d{4}$/)){
+        const parts = rawDate.split(/[.\/]/);
+        date = parts[2]+'-'+parts[1]+'-'+parts[0];
+      } else if(rawDate instanceof Date || rawDate.match(/^\d{4}-\d{2}-\d{2}$/)){
+        date = rawDate;
+      }
       const branchName = row[1] ? String(row[1]).trim() : '';
       const seller = row[2] ? String(row[2]).trim() : '';
       const rawAmt = String(row[3]||'').trim();
