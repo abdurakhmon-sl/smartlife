@@ -1721,7 +1721,7 @@ async function renderTeam(){
   // Also sum all months for display
   const totalBonusAllMonths=APP.months.reduce((s,m)=>s+parseFloat(APP.params['bonus_'+m]||0),0);
   const pColor={high:'red',medium:'amber',low:'gray'};
-  const sColor={pending:'amber',done:'green',cancelled:'gray'};
+  const sColor={pending:'amber',done:'green',cancelled:'gray',review:'blue'};
   let html=mSel()+`<div class="kpiGrid">
     ${kpi('Xodimlar',APP.team.length,'faol','blue')}
     ${kpi('ФОТ/мес',fmtD(c.totalFOT),'belgilangan','amber')}
@@ -1758,8 +1758,16 @@ async function renderTeam(){
       <td><span class="badge badge-gray" style="font-size:9px">${t.section||'—'}</span></td>
       <td><span class="badge badge-${pColor[t.priority]||'gray'}">${t.priority||'—'}</span></td>
       <td style="font-size:11px;font-family:var(--mono)">${t.due_date||'—'}</td>
-      <td><span class="badge badge-${sColor[t.status]||'gray'}">${t.status==='pending'?'Ожидает':t.status==='done'?'Выполнено':'Отменено'}</span></td>
-      ${canEdit()?`<td><button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">${t.status==='pending'?'Выполнено':'Открыть'}</button></td>`:''}
+      <td><span class="badge badge-${t.status==='done'?'green':t.status==='review'?'blue':t.status==='pending'?'amber':'gray'}">${t.status==='pending'?'Kutilmoqda':t.status==='review'?'⏳ Tasdiqlash':t.status==='done'?'Bajarildi':'Bekor'}</span></td>
+      ${canEdit()?`<td style="white-space:nowrap">
+        ${t.status==='review'
+          ?`<button class="btn sm success" onclick="confirmTask('${t.id}')">✓ Tasdiqlash</button>
+             <button class="btn sm danger" onclick="rejectTask('${t.id}')">✗ Qaytarish</button>`
+          :t.status==='pending'
+            ?`<button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">Bajarildi</button>`
+            :`<button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">Ochish</button>`
+        }
+      </td>`:''}
     </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Задач нет</td></tr>'}</tbody>
   </table></div></div>`;
   html+=wArea('team');
@@ -1769,6 +1777,33 @@ async function renderTeam(){
 async function toggleTask(id,cur){
   await APP.db.from('sl_tasks').update({status:cur==='pending'?'done':'pending',updated_at:new Date().toISOString()}).eq('id',id);
   loadSection('team');
+}
+async function confirmTask(id){
+  const {data:task}=await APP.db.from('sl_tasks').select('*').eq('id',id).single();
+  await APP.db.from('sl_tasks').update({status:'done',comment:'Admin tasdiqladi',updated_at:new Date().toISOString()}).eq('id',id);
+  // Notify assignee
+  if(task){
+    const member=APP.team.find(t=>t.email===task.assigned_to);
+    if(member?.telegram_id){
+      const msg='<b>✅ Vazifangiz tasdiqlandi!</b>\n\n📋 '+task.title+'\n\nAdmin tomonidan tasdiqlandi. Rahmat!';
+      await sendTgMsg(member.telegram_id,msg);
+    }
+  }
+  loadSection(APP.currentSection);
+}
+async function rejectTask(id){
+  const reason=prompt('Qaytarish sababi (ixtiyoriy):');
+  const {data:task}=await APP.db.from('sl_tasks').select('*').eq('id',id).single();
+  await APP.db.from('sl_tasks').update({status:'pending',comment:'Admin qaytardi'+(reason?': '+reason:''),updated_at:new Date().toISOString()}).eq('id',id);
+  // Notify assignee
+  if(task){
+    const member=APP.team.find(t=>t.email===task.assigned_to);
+    if(member?.telegram_id){
+      const msg='<b>⚠️ Vazifa qaytarildi</b>\n\n📋 '+task.title+(reason?'\n\nSabab: '+reason:'')+'\n\nQayta bajarib, yuborish kerak.';
+      await sendTgMsg(member.telegram_id,msg);
+    }
+  }
+  loadSection(APP.currentSection);
 }
 async function loadWishForMonth(email, mo){
   // Load existing wish/bonus for this month from sl_tasks
@@ -3235,47 +3270,75 @@ async function sendDailyNotifications(){
 // SELLER VIEW
 // ════════════════════════════════════════════════
 async function renderSellerView(){
-  const u=APP.user; const c=runCalc(); const mo=yyyymm(); const today=new Date().toISOString().slice(0,10);
-  const [{data:sls},{data:tasks},{data:wTask},{data:allSales}] = await Promise.all([
+  const u=APP.user; const c=runCalc();
+  const mo=APP.currentMonth||yyyymm();
+  const today=new Date().toISOString().slice(0,10);
+
+  // Last 7 days dates
+  const last7=[];
+  for(let i=6;i>=0;i--){const d=new Date(today);d.setDate(d.getDate()-i);last7.push(d.toISOString().slice(0,10));}
+  const week7Start=last7[0];
+
+  const [{data:sls},{data:tasks},{data:wTask},{data:weekSls}] = await Promise.all([
     APP.db.from('sl_sales').select('*').eq('salesperson',u.email).gte('date',mo+'-01').lte('date',mo+'-31'),
-    APP.db.from('sl_tasks').select('*').eq('assigned_to',u.email).eq('status','pending').order('due_date'),
+    APP.db.from('sl_tasks').select('*').eq('assigned_to',u.email).in('status',['pending','review']).order('due_date'),
     APP.db.from('sl_tasks').select('*').eq('section','target').eq('assigned_to',u.email).eq('month',mo).maybeSingle(),
-    APP.db.from('sl_sales').select('*').gte('date',mo+'-01').lte('date',mo+'-31')
+    APP.db.from('sl_sales').select('date,unit_price,qty').eq('salesperson',u.email).gte('date',week7Start).lte('date',today)
   ]);
+
   const sales=sls||[];
   const br=APP.branches.find(b=>String(b.id)===String(u.branch_id));
-  const moIdx=APP.months.indexOf(mo);
-  const plan=br?bmp(br,c,moIdx>=0?moIdx:0):{rev:0,units:0};
+  const moIdx=APP.months.indexOf(mo)>=0?APP.months.indexOf(mo):0;
+  const plan=br?bmp(br,c,moIdx):{rev:0,units:0};
   const tgtKey='target_'+mo+'_'+u.id;
   const myPlanOverride=parseFloat(APP.params[tgtKey]||0);
   const staff=parseInt(br?.staff_count||1);
   const myPlan=myPlanOverride>0?myPlanOverride:(br?plan.rev/staff:0);
+
   const factRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
   const factU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
   const dayFact=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
-  const totalDaysSv=daysInMonth(mo);
-  const daysPasdSv=workingDaysSoFar(mo);
-  const dayPlan=myPlan/totalDaysSv;
-  const shouldByTodaySv=dayPlan*daysPasdSv;
-  const remainingDaysSv=Math.max(1,totalDaysSv-daysPasdSv);
-  const newDayPlanSv=Math.max(0,myPlan-factRev)/remainingDaysSv;
+  const totalDays=daysInMonth(mo);
+  const daysPassed=workingDaysSoFar(mo);
+  const dayPlan=myPlan/totalDays;
+  const shouldByToday=dayPlan*daysPassed;
+  const remainingDays=Math.max(1,totalDays-daysPassed);
+  const newDayPlan=Math.max(0,myPlan-factRev)/remainingDays;
   const mPct=myPlan>0?Math.min(100,factRev/myPlan*100):0;
   const dPct=dayPlan>0?Math.min(100,dayFact/dayPlan*100):0;
   let wish={};try{wish=JSON.parse(wTask?.description||'{}');}catch(e){}
 
-  // Branch leaderboard
-  const branchRank=APP.branches.map(b=>{
-    const bp=bmp(b,c,moIdx>=0?moIdx:0);
-    const fact=(allSales||[]).filter(s=>s.branch_id===b.id).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
-    const pct=bp.rev>0?Math.round(fact/bp.rev*100):0;
-    return{name:b.name,city:b.city||'',fact,plan:bp.rev,pct,isMe:b.id===u.branch_id};
-  }).sort((a,b)=>b.pct-a.pct);
+  // Weekly data per day
+  const dayRevMap={};
+  (weekSls||[]).forEach(s=>{
+    const k=s.date;
+    if(!dayRevMap[k])dayRevMap[k]=0;
+    dayRevMap[k]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);
+  });
+  const weekMax=Math.max(...last7.map(d=>dayRevMap[d]||0),dayPlan,1);
+  const dayNames=['Ya','Du','Se','Ch','Pa','Sh','Ya'];
+
+  // Branch internal ranking (only this branch sellers)
+  const branchSellers=APP.team.filter(t=>String(t.branch_id)===String(u.branch_id)&&['SALES_STAFF','BRANCH_MGR'].includes(t.role));
+  // Fetch all branch sales for ranking
+  const {data:brSls}=await APP.db.from('sl_sales').select('salesperson,unit_price,qty').eq('branch_id',parseInt(u.branch_id)||0).gte('date',mo+'-01').lte('date',mo+'-31');
+  const brRevMap={};
+  (brSls||[]).forEach(s=>{
+    if(!brRevMap[s.salesperson])brRevMap[s.salesperson]=0;
+    brRevMap[s.salesperson]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);
+  });
+  const brRanked=branchSellers.map(t=>{
+    const tk='target_'+mo+'_'+t.id;
+    const tgt=parseFloat(APP.params[tk]||0)||plan.rev/(branchSellers.length||1);
+    const rev=brRevMap[t.email]||0;
+    const pct=tgt>0?Math.round(rev/tgt*100):0;
+    return{t,rev,tgt,pct};
+  }).sort((a,b)=>b.rev-a.rev);
+  const myRankInBr=brRanked.findIndex(r=>r.t.email===u.email)+1;
+  const brMax=brRanked[0]?.rev||1;
 
   const sv=document.getElementById('sellerView');
-  sv.style.background='#0d1b2a';
-  sv.style.minHeight='100vh';
-  sv.style.padding='16px';
-  sv.style.color='#fff';
+  sv.style.cssText='background:#0d1b2a;min-height:100vh;padding:16px;color:#fff';
 
   sv.innerHTML=`<div style="max-width:520px;margin:0 auto;padding-bottom:40px">
 
@@ -3285,92 +3348,150 @@ async function renderSellerView(){
         <div style="font-size:22px;font-weight:800">Salom, ${(u.full_name||u.email).split(' ')[0]}! 👋</div>
         <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">${br?.name||'—'} · ${today}</div>
       </div>
-      <button onclick="doLogout()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 14px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;font-family:inherit">Chiqish</button>
+      <button onclick="doLogout()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 14px;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer">Chiqish</button>
     </div>
 
-    <!-- MAQSAD/BONUS -->
-    ${wish.wish||wish.bonus?`<div style="background:linear-gradient(135deg,rgba(37,99,235,.3),rgba(5,150,105,.2));border:1px solid rgba(37,99,235,.3);border-radius:14px;padding:14px 16px;margin-bottom:12px">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.4);margin-bottom:8px">Mening maqsadim</div>
-      ${wish.wish?`<div style="font-size:15px;font-weight:700;margin-bottom:6px">🎯 ${wish.wish}</div>`:''}
-      ${wish.bonus?`<div style="font-size:13px;color:#34d399;">🏆 Bonus: <strong>$${wish.bonus}</strong> — reja bajarilsa!</div>`:''}
-    </div>`:''}
-
     <!-- OYLIK REJA -->
-    <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">📅 ${mo} — Oylik reja</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div style="background:linear-gradient(135deg,rgba(37,99,235,.25),rgba(37,99,235,.08));border:1px solid rgba(37,99,235,.35);border-radius:16px;padding:20px;margin-bottom:12px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:10px">📅 ${monthLabel(mo)} — Oylik reja</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
         <div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Reja</div>
-          <div style="font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px">$${Math.round(myPlan).toLocaleString('ru-RU')}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3)">Reja</div>
+          <div style="font-size:28px;font-weight:800;font-family:monospace;letter-spacing:-1px">$${Math.round(myPlan).toLocaleString('ru-RU')}</div>
         </div>
         <div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Haqiqat</div>
-          <div style="font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;color:${mPct>=100?'#34d399':mPct>=70?'#fbbf24':'#f87171'}">$${Math.round(factRev).toLocaleString('ru-RU')}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3)">Bajarildi</div>
+          <div style="font-size:28px;font-weight:800;font-family:monospace;letter-spacing:-1px;color:${mPct>=100?'#34d399':mPct>=70?'#fbbf24':'#f87171'}">$${Math.round(factRev).toLocaleString('ru-RU')}</div>
         </div>
       </div>
-      <div style="height:10px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;margin-bottom:8px">
-        <div style="width:${mPct}%;height:100%;background:${mPct>=100?'#10b981':mPct>=70?'#f59e0b':'#3b82f6'};border-radius:5px;transition:width .5s"></div>
+      <div style="height:12px;background:rgba(255,255,255,.1);border-radius:6px;overflow:hidden;margin-bottom:8px">
+        <div style="width:${mPct}%;height:100%;background:${mPct>=100?'#10b981':mPct>=70?'#f59e0b':'#3b82f6'};border-radius:6px"></div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.4)">
-        <span>${Math.round(mPct)}% bajarildi · ${factU} ta sotildi</span>
+        <span>${Math.round(mPct)}% · ${factU} ta sotildi</span>
         <span>Qoldi: $${Math.round(Math.max(0,myPlan-factRev)).toLocaleString('ru-RU')}</span>
       </div>
     </div>
 
-    <!-- BUGUNGI REJA -->
-    <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">🌅 Bugungi reja</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px">
+    <!-- BUGUNGA QADAR -->
+    <div style="background:rgba(255,255,255,.06);border:1px solid ${factRev>=shouldByToday?'rgba(16,185,129,.35)':'rgba(245,158,11,.35)'};border-radius:16px;padding:18px;margin-bottom:12px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">📊 Bugunga qadar holat</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
         <div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Reja</div>
-          <div style="font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px">$${Math.round(dayPlan).toLocaleString('ru-RU')}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Kerak edi (${daysPassed}-kun)</div>
+          <div style="font-size:22px;font-weight:800;font-family:monospace">$${Math.round(shouldByToday).toLocaleString('ru-RU')}</div>
         </div>
         <div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Bugun</div>
-          <div style="font-size:26px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;color:${dPct>=100?'#34d399':dPct>=50?'#fbbf24':'#f87171'}">$${Math.round(dayFact).toLocaleString('ru-RU')}</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Qilindi</div>
+          <div style="font-size:22px;font-weight:800;font-family:monospace;color:${factRev>=shouldByToday?'#34d399':'#fbbf24'}">$${Math.round(factRev).toLocaleString('ru-RU')}</div>
         </div>
       </div>
-      <div style="height:10px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden">
-        <div style="width:${dPct}%;height:100%;background:${dPct>=100?'#10b981':dPct>=50?'#f59e0b':'#3b82f6'};border-radius:5px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:${factRev>=shouldByToday?'rgba(16,185,129,.15)':'rgba(245,158,11,.15)'};border-radius:10px">
+        <span style="font-size:12px;color:rgba(255,255,255,.6)">${factRev>=shouldByToday?'Oldinda!':'Orqada:'}</span>
+        <span style="font-size:16px;font-weight:800;color:${factRev>=shouldByToday?'#34d399':'#f87171'}">${factRev>=shouldByToday?'▲ +':'▼ '}$${Math.round(Math.abs(factRev-shouldByToday)).toLocaleString('ru-RU')}</span>
       </div>
-      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:6px">${Math.round(dPct)}% · Reja: $${Math.round(dayPlan).toLocaleString('ru-RU')}/kun</div>
     </div>
 
-    <!-- VAZIFALAR -->
-    ${(tasks||[]).length?`<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">✅ Vazifalar (${(tasks||[]).length} ta)</div>
-      ${(tasks||[]).map(t=>`<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">
-        <input type="checkbox" onchange="sellerToggleTask('${t.id}',this.checked)" style="accent-color:#3b82f6;width:18px;height:18px;flex-shrink:0;margin-top:2px">
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:600">${t.title}</div>
-          ${t.description?`<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">${t.description}</div>`:''}
-          ${t.due_date?`<div style="font-size:10px;color:${t.due_date===today?'#fbbf24':'rgba(255,255,255,.3)'};margin-top:4px">${t.due_date===today?'Bugun':'Muddat: '+t.due_date}</div>`:''}
-        </div>
-        <span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${t.priority==='high'?'rgba(220,38,38,.2)':t.priority==='medium'?'rgba(217,119,6,.2)':'rgba(100,116,139,.2)'};color:${t.priority==='high'?'#f87171':t.priority==='medium'?'#fbbf24':'#94a3b8'}">${t.priority==='high'?'Muhim':t.priority==='medium'?'Orta':'Past'}</span>
-      </div>`).join('')}
-    </div>`:`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:10px;text-align:center;color:rgba(255,255,255,.3);font-size:13px">Bugun vazifa yoq ✓</div>`}
+    <!-- BUGUN -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.3);margin-bottom:8px">🌅 Bugun</div>
+        <div style="font-size:22px;font-weight:800;font-family:monospace;color:${dPct>=100?'#34d399':dPct>=50?'#fbbf24':'#f87171'}">$${Math.round(dayFact).toLocaleString('ru-RU')}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:4px">Reja: $${Math.round(dayPlan).toLocaleString('ru-RU')}</div>
+      </div>
+      <div style="background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.25);border-radius:12px;padding:14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.3);margin-bottom:8px">📆 Tuzatilgan kunlik</div>
+        <div style="font-size:22px;font-weight:800;font-family:monospace;color:#93c5fd">$${Math.round(newDayPlan).toLocaleString('ru-RU')}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:4px">${remainingDays} kun qoldi</div>
+      </div>
+    </div>
 
-    <!-- FILIALLAR REYTINGI -->
-    <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:10px">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">🏆 Filiallar reytingi — ${mo}</div>
-      ${branchRank.map((b,i)=>{
-        const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':''+(i+1)+'.';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;margin-bottom:4px;${b.isMe?'background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.3)':''}">
-          <div style="font-size:${i<3?'18':'13'}px;width:28px;text-align:center">${medal}</div>
-          <div style="flex:1">
-            <div style="font-size:13px;font-weight:${b.isMe?'700':'500'}">${b.name}${b.isMe?' 👈':''}</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.4)">${b.city}</div>
+    <!-- HAFTALIK GRAFIK -->
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:16px">📈 So'nggi 7 kun</div>
+      <div style="display:flex;align-items:flex-end;gap:6px;height:80px">
+        ${last7.map(d=>{
+          const rev=dayRevMap[d]||0;
+          const barH=weekMax>0?Math.max(4,Math.round(rev/weekMax*72)):4;
+          const isToday=d===today;
+          const metPlan=rev>=dayPlan;
+          const col=rev===0?'rgba(255,255,255,.1)':metPlan?'#10b981':rev>=dayPlan*0.5?'#f59e0b':'#3b82f6';
+          const dObj=new Date(d+'T12:00:00');
+          const dName=dayNames[dObj.getDay()];
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+            <div style="font-size:9px;font-family:monospace;color:${rev>0?'rgba(255,255,255,.5)':'transparent'}">$${Math.round(rev/1000)}k</div>
+            <div style="width:100%;background:${col};border-radius:4px 4px 0 0;height:${barH}px;${isToday?'box-shadow:0 0 8px '+col:''}"></div>
+            <div style="font-size:9px;color:${isToday?'#fff':'rgba(255,255,255,.35)'};font-weight:${isToday?'700':'400'}">${dName}</div>
+            <div style="font-size:8px;color:rgba(255,255,255,.2)">${d.slice(5)}</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:12px;font-size:10px;color:rgba(255,255,255,.35)">
+        <span><span style="color:#10b981">■</span> Reja bajarildi</span>
+        <span><span style="color:#f59e0b">■</span> 50%+</span>
+        <span><span style="color:#3b82f6">■</span> Past</span>
+        <span><span style="color:rgba(255,255,255,.1)">■</span> Sotuv yo'q</span>
+      </div>
+    </div>
+
+    <!-- FILIAL ICHIDA REYTING -->
+    ${brRanked.length>0?`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3)">🏅 ${br?.name||''} — Filial reytingi</div>
+        <div style="font-size:13px;font-weight:800;color:#fbbf24">${myRankInBr} / ${brRanked.length}</div>
+      </div>
+      ${brRanked.map((r,i)=>{
+        const isMe=r.t.email===u.email;
+        const barW=brMax>0?Math.round(r.rev/brMax*100):0;
+        const col=r.pct>=100?'#10b981':r.pct>=70?'#f59e0b':'#3b82f6';
+        return `<div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:${i<3?'16':'12'}px">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span>
+              <span style="font-size:13px;font-weight:${isMe?'800':'500'};color:${isMe?'#fff':'rgba(255,255,255,.6)'}">${r.t.full_name}${isMe?' 👈':''}</span>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:13px;font-weight:700;font-family:monospace;color:${isMe?'#93c5fd':'rgba(255,255,255,.7)'}">$${Math.round(r.rev).toLocaleString('ru-RU')}</div>
+              <div style="font-size:9px;color:rgba(255,255,255,.3)">${r.pct}% · reja $${Math.round(r.tgt/1000)}k</div>
+            </div>
           </div>
-          <div style="text-align:right">
-            <div style="font-size:13px;font-weight:700;color:${b.pct>=100?'#34d399':b.pct>=70?'#fbbf24':'#f87171'}">${b.pct}%</div>
-            <div style="font-size:10px;color:rgba(255,255,255,.4)">$${Math.round(b.fact).toLocaleString('ru-RU')}</div>
+          <div style="height:${isMe?'8':'5'}px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden">
+            <div style="width:${barW}%;height:100%;background:${isMe?col:'rgba(255,255,255,.2)'};border-radius:4px"></div>
           </div>
         </div>`;
       }).join('')}
-    </div>
+    </div>`:''}
+
+    <!-- MAQSAD -->
+    ${wish.wish?`<div style="background:linear-gradient(135deg,rgba(16,185,129,.2),rgba(16,185,129,.05));border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(16,185,129,.7);margin-bottom:8px">🎯 Mening maqsadim</div>
+      <div style="font-size:15px;font-weight:700">${wish.wish}</div>
+      ${wish.bonus?`<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">Bonus: <strong style="color:#34d399">$${wish.bonus}</strong></div>`:''}
+    </div>`:''}
+
+    <!-- VAZIFALAR -->
+    ${(tasks||[]).length?`<div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">✅ Vazifalar (${(tasks||[]).length})</div>
+      ${(tasks||[]).map(t=>{
+        const isReview=t.status==='review';
+        return `<div style="display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)">
+          ${isReview
+            ?'<div style="width:18px;height:18px;border-radius:50%;background:rgba(96,165,250,.3);border:1px solid #60a5fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px">⏳</div>'
+            :`<input type="checkbox" onchange="sellerToggleTask('${t.id}',this.checked)" style="accent-color:#3b82f6;width:18px;height:18px;flex-shrink:0;margin-top:2px">`
+          }
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600;color:${isReview?'rgba(255,255,255,.5)':'#fff'}">${t.title}</div>
+            ${isReview?'<div style="font-size:10px;color:#60a5fa;margin-top:2px">Tasdiqlash kutilmoqda...</div>':''}
+            ${t.due_date&&!isReview?`<div style="font-size:10px;color:${t.due_date===today?'#fbbf24':'rgba(255,255,255,.3)'};margin-top:3px">${t.due_date===today?'Bugun':'Muddat: '+t.due_date}</div>`:''}
+          </div>
+          <span style="font-size:10px;padding:2px 7px;border-radius:8px;background:${t.priority==='high'?'rgba(220,38,38,.2)':'rgba(100,116,139,.2)'};color:${t.priority==='high'?'#f87171':'#94a3b8'};flex-shrink:0">${t.priority==='high'?'Muhim':'Orta'}</span>
+        </div>`;
+      }).join('')}
+    </div>`:`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;text-align:center;color:rgba(255,255,255,.3);font-size:13px">Bugun vazifa yoq ✓</div>`}
 
   </div>`;
 }
+
 async function sellerToggleTask(id,done){
   await APP.db.from('sl_tasks').update({status:done?'done':'pending',updated_at:new Date().toISOString()}).eq('id',id);
 }
@@ -3570,6 +3691,12 @@ async function renderBranchMgrView(){
       ${taskRows}
     </div>`:''}
 
+    <!-- LIDLAR HOLATI -->
+    <div id="brMgrLeads" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:4px">🎯 Lidlar holati — ${monthLabel(mo)}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.2);margin-bottom:12px">Yuklanmoqda...</div>
+    </div>
+
     <!-- KUNLIK TUZATILGAN REJA -->
     <div style="background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.3);border-radius:12px;padding:14px;text-align:center">
       <div style="font-size:10px;color:rgba(255,255,255,.4);margin-bottom:4px">Qolgan ${remainingDays} kun uchun tuzatilgan kunlik reja</div>
@@ -3579,8 +3706,67 @@ async function renderBranchMgrView(){
   </div>`;
 }
 
+async function loadBrMgrLeads(branchId, mo, c, moIdx){
+  try{
+    const {data:leads}=await APP.db.from('sl_leads').select('*').eq('branch_id',branchId).gte('date',mo+'-01').lte('date',mo+'-31');
+    const br=APP.branches.find(b=>b.id===branchId);
+    if(!br) return;
+    const bp=bmp(br,c,moIdx);
+    const neededL=bp.leads;
+    const totalL=(leads||[]).reduce((s,l)=>s+parseInt(l.total_leads||0),0);
+    const qualL=(leads||[]).reduce((s,l)=>s+parseInt(l.quality_leads||0),0);
+    const pctL=neededL>0?Math.min(100,Math.round(totalL/neededL*100)):0;
+    const convL=totalL>0?Math.round(qualL/totalL*100):0;
+    const gap=totalL-neededL;
+    const el=document.getElementById('brMgrLeads');
+    if(!el) return;
+    el.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3)">🎯 Lidlar holati</div>
+        <span style="font-size:9px;padding:2px 8px;border-radius:8px;background:${pctL>=100?'rgba(16,185,129,.2)':'rgba(245,158,11,.2)'};color:${pctL>=100?'#34d399':'#fbbf24'}">${pctL}%</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px">
+        <div style="text-align:center">
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Kerakli</div>
+          <div style="font-size:20px;font-weight:800;font-family:monospace">${neededL.toLocaleString('ru-RU')}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Haqiqat</div>
+          <div style="font-size:20px;font-weight:800;font-family:monospace;color:${totalL>=neededL?'#34d399':'#fbbf24'}">${totalL.toLocaleString('ru-RU')}</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Sifatli</div>
+          <div style="font-size:20px;font-weight:800;font-family:monospace;color:#60a5fa">${qualL.toLocaleString('ru-RU')}</div>
+        </div>
+      </div>
+      <div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-bottom:8px">
+        <div style="width:${pctL}%;height:100%;background:${pctL>=100?'#10b981':pctL>=60?'#f59e0b':'#3b82f6'};border-radius:4px"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px">
+        <span style="color:rgba(255,255,255,.4)">Konversiya: <strong style="color:#fff">${convL}%</strong></span>
+        <span style="color:${gap>=0?'#34d399':'#f87171'};font-weight:700">${gap>=0?'▲ +':'▼ '}${Math.abs(gap)} lid ${gap>=0?'ortiqcha':'taqchil'}</span>
+      </div>
+      ${(leads||[]).length===0?'<div style="margin-top:12px;font-size:11px;color:rgba(255,255,255,.2);text-align:center">Hali lid kiritilmagan</div>':''}
+    `;
+  }catch(e){console.error('brMgrLeads:',e);}
+}
+
 async function brMgrToggleTask(id){
-  await APP.db.from('sl_tasks').update({status:'done',updated_at:new Date().toISOString()}).eq('id',id);
+  // Get task details
+  const {data:task}=await APP.db.from('sl_tasks').select('*').eq('id',id).single();
+  if(!task) return;
+  // Set to 'review' (awaiting admin confirmation)
+  await APP.db.from('sl_tasks').update({status:'review',comment:'Bajarildi — tasdiqlash kutilmoqda',updated_at:new Date().toISOString()}).eq('id',id);
+  // Notify admins via Telegram
+  const admins=APP.team.filter(t=>['ADMIN','TOP_MGR'].includes(t.role)&&t.telegram_id);
+  const br=APP.branches.find(b=>String(b.id)===String(APP.user?.branch_id));
+  const msg='<b>✅ Vazifa bajarildi — tasdiqlash kerak</b>\n\n'+
+    '📋 '+task.title+'\n'+
+    '👤 Bajaruvchi: '+(APP.user?.full_name||APP.user?.email)+'\n'+
+    '🏪 Filial: '+(br?.name||'—')+'\n\n'+
+    'Tasdiqlash uchun platformaga kiring → Jamoa → Vazifalar';
+  for(const a of admins){await sendTgMsg(a.telegram_id,msg);}
+  alert('Vazifa "bajarildi" deb belgilandi. Admin tasdiqlaganidan so\'ng yakunlanadi.');
   renderBranchMgrView();
 }
 
