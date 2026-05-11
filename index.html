@@ -2722,7 +2722,7 @@ async function renderBugun(){
   const brRows = visibleBr.map(b=>{
     const bp=bmp(b,c,moIdx>=0?moIdx:0);
     const dayPlan=bp.rev/totalDays;
-    const shouldToday=dayPlan*daysPassed;
+    const shouldToday=dayPlan*daysForCalcB;
     const todayFact=todayMap[b.id]||0;
     const monthFact=monthMap[b.id]||0;
     const behind=shouldToday-monthFact; // how much behind plan
@@ -2739,20 +2739,20 @@ async function renderBugun(){
   const totBehind=brRows.reduce((s,r)=>s+r.behind,0);
 
   let html=`<div class="kpiGrid">
-    ${kpi('Bugunga reja edi',fmtD(totShouldToday),`${daysPassed} kun × kunlik reja`,'blue')}
+    ${kpi('Kechaga qadar reja',fmtD(totShouldToday),`${daysForCalcB} kun (kechaga qadar)`,'blue')}
     ${kpi('Oylik fakt',fmtD(totMonthFact),`${Math.round(totMonthFact/totShouldToday*100)}% bajarildi`,totMonthFact>=totShouldToday?'green':'red')}
     ${kpi('Bugun sotuv',fmtD(totTodayFact),'bugungi haqiqat',totTodayFact>0?'green':'amber')}
     ${kpi('Farq (reja − fakt)',fmtD(Math.abs(totBehind)),totBehind<=0?'Rejadan ilgari ✓':'Rejadan ortda ✗',totBehind<=0?'green':'red')}
   </div>
 
   <div class="card"><div class="cardH">
-    <h3>Filiallar — ${today} sanasiga qadar bajarish</h3>
+    <h3>Filiallar — kechaga qadar bajarish</h3>
     <span class="hint">${daysPassed} kun o'tdi · ${totalDays-daysPassed} kun qoldi</span>
   </div><div class="cardB tWrap"><table>
     <thead><tr>
       <th>Filial</th>
       <th style="text-align:right">Oylik reja $</th>
-      <th style="text-align:right">Bugunga qadar reja $</th>
+      <th style="text-align:right">Kechaga qadar reja $</th>
       <th style="text-align:right">Bajarildi $</th>
       <th style="text-align:right">Bugun $</th>
       <th style="text-align:right">Farq $</th>
@@ -2801,7 +2801,7 @@ async function renderBugun(){
       <thead><tr>
         <th>Sotuvchi</th><th>Filial</th>
         <th style="text-align:right">Oylik reja $</th>
-        <th style="text-align:right">Bugunga qadar reja $</th>
+        <th style="text-align:right">Kechaga qadar reja $</th>
         <th style="text-align:right">Bajarildi $</th>
         <th style="text-align:right">Bugun $</th>
         <th style="text-align:right">Farq $</th>
@@ -2813,7 +2813,7 @@ async function renderBugun(){
         const tgtKey='target_'+mo+'_'+t.id;
         const tgt=parseFloat(APP.params[tgtKey]||0);
         const dayTgt=tgt/totalDays;
-        const shouldTodaySeller=dayTgt*daysPassed;
+        const shouldTodaySeller=dayTgt*daysForCalcB;
         const mFact=(sellerMap[t.email]?.monthRev||0);
         const todayFact=(sellerMap[t.email]?.todayRev||0);
         const pct=shouldTodaySeller>0?Math.round(mFact/shouldTodaySeller*100):0;
