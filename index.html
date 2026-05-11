@@ -4062,7 +4062,7 @@ function previewExcel(input){
     const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, dateNF:'DD.MM.YYYY'});
-    if(rows.length < 2){ alert('Fayl bo'sh'); return; }
+    if(rows.length < 2){ alert('Fayl bosh'); return; }
 
     // Skip header row
     const dataRows = rows.slice(1).filter(r => r.some(c => c));
