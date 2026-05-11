@@ -1513,17 +1513,9 @@ async function sendLeadsReportTg(){
   const totalL=(leads||[]).reduce((s,l)=>s+parseInt(l.total_leads||0),0);
   const qualL=(leads||[]).reduce((s,l)=>s+parseInt(l.quality_leads||0),0);
   const conv=totalL>0?Math.round(qualL/totalL*100):0;
-  const msg=`<b>📊 Marketing hisoboti — ${monthLabel(mo)}</b>
-
-`+
-    `Jami lidlar: <b>${totalL}</b>
-Sifatli: <b>${qualL}</b>
-Konversiya: <b>${conv}%</b>
-
-<b>Filiallar:</b>
-`+
-    Object.values(brMap).filter(b=>b.total>0).map(b=>`• ${b.name}: ${b.total} lid, ${b.quality} sifatli`).join('
-');
+  const brLines=Object.values(brMap).filter(b=>b.total>0).map(b=>'• '+b.name+': '+b.total+' lid, '+b.quality+' sifatli').join('\n');
+  const msg='<b>📊 Marketing hisoboti — '+monthLabel(mo)+'</b>\n\n'+
+    'Jami lidlar: <b>'+totalL+'</b>\nSifatli: <b>'+qualL+'</b>\nKonversiya: <b>'+conv+'%</b>\n\n<b>Filiallar:</b>\n'+brLines;
   // Find targetolog/admin telegram ids
   const targets=APP.team.filter(t=>['TARGETOLOG','ADMIN','TOP_MGR'].includes(t.role)&&t.telegram_id);
   let sent=0,failed=0;
