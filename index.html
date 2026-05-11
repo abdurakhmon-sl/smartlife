@@ -192,7 +192,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
   <div class="mB">
     <div class="fG" style="margin-bottom:12px"><label>Xodim</label><input id="wsName" readonly style="background:var(--bg)"></div>
     <div class="fRow c2"><div class="fG"><label>Xohlagan bonus ($)</label><input id="wsBonus" type="number" min="0" step="50"></div><div class="fG"><label>Месяц</label><input id="wsMonth" type="month"></div></div>
-    <div class="fG" style="margin-top:12px"><label>Мечта (что хочет reja bajarilganda)</label><textarea id="wsWish" rows="3" style="resize:vertical" placeholder="Mashina, sayohat..."></textarea></div>
+    <div class="fG" style="margin-top:12px"><label>Maqsad (reja bajarilganda nima xohlaydi)</label><textarea id="wsWish" rows="3" style="resize:vertical" placeholder="Mashina, sayohat..."></textarea></div>
   </div>
   <div class="mF"><button class="btn" onclick="closeM('M_wish')">Bekor</button><button class="btn primary" onclick="saveWish()">Saqlash</button></div>
 </div></div>
@@ -200,9 +200,9 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
   <div class="mH"><h3 id="M_coll_title">Должник</h3><button class="mX" onclick="closeM('M_coll')">✕</button></div>
   <div class="mB">
     <div class="fRow c2"><div class="fG"><label>Клиент</label><input id="clName"></div><div class="fG"><label>Телефон</label><input id="clPhone"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Filial</label><select id="clBranch"></select></div><div class="fG"><label>Sana договора</label><input id="clDate" type="date"></div></div>
-    <div class="fRow c3"><div class="fG"><label>Долг $</label><input id="clDebt" type="number"></div><div class="fG"><label>Оплачено $</label><input id="clPaid" type="number"></div><div class="fG"><label>Дней просрочки</label><input id="clDays" type="number"></div></div>
-    <div class="fRow c2" style="margin-top:4px"><div class="fG"><label>Следующий контакт</label><input id="clNext" type="date"></div><div class="fG"><label>Kollektor</label><select id="clColl"></select></div></div>
+    <div class="fRow c2"><div class="fG"><label>Filial</label><select id="clBranch"></select></div><div class="fG"><label>Shartnoma sanasi</label><input id="clDate" type="date"></div></div>
+    <div class="fRow c3"><div class="fG"><label>Qarz $</label><input id="clDebt" type="number"></div><div class="fG"><label>To'langan $</label><input id="clPaid" type="number"></div><div class="fG"><label>Kechikish (kun)</label><input id="clDays" type="number"></div></div>
+    <div class="fRow c2" style="margin-top:4px"><div class="fG"><label>Keyingi aloqa</label><input id="clNext" type="date"></div><div class="fG"><label>Kollektor</label><select id="clColl"></select></div></div>
     <div class="fG" style="margin-top:8px"><label>Примечание</label><textarea id="clNotes" rows="2" style="resize:vertical"></textarea></div>
   </div>
   <div class="mF"><button class="btn" onclick="closeM('M_coll')">Bekor</button><button class="btn primary" onclick="saveColl()">Saqlash</button></div>
@@ -282,8 +282,8 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
   <div class="mH"><h3>Excel orqali sotuvlarni yuklash</h3><button class="mX" onclick="closeM('M_excel')">✕</button></div>
   <div class="mB">
     <div style="background:var(--blue-t);border:1px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px">
-      <strong>Shablon ustunlari:</strong> Sana | Filial | Sotuvchi | Summa | Tolov turi<br>
-      <span style="color:var(--ink3)">Sotuvchi: ism yoki email. Tolov turi: naqd / muddatli / karta / otkazma</span>
+      <strong>Shablon ustunlari:</strong> Sana | Filial | Sotuvchi | Summa | To'lov turi<br>
+      <span style="color:var(--ink3)">Sotuvchi: ism yoki email. To'lov turi: naqd / muddatli / karta / otkazma</span>
     </div>
     <div style="border:2px dashed var(--border);border-radius:10px;padding:30px;text-align:center;margin-bottom:12px;cursor:pointer" onclick="document.getElementById('excelFile').click()">
       <div style="font-size:32px;margin-bottom:8px">📂</div>
@@ -307,11 +307,11 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
 </div></div>
 
 <div class="modal" id="M_widget"><div class="mBox">
-  <div class="mH"><h3>Qoshish виджет</h3><button class="mX" onclick="closeM('M_widget')">✕</button></div>
+  <div class="mH"><h3>Qo'shish</h3><button class="mX" onclick="closeM('M_widget')">✕</button></div>
   <div class="mB">
-    <div class="fG" style="margin-bottom:12px"><label>Тип виджета</label><select id="wType"><option value="bar">Bar Chart</option><option value="line">Line Chart</option><option value="pie">Pie Chart</option><option value="kpi">KPI карточки</option><option value="table">Таблица</option></select></div>
-    <div class="fG" style="margin-bottom:12px"><label>Источник данных</label><select id="wSource"><option value="sales_by_branch">Продажи по филиалам</option><option value="sales_by_month">Продажи по месяцам</option><option value="leads_by_branch">Лиды по филиалам</option><option value="profit_by_branch">Прибыль по филиалам</option><option value="mkt_by_branch">Маркетинг по филиалам</option></select></div>
-    <div class="fG"><label>Заголовок (опционально)</label><input id="wTitle" placeholder="Автоматически"></div>
+    <div class="fG" style="margin-bottom:12px"><label>Widget turi</label><select id="wType"><option value="bar">Bar Chart</option><option value="line">Line Chart</option><option value="pie">Pie Chart</option><option value="kpi">KPI карточки</option><option value="table">Таблица</option></select></div>
+    <div class="fG" style="margin-bottom:12px"><label>Ma'lumot manbai</label><select id="wSource"><option value="sales_by_branch">Sotuvlar bo'yicha filiallar</option><option value="sales_by_month">Sotuvlar bo'yicha oylar</option><option value="leads_by_branch">Lidlar bo'yicha filiallar</option><option value="profit_by_branch">Foyda bo'yicha filiallar</option><option value="mkt_by_branch">Marketing bo'yicha filiallar</option></select></div>
+    <div class="fG"><label>Sarlavha (ixtiyoriy)</label><input id="wTitle" placeholder="Автоматически"></div>
   </div>
   <div class="mF"><button class="btn" onclick="closeM('M_widget')">Bekor</button><button class="btn primary" onclick="saveWidget()">Qoshish</button></div>
 </div></div>
@@ -336,7 +336,7 @@ const APP = {
 // ════════════════════════════════════════════════
 window.addEventListener('load', () => {
   if (!SB_URL || SB_URL.includes('ВСТАВЬТЕ')) {
-    document.getElementById('loginScreen').innerHTML = '<div style="position:relative;text-align:center;color:#fff;padding:60px"><div style="font-size:18px;font-weight:700;margin-bottom:10px">Настройка</div><div style="opacity:.6">Замените SB_URL и SB_ANON в начале файла</div></div>';
+    document.getElementById('loginScreen').innerHTML = '<div style="position:relative;text-align:center;color:#fff;padding:60px"><div style="font-size:18px;font-weight:700;margin-bottom:10px">Настройка</div><div style="opacity:.6">SB_URL va SB_ANON ni fayl boshida almashtiring</div></div>';
     return;
   }
   APP.db = supabase.createClient(SB_URL, SB_ANON);
@@ -364,7 +364,7 @@ async function doLogin() {
   const pin   = document.getElementById('lPin').value.trim();
   const btn   = document.getElementById('lBtn');
   const err   = document.getElementById('lErr');
-  if (!email||!pin){err.textContent='Введите email и PIN';return;}
+  if (!email||!pin){err.textContent='Email va PIN kiriting';return;}
   btn.disabled=true; btn.textContent='Вход...'; err.textContent='';
   try {
     const hash = await sha256(pin);
@@ -594,7 +594,7 @@ function pFld(key,label,type='number',step='1') {
 // ════════════════════════════════════════════════
 async function renderStrategy() {
   const c=runCalc();
-  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn success" onclick="sendDailyNotifications()">Отправить план в TG</button>`;
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn success" onclick="sendDailyNotifications()">Rejani TG ga yuborish</button>`;
   // growthPcts: % of target profit per month, last month always 100
   let growthPcts = [];
   try { growthPcts = JSON.parse(APP.params.month_growth||'[]'); } catch(e) {}
@@ -640,7 +640,7 @@ async function renderStrategy() {
       ${pFld('gross_margin','Yalpi marja %','number','0.1')}
     </div>
     <div style="border-top:1px solid var(--border);padding-top:14px">
-      <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Распределение плана по месяцам (веса)</div>
+      <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Reja taqsimlash oylar bo'yicha (og'irliklar)</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px">${growthHTML}</div>
       <div style="font-size:11px;color:var(--ink3);margin-top:8px">Har bir oy uchun maqsadli foydaning % ini kiriting. Oxirgi oy har doim 100% = <strong>${fmtD(c.targetProfit)}</strong>. Misol: 40%, 70%, 100%</div>
     </div>
@@ -700,15 +700,15 @@ async function renderStrategy() {
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
     <div class="card"><div class="cardH"><h3>Barcha oylar — Daromad: Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartAllMonths" height="160"></canvas></div></div>
     <div class="card"><div class="cardH"><h3>Barcha oylar — Foyda: Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartAllProfit" height="160"></canvas></div></div>
-    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Daromad: Filiallar boyicha</h3></div><div class="cardB"><canvas id="chartCurMonth" height="160"></canvas></div></div>
-    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Foyda: Filiallar boyicha</h3></div><div class="cardB"><canvas id="chartCurProfit" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Daromad: Filiallar bo'yicha</h3></div><div class="cardB"><canvas id="chartCurMonth" height="160"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>${monthLabel(APP.currentMonth)} — Foyda: Filiallar bo'yicha</h3></div><div class="cardB"><canvas id="chartCurProfit" height="160"></canvas></div></div>
   </div>
 
   <div class="card"><div class="cardH"><h3>Muammoli joylar (Bottleneck-tahlil)</h3></div><div class="cardB">
     ${bns.map(b=>`<div class="bn ${b.lvl}"><div class="bnT">${b.t}</div><div class="bnS">${b.d}</div></div>`).join('')}
   </div></div>
-  <div class="card"><div class="cardH"><h3>Jadval 1 — Filiallar boyicha sotuvlar</h3><span class="hint">Daromad $ va dona | og'irlikni toghridan to'g'ri tahrirlash mumkin</span></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Filial</th><th>Shahar</th><th>Ogirlik</th>${mH}<th style="text-align:right">Jami $</th>${mHU}<th style="text-align:right">Jami dona</th></tr></thead>
+  <div class="card"><div class="cardH"><h3>Jadval 1 — Filiallar bo'yicha sotuvlar</h3><span class="hint">Daromad $ va dona | og'irlikni to'g'ridan to'g'ri tahrirlash mumkin</span></div><div class="cardB tWrap"><table>
+    <thead><tr><th>Filial</th><th>Shahar</th><th>Og'irlik</th>${mH}<th style="text-align:right">Jami $</th>${mHU}<th style="text-align:right">Jami dona</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
       <td>${canEdit()?`<input class="iEdit" type="number" value="${r.b.weight}" step="0.25" min="0.25" max="10" onchange="updW(${r.b.id},this.value)">`:r.b.weight}</td>
@@ -724,7 +724,7 @@ async function renderStrategy() {
       <td style="text-align:right;font-family:var(--mono)">${rows.reduce((s,r)=>s+r.totUnits,0)}</td>
     </tr></tfoot>
   </table></div></div>
-  <div class="card"><div class="cardH"><h3>Jadval 2 — Filiallar boyicha lidlar</h3><span class="hint">Reja bajarish uchun kerakli lidlar</span></div><div class="cardB tWrap"><table>
+  <div class="card"><div class="cardH"><h3>Jadval 2 — Filiallar bo'yicha lidlar</h3><span class="hint">Reja bajarish uchun kerakli lidlar</span></div><div class="cardB tWrap"><table>
     <thead><tr><th>Filial</th><th>Shahar</th>${mH}<th style="text-align:right">Jami</th></tr></thead>
     <tbody>${rows.map(r=>`<tr>
       <td><strong>${r.b.name}</strong></td><td style="color:var(--ink3)">${r.b.city||'—'}</td>
@@ -993,7 +993,8 @@ async function renderSales() {
   const moIdx2=APP.months.indexOf(mo);
   const monthPlan=APP.branches.reduce((s,b)=>s+bmp(b,c,moIdx2>=0?moIdx2:0).rev,0);
   const dayPlanTotal=monthPlan/totalDays;
-  const shouldByToday=dayPlanTotal*daysPassed;
+  const daysForCalcB=Math.max(0,daysPassed-1);
+  const shouldByToday=dayPlanTotal*daysForCalcB;
   const remainingDays=Math.max(1,totalDays-daysPassed);
   const remainingTarget=Math.max(0,monthPlan-totalRev);
   const newDailyPlan=remainingTarget/remainingDays;
@@ -1009,7 +1010,7 @@ async function renderSales() {
     : APP.branches;
   let html=mSel()+`<div class="kpiGrid">
     ${kpi('Haqiqat daromad',fmtD(totalRev),`${Math.round(pct)}% — reja ${fmtD(monthPlan)}`,pct>=100?'green':pct>=70?'amber':'red')}
-    ${kpi('Bugunga kerak edi',fmtD(shouldByToday),`${daysPassed} kunlik reja · ${Math.round(pctByToday)}% bajardi`,pctByToday>=100?'green':pctByToday>=80?'amber':'red')}
+    ${kpi('Kechaga qadar kerak edi',fmtD(shouldByToday),`${daysForCalcB} kun (kechaga qadar) · ${Math.round(pctByToday)}% bajardi`,pctByToday>=100?'green':pctByToday>=80?'amber':'red')}
     ${kpi('Bugun',fmtD(todayRev),`Kunlik reja: ${fmtD(dayPlanTotal)}`,todayRev>=dayPlanTotal?'green':'amber')}
     ${kpi('Qolgan kunlik reja',fmtD(newDailyPlan),`${remainingDays} kun qoldi · Tuzatilgan plan`,'blue')}
     ${kpi('Qoldi (oy)',fmtD(remainingTarget),`Reja: ${fmtD(monthPlan)}`,'amber')}
@@ -1024,7 +1025,7 @@ async function renderSales() {
     </div>
     <div class="prog"><div class="progFill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>=70?'var(--amber)':'var(--blue)'}"></div></div>
   </div></div>
-  <div class="card"><div class="cardH"><h3>Filiallar boyicha — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+  <div class="card"><div class="cardH"><h3>Filiallar bo'yicha — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
     <thead><tr><th>Filial</th><th>Menejer</th><th style="text-align:right">Haqiqat $</th><th style="text-align:right">Haqiqat dona</th><th style="text-align:right">Reja $</th><th style="text-align:right">Bajarish</th><th style="text-align:right">Qoldi</th></tr></thead>
     <tbody>${visibleBranches.map(b=>{
       const d=byBranch[b.id]||{rev:0,units:0};
@@ -1068,7 +1069,7 @@ async function renderSales() {
     
     html += `<div class="card">
       <div class="cardH">
-        <h3>Sotuvchilar boyicha maqsadlar — ${monthLabel(mo)}</h3>
+        <h3>Sotuvchilar bo'yicha maqsadlar — ${monthLabel(mo)}</h3>
         <span class="hint">${APP.user?.role==='BRANCH_MGR'?'Siz belgilaysiz':'Barcha filiallar'}</span>
       </div>
       <div class="cardB tWrap"><table>
@@ -1109,7 +1110,7 @@ async function renderSales() {
 
   // PLAN VS FACT BY BRANCH - full detail
   html += `<div class="card">
-    <div class="cardH"><h3>Reja vs Haqiqat — Filiallar boyicha</h3>
+    <div class="cardH"><h3>Reja vs Haqiqat — Filiallar bo'yicha</h3>
       <span class="hint">${monthLabel(mo)}</span>
     </div>
     <div class="cardB tWrap"><table>
@@ -1246,7 +1247,7 @@ async function openSaleModal(){
   document.getElementById('M_user_title').textContent='Yangi sotuv';
   document.getElementById('M_user_body').innerHTML=`
     <div class="fRow c2"><div class="fG"><label>Sana</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="fG"><label>Filial</label><select id="sBranch">${brOpts}</select></div></div>
-    <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Цена $</label><input id="sPrice" type="number"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Narx $</label><input id="sPrice" type="number"></div></div>
     <div class="fRow c2"><div class="fG"><label>Кол-во</label><input id="sQty" type="number" value="1" min="1"></div><div class="fG"><label>Tolov</label><select id="sPayType"><option value="cash">Наличные</option><option value="installment">Рассрочка</option><option value="card">Карта</option><option value="transfer">Перевод</option></select></div></div>
     <div class="fG"><label>Sotuvchi (email)</label><input id="sSeller" value="${APP.user.email}"></div>`;
   document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveSale()">Saqlash</button>`;
@@ -1563,7 +1564,7 @@ async function saveLead(){
   renderMarketing();
 }
 async function deleteLead(id){
-  if(!confirm('Bu lid yozuvini ochirish?')) return;
+  if(!confirm('Bu lid yozuvini o\'chirish?')) return;
   await APP.db.from('sl_leads').delete().eq('id',id);
   renderMarketing();
 }
@@ -1632,7 +1633,7 @@ async function renderBranches(){
     ${kpi('Ijara/oy',fmtD(c.totalRent),`${APP.branches.length} filial`,'amber')}
   </div>
   <div class="card"><div class="cardH"><h3>Filiallar royxati</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Filial</th><th>Shahar</th><th style="text-align:right">Ogirlik</th><th style="text-align:right">Xodim</th><th style="text-align:right">Ijara $</th><th>Menejer</th><th style="text-align:right">План/мес $</th><th style="text-align:right">Шт/мес</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <thead><tr><th>Filial</th><th>Shahar</th><th style="text-align:right">Og'irlik</th><th style="text-align:right">Xodim</th><th style="text-align:right">Ijara $</th><th>Menejer</th><th style="text-align:right">План/мес $</th><th style="text-align:right">Шт/мес</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.branches.map(b=>{
       const plan=bmp(b,c,0);
       const mgr=APP.team.find(t=>t.branch_id===b.id&&t.role==='BRANCH_MGR');
@@ -1646,7 +1647,7 @@ async function renderBranches(){
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
-  <div class="card"><div class="cardH"><h3>Xodimlar filiallar boyicha</h3><span class="hint">Boglash va boshqarish</span>${canEdit()?'<button class="btn sm primary" onclick="openTeamModal()" style="margin-left:auto">+ Xodim</button>':''}</div><div class="cardB tWrap"><table>
+  <div class="card"><div class="cardH"><h3>Xodimlar filiallar bo'yicha</h3><span class="hint">Bog'lash va boshqarish</span>${canEdit()?'<button class="btn sm primary" onclick="openTeamModal()" style="margin-left:auto">+ Xodim</button>':''}</div><div class="cardB tWrap"><table>
     <thead><tr><th>Xodim</th><th>Email</th><th>Rol</th><th>Filial</th><th style="text-align:right">Maosh $</th><th>Telegram ID</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
@@ -1697,8 +1698,8 @@ async function openBranchModal(id=null){
   document.getElementById('M_user_title').textContent=id?'Filialni tahrirlash':'Filial qoshish';
   document.getElementById('M_user_body').innerHTML=`
     <div class="fRow c2"><div class="fG"><label>Nomi</label><input id="brName" value="${b?.name||''}"></div><div class="fG"><label>Shahar</label><input id="brCity" value="${b?.city||''}"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Ogirlik (доля плана)</label><input id="brWeight" type="number" step="0.25" min="0.25" value="${b?.weight||1}"></div><div class="fG"><label>Кол-во сотрудников</label><input id="brStaff" type="number" min="1" value="${b?.staff_count||2}"></div></div>
-    <div class="fG"><label>Ijara $/мес</label><input id="brRent" type="number" value="${b?.rent_usd||500}"></div>`;
+    <div class="fRow c2"><div class="fG"><label>Og'irlik (доля плана)</label><input id="brWeight" type="number" step="0.25" min="0.25" value="${b?.weight||1}"></div><div class="fG"><label>Xodimlar soni</label><input id="brStaff" type="number" min="1" value="${b?.staff_count||2}"></div></div>
+    <div class="fG"><label>Ijara $/oy</label><input id="brRent" type="number" value="${b?.rent_usd||500}"></div>`;
   document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveBranch(${id||'null'})">Saqlash</button>`;
   openM('M_user');
 }
@@ -1711,9 +1712,39 @@ async function saveBranch(id){
 // ════════════════════════════════════════════════
 // TEAM
 // ════════════════════════════════════════════════
+function buildTasksTable(tasks,pColor,mo){
+  const th=canEdit()?'<th></th>':'';
+  const rows=(tasks||[]).map(t=>{
+    return '<tr>'+
+      '<td><strong>'+t.title+'</strong>'+taskTitleSub(t)+'</td>'+
+      '<td style="font-size:11px">'+t.assigned_to+'</td>'+
+      '<td><span class="badge badge-gray" style="font-size:9px">'+(t.section||'—')+'</span></td>'+
+      '<td><span class="badge badge-'+(pColor[t.priority]||'gray')+'">'+(t.priority||'—')+'</span></td>'+
+      '<td style="font-size:11px;font-family:var(--mono)">'+(t.due_date||'—')+'</td>'+
+      '<td><span class="badge badge-'+taskStatusColor(t.status)+'">'+taskStatusLabel(t.status)+'</span></td>'+
+      (canEdit()?'<td style="white-space:nowrap">'+taskActions(t)+'</td>':'')+
+      '</tr>';
+  }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Vazifalar yo\'q</td></tr>';
+  return '<div class="card"><div class="cardH"><h3>Vazifalar — '+monthLabel(mo)+'</h3></div>'+
+    '<div class="cardB tWrap"><table>'+
+    '<thead><tr><th>Vazifa</th><th>Kimga</th><th>Bo\'lim</th><th>Muhimlik</th><th>Muddat</th><th>Status</th>'+th+'</tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div></div>';
+}
+function taskTitleSub(t){
+  if(t.section==='target'){let d={};try{d=JSON.parse(t.description||'{}');}catch(e){}
+    return d.wish?'<br><small style="color:var(--green)">🎯 '+d.wish+(d.bonus?' · $'+d.bonus:'')+'</small>':'';}
+  return t.description?'<br><small style="color:var(--ink3)">'+String(t.description).slice(0,60)+'</small>':'';
+}
+function taskStatusColor(s){return{done:'green',review:'blue',pending:'amber'}[s]||'gray';}
+function taskStatusLabel(s){return{done:'Bajarildi',review:'⏳ Tasdiqlash',pending:'Kutilmoqda'}[s]||'Bekor';}
+function taskActions(t){
+  if(t.status==='review') return '<button class="btn sm success" onclick="confirmTask(\''+t.id+'\')">✓ Tasdiqlash</button> <button class="btn sm danger" onclick="rejectTask(\''+t.id+'\')">✗ Qaytarish</button>';
+  if(t.status==='pending') return '<button class="btn sm" onclick="toggleTask(\''+t.id+'\',\'pending\')">Bajarildi</button>';
+  return '<button class="btn sm" onclick="toggleTask(\''+t.id+'\',\''+t.status+'\')">Ochish</button>';
+}
 async function renderTeam(){
   const c=runCalc(); const mo=APP.currentMonth;
-  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn" onclick="openTaskModal()">+ Задача</button><button class="btn primary" onclick="openTeamModal()" style="margin-left:4px">+ Xodim</button>`;
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn" onclick="openTaskModal()">+ Vazifa</button><button class="btn primary" onclick="openTeamModal()" style="margin-left:4px">+ Xodim</button>`;
   const {data:tasks}=await APP.db.from('sl_tasks').select('*').eq('month',mo).order('due_date');
   const {data:wishes}=await APP.db.from('sl_tasks').select('*').eq('section','target').eq('month',mo);
   // Sum bonuses from sl_params (bonus_YYYY-MM) for current month
@@ -1725,12 +1756,12 @@ async function renderTeam(){
   let html=mSel()+`<div class="kpiGrid">
     ${kpi('Xodimlar',APP.team.length,'faol','blue')}
     ${kpi('ФОТ/мес',fmtD(c.totalFOT),'belgilangan','amber')}
-    ${kpi('Желаemые бонусы',fmtD(totalBonus),`${monthLabel(mo)} uchun`,'green')}
-    ${totalBonusAllMonths>totalBonus?kpi('Jami bonuslar (barcha oy)',fmtD(totalBonusAllMonths),`${APP.months.length} oy`,'blue'):''}
+    ${kpi('Xohlangan bonuslar',fmtD(totalBonus),`${monthLabel(mo)} uchun`,'green')}
+    ${totalBonusAllMonths>totalBonus?kpi('Jami bonuslar (barcha oylar)',fmtD(totalBonusAllMonths),`${APP.months.length} oy`,'blue'):''}
     ${kpi('Ochiq vazifalar',(tasks||[]).filter(t=>t.status==='pending').length,mo,'')}
   </div>
   <div class="card"><div class="cardH"><h3>Jamoa — maqsadlar va motivatsiya</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Xodim</th><th>Rol</th><th>Filial</th><th style="text-align:right">Maosh $</th><th style="text-align:right">Бонус $</th><th>Мечта</th>${canEdit()?'<th></th>':''}</tr></thead>
+    <thead><tr><th>Xodim</th><th>Rol</th><th>Filial</th><th style="text-align:right">Maosh $</th><th style="text-align:right">Bonus $</th><th>Мечта</th>${canEdit()?'<th></th>':''}</tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
       const wt=(wishes||[]).find(w=>w.assigned_to===t.email);
@@ -1742,34 +1773,18 @@ async function renderTeam(){
         <td style="text-align:right;font-family:var(--mono);color:var(--green)">${(()=>{const wt=(wishes||[]).find(w=>w.assigned_to===t.email);let wd={};try{wd=JSON.parse(wt?.description||'{}');}catch(e){}return fmtD(wd.bonus||0);})()}</td>
         <td style="max-width:150px;font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wd.wish||'—'}</td>
         ${canEdit()?`<td style="white-space:nowrap">
-          <button class="btn sm" onclick="openWishModal('${t.id}','${t.email}','${t.full_name.replace(/'/g,'`')}','${mo}')">Maqsad</button>
+          <button class="btn sm" onclick="openWishModal('${t.id}','${t.email}','${t.full_name.replace(/'/g,'\u0060')}','${mo}')">Maqsad</button>
           <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button>
           <button class="btn sm danger" onclick="if(confirm('${t.full_name} ni ochirish?'))deleteTeamMember('${t.id}')">Och</button>
-          ${t.telegram_id?`<button class="btn sm" onclick="sendTgTo('${t.telegram_id}','${t.full_name.replace(/'/g,'`')}','${mo}')">TG</button>`:''}
+          ${t.telegram_id?`<button class="btn sm" onclick="sendTgTo('${t.telegram_id}','${t.full_name.replace(/'/g,'\u0060')}','${mo}')">TG</button>`:''}
         </td>`:''}
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
-  <div class="card"><div class="cardH"><h3>Vazifalar — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Задача</th><th>Кому</th><th>Раздел</th><th>Приоритет</th><th>Дедлайн</th><th>Статус</th>${canEdit()?'<th></th>':''}</tr></thead>
-    <tbody>${(tasks||[]).map(t=>`<tr>
-      <td><strong>${t.title}</strong>${t.section==='target'?(()=>{let d={};try{d=JSON.parse(t.description||'{}');}catch(e){}return d.wish?`<br><small style="color:var(--green)">🎯 ${d.wish}${d.bonus?' · $'+d.bonus:''}</small>`:''})():t.description?`<br><small style="color:var(--ink3)">${String(t.description).slice(0,60)}</small>`:''}</td>
-      <td style="font-size:11px">${t.assigned_to}</td>
-      <td><span class="badge badge-gray" style="font-size:9px">${t.section||'—'}</span></td>
-      <td><span class="badge badge-${pColor[t.priority]||'gray'}">${t.priority||'—'}</span></td>
-      <td style="font-size:11px;font-family:var(--mono)">${t.due_date||'—'}</td>
-      <td><span class="badge badge-${t.status==='done'?'green':t.status==='review'?'blue':t.status==='pending'?'amber':'gray'}">${t.status==='pending'?'Kutilmoqda':t.status==='review'?'⏳ Tasdiqlash':t.status==='done'?'Bajarildi':'Bekor'}</span></td>
-      ${canEdit()?`<td style="white-space:nowrap">
-        ${t.status==='review'
-          ?`<button class="btn sm success" onclick="confirmTask('${t.id}')">✓ Tasdiqlash</button>
-             <button class="btn sm danger" onclick="rejectTask('${t.id}')">✗ Qaytarish</button>`
-          :t.status==='pending'
-            ?`<button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">Bajarildi</button>`
-            :`<button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">Ochish</button>`
-        }
-      </td>`:''}
-    </tr>`).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Задач нет</td></tr>'}</tbody>
-  </table></div></div>`;
+  ';
+  // Tasks table - separate to reduce nesting depth
+  html+=buildTasksTable(tasks,pColor,mo);
+  html+='`;
   html+=wArea('team');
   html+=recurringRulesPanel('target');
   document.getElementById('content').innerHTML=html; renderWidgets('team');
@@ -1988,10 +2003,10 @@ async function renderFinance(){
   const netP=grossP-totalOpex;
   const pct=c.targetProfit>0?Math.round(netP/c.targetProfit*100):0;
   const pnlRows=[
-    {l:'Выручка (план)',v:c.netRev,b:false,cls:''},
+    {l:'Daromad (reja)',v:c.netRev,b:false,cls:''},
     {l:'Выручка (факт)',v:totalRev,b:true,cls:totalRev>=c.netRev?'green':'red'},
     {l:'Себестоимость',v:-cogs,b:false,cls:'red'},
-    {l:'Валовая прибыль',v:grossP,b:true,cls:'blue'},
+    {l:'Yalpi foyda',v:grossP,b:true,cls:'blue'},
     {l:'',v:null,sep:true},
     {l:'ФОТ',v:-c.totalFOT,b:false,cls:''},
     {l:'Аренда',v:-c.totalRent,b:false,cls:''},
@@ -2000,14 +2015,14 @@ async function renderFinance(){
     {l:'Прочие расходы',v:-c.otherOpex,b:false,cls:''},
     {l:'Jami расходы',v:-totalOpex,b:true,cls:'red'},
     {l:'',v:null,sep:true},
-    {l:'Чистая прибыль',v:netP,b:true,cls:netP>=c.targetProfit?'green':'red'},
+    {l:'Sof foyda',v:netP,b:true,cls:netP>=c.targetProfit?'green':'red'},
     {l:'Чистая маржа %',v:null,str:totalRev>0?(netP/totalRev*100).toFixed(1)+'%':'—',b:true,cls:totalRev>0&&netP/totalRev*100>=c.targetMargin?'green':'amber'},
   ];
   let html=mSel()+`<div class="kpiGrid">
-    ${kpi('Выручка факт',fmtD(totalRev),`${Math.round(totalRev/c.netRev*100)}% от плана`,totalRev>=c.netRev?'green':'amber')}
-    ${kpi('Валовая прибыль',fmtD(grossP),`Маржа ${c.grossMargin}%`,'blue')}
-    ${kpi('Операц. расходы',fmtD(totalOpex),'','amber')}
-    ${kpi('Чистая прибыль',fmtD(netP),`${pct}% от плана`,netP>=c.targetProfit?'green':'red')}
+    ${kpi('Daromad (haqiqat)',fmtD(totalRev),`${Math.round(totalRev/c.netRev*100)}% от плана`,totalRev>=c.netRev?'green':'amber')}
+    ${kpi('Yalpi foyda',fmtD(grossP),`Маржа ${c.grossMargin}%`,'blue')}
+    ${kpi('Operatsion xarajatlar',fmtD(totalOpex),'','amber')}
+    ${kpi('Sof foyda',fmtD(netP),`${pct}% от плана`,netP>=c.targetProfit?'green':'red')}
     ${kpi('Cash IN',fmtD(cashIn),`Нал. ${fmtD(cashRev)}`,'green')}
     ${kpi('Дефицит ликв.',fmtD(Math.max(0,totalRev-cashIn)),`Рассрочка ${c.installPct}%`,'red')}
   </div>
@@ -2022,26 +2037,26 @@ async function renderFinance(){
   <div class="card"><div class="cardH"><h3>Cash Flow — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
     <thead><tr><th>Статья</th><th style="text-align:right">$</th></tr></thead>
     <tbody>
-      <tr><td>Продажи наличными</td><td style="text-align:right;font-family:var(--mono)">${fmtD(cashRev)}</td></tr>
-      <tr><td>Поступления рассрочки (1/${c.installMonths})</td><td style="text-align:right;font-family:var(--mono)">${fmtD(installRev/c.installMonths)}</td></tr>
+      <tr><td>Naqd sotuvlar</td><td style="text-align:right;font-family:var(--mono)">${fmtD(cashRev)}</td></tr>
+      <tr><td>Muddatli to'lov tushumlari (1/${c.installMonths})</td><td style="text-align:right;font-family:var(--mono)">${fmtD(installRev/c.installMonths)}</td></tr>
       <tr style="font-weight:700;background:var(--bg)"><td>JAMI Cash IN</td><td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(cashIn)}</td></tr>
       <tr><td colspan="2" style="padding-top:8px;font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase">Исходящие</td></tr>
       <tr><td>Себестоимость</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs)}</td></tr>
       <tr><td>ФОТ</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalFOT)}</td></tr>
       <tr><td>Аренда</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalRent)}</td></tr>
       <tr><td>Маркетинг</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.mktBudget)}</td></tr>
-      <tr><td>Прочие + бонусы</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.otherOpex+totalBonus)}</td></tr>
+      <tr><td>Boshqa + bonuslar</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.otherOpex+totalBonus)}</td></tr>
       <tr style="font-weight:700;background:var(--bg)"><td>JAMI Cash OUT</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs+totalOpex)}</td></tr>
       <tr style="font-weight:700;font-size:14px"><td>Net Cash Flow</td><td style="text-align:right;font-family:var(--mono);color:var(--${cashIn-cogs-totalOpex>=0?'green':'red'})">${fmtD(cashIn-cogs-totalOpex)}</td></tr>
     </tbody>
   </table></div></div>
   </div>
-  <div class="card"><div class="cardH"><h3>Параметры финансов</h3></div><div class="cardB">
+  <div class="card"><div class="cardH"><h3>Moliya parametrlari</h3></div><div class="cardB">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">
-      ${pFld('install_pct','Рассрочка % от продаж')}
-      ${pFld('install_months','Срок рассрочки (мес)')}
-      ${pFld('bad_debt_pct','Плохой долг %','number','0.1')}
-      ${pFld('other_opex','Прочие расходы $/мес')}
+      ${pFld('install_pct','Muddatli tolov %')}
+      ${pFld('install_months','Muddatli tolov muddati (oy)')}
+      ${pFld('bad_debt_pct','Yomon qarz %','number','0.1')}
+      ${pFld('other_opex','Boshqa xarajatlar $/oy')}
     </div>
   </div></div>`;
 
@@ -2195,7 +2210,7 @@ async function renderFinance(){
   const totBrGross=brPnlData.reduce((s,b)=>s+b.gross,0);
 
   html+=`<div class="card"><div class="cardH">
-    <h3>Filiallar boyicha P&L — ${monthLabel(mo)}</h3>
+    <h3>Filiallar bo'yicha P&L — ${monthLabel(mo)}</h3>
     <span class="hint">Ijara, maosh, marketingni ozgartirish mumkin</span>
   </div><div class="cardB tWrap"><table>
     <thead><tr>
@@ -2257,7 +2272,7 @@ async function renderFinance(){
     </tr>`;
   }).join('');
   html+=`<div class="card"><div class="cardH">
-    <h3>Filiallar boyicha Cash Flow — ${monthLabel(mo)}</h3>
+    <h3>Filiallar bo'yicha Cash Flow — ${monthLabel(mo)}</h3>
     <span class="hint">To'lov turlari boyicha</span>
   </div><div class="cardB tWrap"><table>
     <thead><tr>
@@ -2316,8 +2331,33 @@ async function saveExp(expKey,field,val){
 // ════════════════════════════════════════════════
 // COLLECTIONS
 // ════════════════════════════════════════════════
+function buildCollTable(list,mo){
+  const rows=(list||[]).map(c=>{
+    const br=APP.branches.find(b=>b.id===c.branch_id);
+    const coll=APP.team.find(t=>t.email===c.collector_email);
+    const sMap={active:'amber',paid:'green',written_off:'gray',legal:'red'};
+    const status=c.status||'active';
+    const edBtn=canEdit()?'<button class="btn sm" onclick="openCollModal(\''+c.id+'\')">Ред</button>':'';
+    return '<tr>'+
+      '<td><strong>'+c.client_name+'</strong></td><td style="font-size:11px">'+(c.phone||'—')+'</td>'+
+      '<td>'+(br?.name||'—')+'</td>'+
+      '<td style="text-align:right;font-family:var(--mono)">'+fmtD(c.total_debt)+'</td>'+
+      '<td style="text-align:right;font-family:var(--mono);color:var(--green)">'+fmtD(c.paid)+'</td>'+
+      '<td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--red)">'+fmtD(c.remaining)+'</td>'+
+      '<td style="text-align:center"><span class="badge badge-'+(c.overdue_days>30?'red':c.overdue_days>0?'amber':'green')+'">'+(c.overdue_days||0)+' kun</span></td>'+
+      '<td style="font-size:11px">'+(coll?.full_name||c.collector_email||'—')+'</td>'+
+      '<td><span class="badge badge-'+(sMap[status]||'gray')+'">'+status+'</span></td>'+
+      (canEdit()?'<td>'+edBtn+'</td>':'')+
+      '</tr>';
+  }).join('')||'<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--ink3)">Ma\'lumot yo\'q</td></tr>';
+  const th=canEdit()?'<th></th>':'';
+  return '<div class="card"><div class="cardH"><h3>Qarzdorlar</h3></div>'+
+    '<div class="cardB tWrap"><table>'+
+    '<thead><tr><th>Mijoz</th><th>Telefon</th><th>Filial</th><th style="text-align:right">Qarz $</th><th style="text-align:right">To\'langan $</th><th style="text-align:right">Qoldiq $</th><th>Kechikish</th><th>Kollektor</th><th>Status</th>'+th+'</tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div></div>';
+}
 async function renderCollections(){
-  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn primary" onclick="openCollModal()">+ Должник</button>`;
+  if(canEdit()) document.getElementById('topbarRight').innerHTML=`<button class="btn primary" onclick="openCollModal()">+ Qarzdor</button>`;
   const {data:cols}=await APP.db.from('sl_collections').select('*').order('overdue_days',{ascending:false});
   const list=cols||[];
   const totD=list.reduce((s,c)=>s+parseFloat(c.total_debt||0),0);
@@ -2325,31 +2365,14 @@ async function renderCollections(){
   const totR=list.reduce((s,c)=>s+parseFloat(c.remaining||0),0);
   const ov30=list.filter(c=>c.overdue_days>=30).length;
   let html=`<div class="kpiGrid">
-    ${kpi('Всего долгов',fmtD(totD),`${list.length} договоров`,'red')}
+    ${kpi('Jami qarzlar',fmtD(totD),`${list.length} договоров`,'red')}
     ${kpi('Оплачено',fmtD(totP),totD>0?Math.round(totP/totD*100)+'%':'-','green')}
     ${kpi('Остаток',fmtD(totR),'','amber')}
-    ${kpi('Просрочка 30+',ov30,'договоров','red')}
+    ${kpi('Kechikish 30+ kun',ov30,'ta','red')}
   </div>
-  <div class="card"><div class="cardH"><h3>Должники</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Клиент</th><th>Телефон</th><th>Filial</th><th style="text-align:right">Долг $</th><th style="text-align:right">Оплачено $</th><th style="text-align:right">Остаток $</th><th style="text-align:right">Дней</th><th>Статус</th><th>Kollektor</th><th>Контакт</th>${canEdit()?'<th></th>':''}</tr></thead>
-    <tbody>${list.map(c=>{
-      const br=APP.branches.find(b=>b.id===c.branch_id);
-      const coll=APP.team.find(t=>t.email===c.collector_email);
-      const sMap={active:'amber',paid:'green',written_off:'gray',legal:'red'};
-      return `<tr>
-        <td><strong>${c.client_name}</strong></td><td style="font-size:11px">${c.phone||'—'}</td>
-        <td>${br?.name||'—'}</td>
-        <td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.total_debt||0)}</td>
-        <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(c.paid||0)}</td>
-        <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(c.remaining||0)}</td>
-        <td style="text-align:right"><span class="badge badge-${c.overdue_days>=60?'red':c.overdue_days>=30?'amber':'gray'}">${c.overdue_days||0}</span></td>
-        <td><span class="badge badge-${sMap[c.status]||'gray'}">${c.status||'—'}</span></td>
-        <td style="font-size:11px">${coll?.full_name||c.collector_email||'—'}</td>
-        <td style="font-size:11px;font-family:var(--mono)">${c.next_action||'—'}</td>
-        ${canEdit()?`<td><button class="btn sm" onclick="openCollModal('${c.id}')">Ред</button></td>`:''}
-      </tr>`;
-    }).join('')||'<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--ink3)">Данных нет</td></tr>'}</tbody>
-  </table></div></div>`;
+  ';
+  html+=buildCollTable(list,mo);
+  html+='`;
   html+=wArea('collections'); document.getElementById('content').innerHTML=html; renderWidgets('collections');
 }
 async function openCollModal(id=null){
@@ -2387,33 +2410,42 @@ async function saveColl(){
 // ════════════════════════════════════════════════
 // PROCUREMENT
 // ════════════════════════════════════════════════
+function buildModelsTable(c,invM){
+  const rows=APP.models.map(m=>{
+    const u=APP.models.length>0?Math.ceil(c.units/APP.models.length):0;
+    const st=Math.ceil(u*invM);
+    const wc=st*(m.cost_usd||0);
+    const catCol=m.category==='Premium'?'blue':m.category==='Mid'?'green':'gray';
+    return '<tr>'+
+      '<td><strong>'+m.name+'</strong></td>'+
+      '<td><span class="badge badge-'+catCol+'">'+(m.category||'—')+'</span></td>'+
+      '<td style="text-align:right;font-family:var(--mono)">'+fmtD(m.price_usd||0)+'</td>'+
+      '<td style="text-align:right;font-family:var(--mono)">'+fmtD(m.cost_usd||0)+'</td>'+
+      '<td style="text-align:right;font-family:var(--mono)">'+u+'</td>'+
+      '<td style="text-align:right;font-family:var(--mono)">'+st+'</td>'+
+      '<td style="text-align:right;font-family:var(--mono)">'+fmtD(wc)+'</td>'+
+      '</tr>';
+  }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Modellar yo\'q</td></tr>';
+  return '<div class="card"><div class="cardH"><h3>Modellar bo\'yicha talab</h3></div>'+
+    '<div class="cardB tWrap"><table>'+
+    '<thead><tr><th>Model</th><th>Kategoriya</th><th style="text-align:right">Narx $</th><th style="text-align:right">Tannarx $</th><th style="text-align:right">Zahira (dona)</th><th style="text-align:right">Zahira qiymati $</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div></div>';
+}
 async function renderProcurement(){
   const c=runCalc();
   const invM=parseFloat(APP.params.inventory_months||1.5);
   const wCap=c.netRev*(1-c.grossMargin/100)*invM;
-  let html=`<div style="background:var(--amber-t);border:1px solid var(--amber);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--amber)">Раздел в разработке. Базовые расчёты доступны.</div>
+  let html=`<div style="background:var(--amber-t);border:1px solid var(--amber);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:12px;color:var(--amber)">Bo'lim ishlanmoqda. Asosiy hisob-kitoblar mavjud.</div>
   <div class="kpiGrid">
-    ${kpi('Единиц нужно/мес',fmt(c.units),'план','blue')}
-    ${kpi('Запас (месяцев)',invM,'от месячного плана','')}
-    ${kpi('Запас (штук)',fmt(Math.ceil(c.units*invM)),'нужно держать','amber')}
-    ${kpi('Оборотный капитал',fmtD(wCap),'на склад','red')}
+    ${kpi('Kerakli dona/oy',fmt(c.units),'план','blue')}
+    ${kpi('Zahira (oylar)',invM,'oylik rejaning %','')}
+    ${kpi('Запас (штук)',fmt(Math.ceil(c.units*invM)),'ushlab turish kerak','amber')}
+    ${kpi('Aylanma kapital',fmtD(wCap),'на склад','red')}
   </div>
-  <div class="card"><div class="cardH"><h3>Потребность по моделям</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Model</th><th>Категория</th><th style="text-align:right">Цена $</th><th style="text-align:right">Себест. $</th><th style="text-align:right">Нужно/мес</th><th style="text-align:right">Запас (шт)</th><th style="text-align:right">Стоимость запаса $</th></tr></thead>
-    <tbody>${APP.models.map(m=>{
-      const u=APP.models.length>0?Math.ceil(c.units/APP.models.length):0;
-      const st=Math.ceil(u*invM);
-      return `<tr><td><strong>${m.name}</strong></td>
-        <td><span class="badge badge-${m.category==='Premium'?'blue':m.category==='Mid'?'green':'gray'}">${m.category||'—'}</span></td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(m.price_usd||0)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(m.cost_usd||0)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${u}</td>
-        <td style="text-align:right;font-family:var(--mono)">${st}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(st*(m.cost_usd||0))}</td>
-      </tr>`;
-    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Нет моделей</td></tr>'}</tbody>
-  </table></div></div>
-  <div class="card"><div class="cardH"><h3>Параметры</h3></div><div class="cardB"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${pFld('inventory_months','Запас (месяцев)','number','0.5')}</div></div></div>`;
+  ';
+  html+=buildModelsTable(c,invM);
+  html+='
+  <div class="card"><div class="cardH"><h3>Параметры</h3></div><div class="cardB"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">${pFld('inventory_months','Zahira (oylar)','number','0.5')}</div></div></div>`;
   document.getElementById('content').innerHTML=html;
 }
 
@@ -3034,10 +3066,10 @@ async function toggleAutoTg(){
 }
 
 async function renderSettings(){
-  if(!canEdit()){document.getElementById('content').innerHTML='<div style="padding:40px;text-align:center;color:var(--ink3)">Доступ запрещён</div>';return;}
+  if(!canEdit()){document.getElementById('content').innerHTML='<div style="padding:40px;text-align:center;color:var(--ink3)">Kirish taqiqlangan</div>';return;}
   const sysParams=[
-    {k:'usd_rate',l:'Курс UZS/USD'},{k:'staff_salary',l:'Зарплата sotuvchi $'},{k:'mgr_salary',l:'Зарплата менеджера $'},
-    {k:'commission_pct',l:'Комиссия sotuvchi %'},{k:'tg_bot_token',l:'Telegram Bot Token'}
+    {k:'usd_rate',l:'Kurs UZS/USD'},{k:'staff_salary',l:'Sotuvchi maoshi $'},{k:'mgr_salary',l:'Menejer maoshi $'},
+    {k:'commission_pct',l:'Sotuvchi komissiyasi %'},{k:'tg_bot_token',l:'Telegram Bot Token'}
   ];
   let html=`<div class="card"><div class="cardH"><h3>Tizim foydalanuvchilari</h3><button class="btn primary sm" onclick="openUserModal()" style="margin-left:auto">+ Foydalanuvchi</button></div><div class="cardB tWrap"><table>
     <thead><tr><th>Email</th><th>Ism</th><th>Rol</th><th>Filial</th><th>Разделы</th><th>Faol</th><th></th></tr></thead>
@@ -3062,7 +3094,7 @@ async function renderSettings(){
       <input value="${APP.params[p.k]||''}" onchange="saveP('${p.k}',this.value)" style="border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:12px;width:160px;outline:none">
     </div>`).join('')}
   </div></div>
-  <div class="card"><div class="cardH"><h3>Jamoa xodimlari</h3><button class="btn primary sm" onclick="openTeamModal()" style="margin-left:auto">+ Qoshish</button></div><div class="cardB tWrap"><table>
+  <div class="card"><div class="cardH"><h3>Jamoa xodimlari</h3><button class="btn primary sm" onclick="openTeamModal()" style="margin-left:auto">+ Qo'shish</button></div><div class="cardB tWrap"><table>
     <thead><tr><th>Ism</th><th>Rol</th><th>Filial</th><th style="text-align:right">Maosh $</th><th></th></tr></thead>
     <tbody>${APP.team.map(t=>{
       const br=APP.branches.find(b=>b.id===t.branch_id);
@@ -3075,7 +3107,7 @@ async function renderSettings(){
     }).join('')}</tbody>
   </table></div></div>
   </div>
-  <div class="card"><div class="cardH"><h3>Vidjetlar (bolimlarni sozlash)</h3><span class="hint">Администратор добавляет виджеты в любой раздел</span></div><div class="cardB">
+  <div class="card"><div class="cardH"><h3>Vidjetlar (bolimlarni sozlash)</h3><span class="hint">Administrator ixtiyoriy bo'limga widget qo'shadi</span></div><div class="cardB">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
       ${['strategy','sales','marketing','branches','team','finance','procurement','collections'].map(s=>{
         let ws=[];try{ws=JSON.parse(APP.params[`widgets_${s}`]||'[]');}catch(e){}
@@ -3093,14 +3125,14 @@ async function renderSettings(){
 async function openUserModal(email=null){
   const u=email?APP.users.find(x=>x.email===email):null;
   const brOpts='<option value="">— Все —</option>'+APP.branches.map(b=>`<option value="${b.id}"${u?.branch_id===b.id?' selected':''}>${b.name}</option>`).join('');
-  document.getElementById('M_user_title').textContent=email?'Tahrirlash пользователя':'Qoshish пользователя';
+  document.getElementById('M_user_title').textContent=email?'Foydalanuvchini tahrirlash':'Qo\'shish foydalanuvchi';
   document.getElementById('M_user_body').innerHTML=`
     <div class="fRow c2"><div class="fG"><label>Ism</label><input id="uName" value="${u?.full_name||''}"></div><div class="fG"><label>Email</label><input id="uEmail" type="email" value="${u?.email||''}"${email?' readonly':''}></div></div>
-    <div class="fRow c2"><div class="fG"><label>PIN-код${email?' (оставьте пустым чтобы не менять)':''}</label><input id="uPin" type="password" placeholder="••••••"></div><div class="fG"><label>Telegram ID</label><input id="uTg" value="${u?.telegram_id||''}"></div></div>
+    <div class="fRow c2"><div class="fG"><label>PIN</label><input id="uPin" type="password" placeholder="••••••"></div><div class="fG"><label>Telegram ID</label><input id="uTg" value="${u?.telegram_id||''}"></div></div>
     <div class="fRow c2"><div class="fG"><label>Rol</label><select id="uRole">
       <option value="ADMIN"${u?.role==='ADMIN'?' selected':''}>Админ</option>
       <option value="TOP_MGR"${u?.role==='TOP_MGR'?' selected':''}>Топ-менеджер</option>
-      <option value="BRANCH_MGR"${u?.role==='BRANCH_MGR'?' selected':''}>Menejer фил.</option>
+      <option value="BRANCH_MGR"${u?.role==='BRANCH_MGR'?' selected':''}>Filial menejeri</option>
       <option value="SALES_STAFF"${!u||u?.role==='SALES_STAFF'?' selected':''}>Sotuvchi</option>
       <option value="COLLECTOR"${u?.role==='COLLECTOR'?' selected':''}>Kollektor</option>
       <option value="CALLCENTER"${u?.role==='CALLCENTER'?' selected':''}>Колл-центр</option>
@@ -3130,7 +3162,7 @@ function wArea(section){
   let ws=[];try{ws=JSON.parse(APP.params[`widgets_${section}`]||'[]');}catch(e){}
   if(!canEdit()&&!ws.length) return '';
   let html='';
-  if(canEdit()) html+=`<div class="wBar"><span style="font-size:11px;font-weight:700;color:var(--blue)">Maxsus vidjetlar</span><button class="btn primary sm" onclick="openWidgetModal('${section}')">+ Qoshish виджет</button><span style="font-size:11px;color:var(--ink3);margin-left:auto">${ws.length} vijet</span></div>`;
+  if(canEdit()) html+=`<div class="wBar"><span style="font-size:11px;font-weight:700;color:var(--blue)">Maxsus vidjetlar</span><button class="btn primary sm" onclick="openWidgetModal('${section}')">+ Qo'shish</button><span style="font-size:11px;color:var(--ink3);margin-left:auto">${ws.length} vijet</span></div>`;
   ws.forEach((w,i)=>{html+=`<div class="card" id="ws_${section}_${i}"><div class="cardH"><h3>${w.title||w.source}</h3>${canEdit()?`<button class="btn sm danger" onclick="delWidget('${section}',${i})">Ochirish</button>`:''}</div><div class="cardB" id="wc_${section}_${i}"><div style="text-align:center;padding:20px;color:var(--ink3)">Загрузка...</div></div></div>`;});
   return html;
 }
@@ -3156,7 +3188,7 @@ function renderWidgets(section){
   ws.forEach((w,i)=>{
     const el=document.getElementById(`wc_${section}_${i}`); if(!el) return;
     const d=dataSrc[w.source];
-    if(!d){el.innerHTML=`<div style="text-align:center;color:var(--ink3);padding:20px">Источник: ${w.source}</div>`;return;}
+    if(!d){el.innerHTML=`<div style="text-align:center;color:var(--ink3);padding:20px">Manba: ${w.source}</div>`;return;}
     if(w.type==='table'){el.innerHTML=`<table><thead><tr><th>Nomi</th><th style="text-align:right">Значение</th></tr></thead><tbody>${d.labels.map((l,j)=>`<tr><td>${l}</td><td style="text-align:right;font-family:var(--mono)">${fmtD(d.data[j])}</td></tr>`).join('')}</tbody></table>`;return;}
     if(w.type==='kpi'){el.innerHTML=`<div class="kpiGrid">${d.labels.map((l,j)=>kpi(l,fmtD(d.data[j]),'','blue')).join('')}</div>`;return;}
     const cid=`chart_${section}_${i}`;
@@ -3171,7 +3203,7 @@ function renderWidgets(section){
 // ════════════════════════════════════════════════
 async function sendTgMsg(chatId,text){
   const token=APP.params.tg_bot_token;
-  if(!token||token.length<10){alert('Настройте tg_bot_token в Настройках → Tizim parametrlari');return false;}
+  if(!token||token.length<10){alert('tg_bot_token ni Sozlamalar → Tizim parametrlarida sozlang');return false;}
   const r=await fetch(`https://api.telegram.org/bot${token}/sendMessage`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId,text,parse_mode:'HTML'})});
   const res=await r.json(); return res.ok;
 }
@@ -3184,7 +3216,7 @@ async function sendTgTo(tgId,name,mo){
   const myPlan=plan.rev/staff;
   const msg=`<b>Smartlife — Ваш план</b>\n\n👤 ${name}\n🏪 ${br?.name||'—'}\n📅 ${monthLabel(mo)}\n\n💰 Личный план (выручка): <b>$${Math.round(myPlan).toLocaleString('ru-RU')}</b>\n📱 Единиц продать: <b>${Math.ceil(plan.units/staff)} шт</b>\n📆 Kunlik reja: <b>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</b>\n\n🎯 Удачи! Ты справишься!`;
   const ok=await sendTgMsg(tgId,msg);
-  alert(ok?'Уведомление отправлено!':'Ошибка отправки — проверьте Telegram ID и Bot Token');
+  alert(ok?'Bildirishnoma yuborildi!':'Yuborishda xato — Telegram ID va Bot Token ni tekshiring');
 }
 // ══════════════════════════════════════
 // TELEGRAM — TASK NOTIFICATIONS
@@ -3301,7 +3333,8 @@ async function renderSellerView(){
   const totalDays=daysInMonth(mo);
   const daysPassed=workingDaysSoFar(mo);
   const dayPlan=myPlan/totalDays;
-  const shouldByToday=dayPlan*daysPassed;
+  const daysForCalc=Math.max(0,daysPassed-1);
+  const shouldByToday=dayPlan*daysForCalc;
   const remainingDays=Math.max(1,totalDays-daysPassed);
   const newDayPlan=Math.max(0,myPlan-factRev)/remainingDays;
   const mPct=myPlan>0?Math.min(100,factRev/myPlan*100):0;
@@ -3378,7 +3411,7 @@ async function renderSellerView(){
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:12px">📊 Bugunga qadar holat</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:12px">
         <div>
-          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Kerak edi (${daysPassed}-kun)</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:4px">Kerak edi (${daysForCalc}-kun)</div>
           <div style="font-size:22px;font-weight:800;font-family:monospace">$${Math.round(shouldByToday).toLocaleString('ru-RU')}</div>
         </div>
         <div>
@@ -3528,7 +3561,8 @@ async function renderBranchMgrView(){
   const factU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
   const todayRev=todSales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
   const dayPlan=bp.rev/totalDays;
-  const shouldByToday=dayPlan*daysPassed;
+  const daysForCalc=Math.max(0,daysPassed-1);
+  const shouldByToday=dayPlan*daysForCalc;
   const pctMonth=bp.rev>0?Math.min(100,factRev/bp.rev*100):0;
   const pctToday=shouldByToday>0?Math.min(100,factRev/shouldByToday*100):0;
   const newDayPlan=Math.max(0,bp.rev-factRev)/remainingDays;
@@ -3548,7 +3582,7 @@ async function renderBranchMgrView(){
     const tgt=parseFloat(APP.params[tgtKey]||0)||bp.rev/(branchTeam.length||1);
     const fact=sellerMap[t.email]||0;
     const dayTgt=tgt/totalDays;
-    const shouldTd=dayTgt*daysPassed;
+    const shouldTd=dayTgt*Math.max(0,daysPassed-1);
     const pct=shouldTd>0?Math.min(200,Math.round(fact/shouldTd*100)):0;
     const newDP=Math.max(0,tgt-fact)/remainingDays;
     const col=pct>=100?'#34d399':pct>=70?'#fbbf24':'#f87171';
@@ -3568,7 +3602,7 @@ async function renderBranchMgrView(){
         <div style="width:${barW}%;height:100%;background:${col};border-radius:3px;transition:width .5s"></div>
       </div>
       <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);margin-top:4px">
-        <span>Bugunga kerak: $${Math.round(shouldTd).toLocaleString('ru-RU')}</span>
+        <span>Kechaga qadar: $${Math.round(shouldTd).toLocaleString('ru-RU')}</span>
         <span>${fact>=shouldTd?'▲ +':'▼ '}$${Math.round(Math.abs(fact-shouldTd)).toLocaleString('ru-RU')}</span>
       </div>
     </div>`;
@@ -3650,7 +3684,7 @@ async function renderBranchMgrView(){
       <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px">
         <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.3);margin-bottom:8px">📅 Bugunga qadar kerak</div>
         <div style="font-size:22px;font-weight:800;font-family:monospace">$${Math.round(shouldByToday).toLocaleString('ru-RU')}</div>
-        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:4px">${daysPassed}-kun · ${Math.round(pctToday)}% bajardi</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:4px">${daysForCalc}-kun (kecha) · ${Math.round(pctToday)}% bajardi</div>
         <div style="height:5px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:8px;overflow:hidden">
           <div style="width:${pctToday}%;height:100%;background:${pctToday>=100?'#10b981':pctToday>=70?'#f59e0b':'#3b82f6'};border-radius:3px"></div>
         </div>
@@ -3704,6 +3738,8 @@ async function renderBranchMgrView(){
     </div>
 
   </div>`;
+  // Load leads async after render
+  loadBrMgrLeads(br.id, mo, c, moIdx);
 }
 
 async function loadBrMgrLeads(branchId, mo, c, moIdx){
@@ -4026,7 +4062,7 @@ function previewExcel(input){
     const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:false, dateNF:'DD.MM.YYYY'});
-    if(rows.length < 2){ alert('Fayl bosh'); return; }
+    if(rows.length < 2){ alert('Fayl bo'sh'); return; }
 
     // Skip header row
     const dataRows = rows.slice(1).filter(r => r.some(c => c));
