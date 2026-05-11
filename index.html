@@ -2700,6 +2700,7 @@ async function renderBugun(){
   const today=new Date().toISOString().slice(0,10);
   const totalDays=daysInMonth(mo);
   const daysPassed=workingDaysSoFar(mo);
+  const daysForCalcB=Math.max(0,daysPassed-1);
   const moIdx=APP.months.indexOf(mo);
 
   // Load today's and month's sales
