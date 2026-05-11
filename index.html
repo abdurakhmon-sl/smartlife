@@ -282,7 +282,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
   <div class="mB">
     <div style="background:var(--blue-t);border:1px solid var(--blue);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px">
       <strong>Shablon ustunlari:</strong> Sana | Filial | Sotuvchi | Summa | Tolov turi<br>
-      <span style="color:var(--ink3)">Tolov turi: naqd / muddatli / karta / otkazma</span>
+      <span style="color:var(--ink3)">Sotuvchi: ism yoki email. Tolov turi: naqd / muddatli / karta / otkazma</span>
     </div>
     <div style="border:2px dashed var(--border);border-radius:10px;padding:30px;text-align:center;margin-bottom:12px;cursor:pointer" onclick="document.getElementById('excelFile').click()">
       <div style="font-size:32px;margin-bottom:8px">📂</div>
@@ -1238,7 +1238,7 @@ async function saveSellerTarget(key, val) {
 async function openSaleModal(){
   const brOpts=APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
   const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}">${m.name} ($${m.price_usd})</option>`).join('');
-  document.getElementById('M_user_title').textContent='Новая продажа';
+  document.getElementById('M_user_title').textContent='Yangi sotuv';
   document.getElementById('M_user_body').innerHTML=`
     <div class="fRow c2"><div class="fG"><label>Sana</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="fG"><label>Filial</label><select id="sBranch">${brOpts}</select></div></div>
     <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Цена $</label><input id="sPrice" type="number"></div></div>
@@ -1249,8 +1249,32 @@ async function openSaleModal(){
 }
 function setModelPrice(){const sel=document.getElementById('sModel');const opt=sel.options[sel.selectedIndex];document.getElementById('sPrice').value=opt?.dataset.price||'';}
 async function saveSale(){
-  await APP.db.from('sl_sales').insert({date:document.getElementById('sDate').value,branch_id:document.getElementById('sBranch').value,model_id:document.getElementById('sModel').value,unit_price:parseFloat(document.getElementById('sPrice').value)||0,qty:parseInt(document.getElementById('sQty').value)||1,payment_type:document.getElementById('sPayType').value,salesperson:document.getElementById('sSeller').value});
+  const sid=document.getElementById('sDate').dataset.editId||null;
+  const row={date:document.getElementById('sDate').value,branch_id:parseInt(document.getElementById('sBranch').value),model_id:parseInt(document.getElementById('sModel').value),unit_price:parseFloat(document.getElementById('sPrice').value)||0,qty:parseInt(document.getElementById('sQty').value)||1,payment_type:document.getElementById('sPayType').value,salesperson:document.getElementById('sSeller').value};
+  if(sid){await APP.db.from('sl_sales').update(row).eq('id',sid);}
+  else{await APP.db.from('sl_sales').insert(row);}
   closeM('M_user'); renderSales();
+}
+async function editSaleClick(btn){
+  const sid=btn.dataset.sid;
+  const {data:s}=await APP.db.from('sl_sales').select('*').eq('id',sid).single();
+  if(!s) return;
+  const brOpts=APP.branches.map(b=>`<option value="${b.id}"${b.id===s.branch_id?' selected':''}>${b.name}</option>`).join('');
+  const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}"${m.id===s.model_id?' selected':''}>${m.name} ($${m.price_usd})</option>`).join('');
+  const slOpts=APP.team.filter(t=>['SALES_STAFF','BRANCH_MGR'].includes(t.role)).map(t=>`<option value="${t.email}"${t.email===s.salesperson?' selected':''}>${t.full_name} (${t.email})</option>`).join('');
+  document.getElementById('M_user_title').textContent='Sotuvni tahrirlash';
+  document.getElementById('M_user_body').innerHTML=`
+    <div class="fRow c2"><div class="fG"><label>Sana</label><input id="sDate" type="date" value="${s.date||''}" data-edit-id="${sid}"></div><div class="fG"><label>Filial</label><select id="sBranch">${brOpts}</select></div></div>
+    <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Narx $</label><input id="sPrice" type="number" value="${s.unit_price||''}"></div></div>
+    <div class="fRow c2"><div class="fG"><label>Soni</label><input id="sQty" type="number" value="${s.qty||1}" min="1"></div><div class="fG"><label>To'lov</label><select id="sPayType"><option value="cash"${s.payment_type==='cash'?' selected':''}>Naqd</option><option value="installment"${s.payment_type==='installment'?' selected':''}>Muddatli</option><option value="card"${s.payment_type==='card'?' selected':''}>Karta</option><option value="transfer"${s.payment_type==='transfer'?' selected':''}>O'tkazma</option></select></div></div>
+    <div class="fG"><label>Sotuvchi</label><select id="sSeller">${slOpts}</select></div>`;
+  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveSale()">Saqlash</button>`;
+  openM('M_user');
+}
+async function delSaleClick(btn){
+  if(!confirm('Bu sotuvni o\'chirib tashlash?')) return;
+  await APP.db.from('sl_sales').delete().eq('id',btn.dataset.sid);
+  renderSales();
 }
 
 // ════════════════════════════════════════════════
@@ -1412,28 +1436,31 @@ async function renderMarketing(){
     <thead><tr>
       <th>Filial</th>
       <th style="text-align:right">Budget $</th>
-      <th style="text-align:right">Reja lidlar</th>
-      <th style="text-align:right">Haqiqat lidlar</th>
+      <th style="text-align:right">Kerakli</th>
+      <th style="text-align:right">Beradi</th>
+      <th style="text-align:right;color:var(--red)">Farq</th>
+      <th style="text-align:right">Haqiqat</th>
       <th style="text-align:right">Sifatli</th>
-      <th style="text-align:right">Konversiya</th>
-      <th style="text-align:right">Bajarish</th>
+      <th style="text-align:right">Konv</th>
     </tr></thead>
     <tbody>${APP.branches.map(b=>{
       const sh=parseFloat(b.weight||1)/(c.totalWeight||1);
       const bgt=mooBgt*sh;
-      const planL=mooCpl>0?Math.ceil(bgt/mooCpl)+Math.ceil(c.organicLeads*sh):Math.ceil(c.organicLeads*sh);
+      const neededLBr=bmp(b,c,moIdx>=0?moIdx:0).leads;
+      const supplyLBr=mooCpl>0?Math.ceil(bgt/mooCpl)+Math.ceil(c.organicLeads*sh):Math.ceil(c.organicLeads*sh);
+      const gapBr=supplyLBr-neededLBr;
       const factL=brLeads[b.id]?.total||0;
       const qualL=brLeads[b.id]?.quality||0;
       const convL=factL>0?Math.round(qualL/factL*100):0;
-      const pct=planL>0?Math.min(100,Math.round(factL/planL*100)):0;
       return `<tr>
         <td><strong>${b.name}</strong><br><small style="color:var(--ink3)">${b.city||''}</small></td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(bgt)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmt(planL)}</td>
-        <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${factL>=planL?'green':factL>0?'amber':'ink3'})">${fmt(factL)}</td>
+        <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmt(neededLBr)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${supplyLBr>=neededLBr?'green':'amber'})">${fmt(supplyLBr)}</td>
+        <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${gapBr>=0?'green':'red'})">${gapBr>=0?'+':''}${fmt(gapBr)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${factL>=neededLBr?'green':factL>0?'amber':'ink3'})">${fmt(factL)}</td>
         <td style="text-align:right;font-family:var(--mono)">${fmt(qualL)}</td>
         <td style="text-align:right"><span class="badge badge-${convL>=c.convQuality?'green':'amber'}">${convL}%</span></td>
-        <td style="text-align:right"><span class="badge badge-${pct>=100?'green':pct>=60?'amber':'red'}">${pct}%</span></td>
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
@@ -1486,6 +1513,11 @@ async function renderMarketing(){
   }catch(e){console.error('funnel chart:',e);}
 }
 
+async function resetMktParam(key){
+  delete APP.params[key];
+  await APP.db.from('sl_params').delete().eq('key',key);
+  renderMarketing();
+}
 async function saveMktParam(key,val){
   APP.params[key]=String(parseFloat(val)||0);
   await APP.db.from('sl_params').upsert({key,value:String(parseFloat(val)||0),updated_at:new Date().toISOString(),updated_by:APP.user?.email||''},{onConflict:'key'});
@@ -3582,7 +3614,18 @@ function previewExcel(input){
       const payMap = {'naqd':'cash','muddatli':'installment','karta':'card','otkazma':'transfer','cash':'cash','installment':'installment','card':'card','transfer':'transfer'};
       const payTypeEn = payMap[payType] || 'cash';
 
-      _excelRows.push({date, branch_id: branch.id, salesperson: seller, unit_price: amount, qty: 1, payment_type: payTypeEn, notes: ''});
+      // Match seller: try email first, then full_name match, then partial name match
+      let sellerEmail = seller;
+      if(seller && !seller.includes('@')) {
+        const byEmail = APP.team.find(t=>t.email===seller);
+        const byName  = APP.team.find(t=>t.full_name.toLowerCase()===seller.toLowerCase());
+        const byPart  = APP.team.find(t=>t.full_name.toLowerCase().includes(seller.toLowerCase())||seller.toLowerCase().includes(t.full_name.toLowerCase().split(' ')[0]));
+        const matched = byEmail || byName || byPart;
+        if(matched){ sellerEmail = matched.email; }
+        else { errors.push(`Qator ${lineNum}: "${seller}" sotuvchi topilmadi — email yozing yoki ismni tekshiring`); return; }
+      }
+
+      _excelRows.push({date, branch_id: branch.id, salesperson: sellerEmail, unit_price: amount, qty: 1, payment_type: payTypeEn, notes: ''});
     });
 
     // Preview table
@@ -3590,7 +3633,8 @@ function previewExcel(input){
     const tableHTML = '<thead><tr><th>Sana</th><th>Filial</th><th>Sotuvchi</th><th style="text-align:right">Summa $</th><th>Tolov</th></tr></thead><tbody>' +
       _excelRows.slice(0,10).map(r => {
         const br = APP.branches.find(b=>b.id===r.branch_id);
-        return `<tr><td>${r.date}</td><td>${br?.name||'-'}</td><td style="font-size:10px">${r.salesperson}</td><td style="text-align:right">${fmtD(r.unit_price)}</td><td>${r.payment_type}</td></tr>`;
+        const memberName = APP.team.find(t=>t.email===r.salesperson)?.full_name||r.salesperson;
+        return `<tr><td>${r.date}</td><td>${br?.name||'-'}</td><td style="font-size:11px">${memberName}<br><small style="color:var(--ink3)">${r.salesperson}</small></td><td style="text-align:right">${fmtD(r.unit_price)}</td><td>${r.payment_type}</td></tr>`;
       }).join('') + (_excelRows.length > 10 ? `<tr><td colspan="5" style="text-align:center;color:var(--ink3)">... va yana ${_excelRows.length-10} ta</td></tr>` : '') + '</tbody>';
     document.getElementById('excelTable').innerHTML = tableHTML;
     document.getElementById('excelErrors').innerHTML = errors.map(e=>'⚠️ '+e).join('<br>');
