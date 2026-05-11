@@ -1302,26 +1302,50 @@ async function renderMarketing(){
   // Monthly budget table (all months)
   const moBudgetRows=APP.months.map((m,i)=>{
     const norm=c.normRates[i]||1;
-    const def=c.mktBudget*norm;
+    const def=Math.round(c.mktBudget*norm);
+    const hasCustomBgt=APP.params['mkt_'+m]!==undefined&&APP.params['mkt_'+m]!=='';
+    const hasCustomCpl=APP.params['mkt_cpl_'+m]!==undefined&&APP.params['mkt_cpl_'+m]!=='';
     const val=parseFloat(APP.params['mkt_'+m]||def);
     const cplM=parseFloat(APP.params['mkt_cpl_'+m]||c.cpl);
     const paidL=cplM>0?Math.ceil(val/cplM):0;
+    const orgL=Math.ceil(c.organicLeads*norm);
+    const supplyL=paidL+orgL; // marketing beradi
+    // kerakli lidlar — xuddi Jadval 2 dagi formula (bmp orqali)
+    const neededL=APP.branches.reduce((s,b)=>s+bmp(b,c,i).leads,0);
+    const gap=supplyL-neededL; // + = ortiqcha, - = taqchillik
     const isActive=m===mo;
+    const customTag=(key)=>hasCustomBgt&&key==='bgt'||hasCustomCpl&&key==='cpl'
+      ?'<span style="font-size:9px;color:var(--blue);margin-left:3px;cursor:pointer" onclick="resetMktParam(\'mkt'+(key==='cpl'?'_cpl':'')+'_'+m+'\')">↺</span>'
+      :'<span style="font-size:9px;color:var(--ink4);margin-left:3px">avto</span>';
     return `<tr style="${isActive?'background:rgba(37,99,235,.04)':''}">
       <td><strong>${monthLabel(m)}</strong>${isActive?' <span class="badge badge-blue" style="font-size:9px">Joriy</span>':''}</td>
       <td style="text-align:right">
         ${isMktAdmin
-          ?`<input class="iEdit" type="number" value="${Math.round(val)}" style="width:100px;text-align:right" onchange="saveMktParam('mkt_${m}',this.value)">`
+          ?`<div style="display:flex;align-items:center;justify-content:flex-end;gap:3px">
+              <input class="iEdit" type="number" value="${Math.round(val)}" placeholder="${def}"
+                style="width:95px;text-align:right${hasCustomBgt?';border-color:var(--blue)':''}"
+                onchange="saveMktParam('mkt_${m}',this.value)">
+              <span style="font-size:9px;color:${hasCustomBgt?'var(--blue)':'var(--ink4)'};cursor:pointer" onclick="resetMktParam('mkt_${m}')">${hasCustomBgt?'↺ avto':'avto'}</span>
+            </div>`
           :fmtD(val)}
       </td>
       <td style="text-align:right">
         ${isMktAdmin
-          ?`<input class="iEdit" type="number" value="${cplM}" step="0.01" style="width:70px;text-align:right" onchange="saveMktParam('mkt_cpl_${m}',this.value)">`
+          ?`<div style="display:flex;align-items:center;justify-content:flex-end;gap:3px">
+              <input class="iEdit" type="number" value="${cplM}" step="0.01"
+                style="width:65px;text-align:right${hasCustomCpl?';border-color:var(--blue)':''}"
+                onchange="saveMktParam('mkt_cpl_${m}',this.value)">
+              <span style="font-size:9px;color:${hasCustomCpl?'var(--blue)':'var(--ink4)'};cursor:pointer" onclick="resetMktParam('mkt_cpl_${m}')">${hasCustomCpl?'↺':'avto'}</span>
+            </div>`
           :`$${cplM}`}
       </td>
       <td style="text-align:right;font-family:var(--mono)">${fmt(paidL)}</td>
-      <td style="text-align:right;font-family:var(--mono)">${fmt(Math.ceil(c.organicLeads*(norm)))}</td>
-      <td style="text-align:right;font-weight:600;font-family:var(--mono)">${fmt(paidL+Math.ceil(c.organicLeads*norm))}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmt(orgL)}</td>
+      <td style="text-align:right;font-weight:700;font-family:var(--mono);color:var(--${supplyL>=neededL?'green':'amber'})">${fmt(supplyL)}</td>
+      <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmt(neededL)}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${gap>=0?'green':'red'})">
+        ${gap>=0?'+':''}${fmt(gap)}
+      </td>
     </tr>`;
   }).join('');
 
@@ -1365,14 +1389,18 @@ async function renderMarketing(){
       <th style="text-align:right">CPL $</th>
       <th style="text-align:right">Pulli lidlar</th>
       <th style="text-align:right">Organik</th>
-      <th style="text-align:right">Jami lidlar</th>
+      <th style="text-align:right;color:var(--green)">✓ Beradi</th>
+      <th style="text-align:right">Kerakli</th>
+      <th style="text-align:right">Farq</th>
     </tr></thead>
     <tbody>${moBudgetRows}</tbody>
     <tfoot><tr class="tFoot">
       <td>JAMI</td>
       <td style="text-align:right;font-family:var(--mono)">${fmtD(APP.months.reduce((s,m,i)=>s+parseFloat(APP.params['mkt_'+m]||c.mktBudget*(c.normRates[i]||1)),0))}</td>
-      <td></td>
       <td></td><td></td><td></td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700">${fmt(APP.months.reduce((s,m,i)=>{const norm=c.normRates[i]||1;const val=parseFloat(APP.params['mkt_'+m]||c.mktBudget*norm);const cplM=parseFloat(APP.params['mkt_cpl_'+m]||c.cpl);return s+(cplM>0?Math.ceil(val/cplM):0)+Math.ceil(c.organicLeads*norm);},0))}</td>
+      <td style="text-align:right;font-family:var(--mono);font-weight:700">${fmt(APP.months.reduce((s,m,i)=>s+APP.branches.reduce((bs,b)=>bs+bmp(b,c,i).leads,0),0))}</td>
+      <td></td>
     </tr></tfoot>
   </table></div></div>
 
