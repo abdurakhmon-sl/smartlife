@@ -147,6 +147,34 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
 </div>
 <div id="sellerView" style="display:none"></div>
 <div id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="modal" id="M_lead"><div class="mBox" style="max-width:520px">
+  <div class="mH"><h3 id="M_lead_title">Kunlik lidlar</h3><button class="mX" onclick="closeM('M_lead')">✕</button></div>
+  <div class="mB">
+    <div class="fRow c2">
+      <div class="fG"><label>Sana</label><input id="ldDate" type="date"></div>
+      <div class="fG"><label>Filial</label><select id="ldBranch"></select></div>
+    </div>
+    <div class="fRow c2" style="margin-top:4px">
+      <div class="fG"><label>Jami lidlar</label><input id="ldTotal" type="number" min="0" placeholder="0" oninput="ldCalcUnq()"></div>
+      <div class="fG"><label>Sifatli lidlar</label><input id="ldQuality" type="number" min="0" placeholder="0" oninput="ldCalcUnq()"></div>
+    </div>
+    <div id="ldUnq" style="font-size:11px;color:var(--ink3);margin-top:4px;padding:6px 10px;background:var(--bg);border-radius:6px;display:none"></div>
+    <div class="fG" style="margin-top:12px"><label>Kanal (ixtiyoriy)</label>
+      <select id="ldChannel">
+        <option value="">— Tanlang —</option>
+        <option value="instagram">Instagram</option>
+        <option value="google">Google</option>
+        <option value="tiktok">TikTok</option>
+        <option value="telegram">Telegram</option>
+        <option value="organic">Organik</option>
+        <option value="other">Boshqa</option>
+      </select>
+    </div>
+    <div class="fG" style="margin-top:12px"><label>Izoh</label><textarea id="ldNotes" rows="2" style="resize:vertical"></textarea></div>
+  </div>
+  <div class="mF"><button class="btn" onclick="closeM('M_lead')">Bekor</button><button class="btn primary" onclick="saveLead()">Saqlash</button></div>
+</div></div>
+
 <div class="modal" id="M_user"><div class="mBox"><div class="mH"><h3 id="M_user_title">—</h3><button class="mX" onclick="closeM('M_user')">✕</button></div><div class="mB" id="M_user_body"></div><div class="mF" id="M_user_foot"></div></div></div>
 <div class="modal" id="M_task"><div class="mBox">
   <div class="mH"><h3>Задача</h3><button class="mX" onclick="closeM('M_task')">✕</button></div>
@@ -369,9 +397,10 @@ async function startApp(user) {
   // Load first allowed section for this user
   const userSects = APP.user.sections||'ALL';
   const allowed2 = userSects==='ALL'?null:userSects.split(',').map(s=>s.trim());
+  const defaultSect = APP.user?.role==='TARGETOLOG' ? 'marketing' : 'strategy';
   const firstSection = allowed2
-    ? (SECTIONS.find(s=>allowed2.includes(s.id))?.id || 'strategy')
-    : 'strategy';
+    ? (SECTIONS.find(s=>allowed2.includes(s.id))?.id || defaultSect)
+    : defaultSect;
   loadSection(firstSection);
 }
 async function loadBase() {
@@ -917,9 +946,10 @@ async function saveMonthOverride(key,idx,val){
   // Load first allowed section for this user
   const userSects = APP.user.sections||'ALL';
   const allowed2 = userSects==='ALL'?null:userSects.split(',').map(s=>s.trim());
+  const defaultSect = APP.user?.role==='TARGETOLOG' ? 'marketing' : 'strategy';
   const firstSection = allowed2
-    ? (SECTIONS.find(s=>allowed2.includes(s.id))?.id || 'strategy')
-    : 'strategy';
+    ? (SECTIONS.find(s=>allowed2.includes(s.id))?.id || defaultSect)
+    : defaultSect;
   loadSection(firstSection);
 }
 
@@ -1171,6 +1201,34 @@ async function renderSales() {
     </div></div>`;
   }
 
+  // LEADS MINI TABLE for sales section
+  {
+    const {data:ldSls}=await APP.db.from('sl_leads').select('*').gte('date',mo+'-01').lte('date',mo+'-31').order('date',{ascending:false}).limit(10);
+    const ldArr=ldSls||[];
+    if(ldArr.length>0||canMarketing()){
+      const totLd=ldArr.reduce((s,l)=>s+parseInt(l.total_leads||0),0);
+      const qualLd=ldArr.reduce((s,l)=>s+parseInt(l.quality_leads||0),0);
+      const convLd=totLd>0?Math.round(qualLd/totLd*100):0;
+      html+=`<div class="card"><div class="cardH">
+        <h3>Lidlar — ${monthLabel(mo)}</h3>
+        <span class="hint">Jami: ${fmt(totLd)} · Sifatli: ${fmt(qualLd)} · Konv: ${convLd}%</span>
+        ${canMarketing()?'<button class="btn primary sm" onclick="openLeadModal()" style="margin-left:auto">+ Lid</button>':''}
+      </div><div class="cardB tWrap"><table>
+        <thead><tr><th>Sana</th><th>Filial</th><th style="text-align:right">Jami</th><th style="text-align:right">Sifatli</th><th>Kanal</th></tr></thead>
+        <tbody>${ldArr.map(l=>{
+          const lbr=APP.branches.find(b=>b.id===l.branch_id);
+          const ch={instagram:'📸',google:'🔍',tiktok:'🎵',telegram:'✈️',organic:'🌱',other:'📌'}[l.channel]||'';
+          return `<tr>
+            <td style="font-family:var(--mono);font-size:11px">${l.date}</td>
+            <td>${lbr?.name||'—'}</td>
+            <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmt(l.total_leads)}</td>
+            <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmt(l.quality_leads)}</td>
+            <td style="font-size:13px">${ch}</td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div></div>`;
+    }
+  }
   html+=wArea('sales'); document.getElementById('content').innerHTML=html; renderWidgets('sales');
 }
 
@@ -1199,52 +1257,279 @@ async function saveSale(){
 // MARKETING
 // ════════════════════════════════════════════════
 async function renderMarketing(){
-  const c=runCalc();
-  const funnel=[
-    {l:'Всего лидов/мес',v:c.totalLeads,p:100,col:'var(--blue)'},
-    {l:'Качественные',v:Math.round(c.totalLeads*c.convQuality/100),p:c.convQuality,col:'var(--amber)'},
-    {l:'Покупатели',v:c.units,p:c.convRate*100,col:'var(--green)'},
-  ];
-  let html=`<div class="kpiGrid">
-    ${kpi('Бюджет/мес',fmtD(c.mktBudget),`CPL $${c.cpl}`,'blue')}
-    ${kpi('Лидов нужно',fmt(c.totalLeads),`Платных ${fmt(c.neededPaid)}`,'')}
-    ${kpi('Органика',fmt(c.organicLeads),'в мес','green')}
-    ${kpi('Конв. качества',c.convQuality+'%','лид → кач.','')}
-    ${kpi('Конв. продажи',c.convSale+'%','кач. → покупка','')}
-    ${kpi('Итог. конверсия',(c.convRate*100).toFixed(1)+'%','лид → продажа','green')}
+  const c=runCalc(); const mo=APP.currentMonth;
+  const isMktAdmin=canMarketing();
+  // Topbar
+  const tb=document.getElementById('topbarRight');
+  tb.innerHTML='';
+  if(isMktAdmin){
+    const b1=document.createElement('button');b1.className='btn';b1.textContent='TG hisobot';b1.onclick=sendLeadsReportTg;tb.appendChild(b1);
+    const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Lid kiritish';b2.style.marginLeft='4px';b2.onclick=()=>openLeadModal();tb.appendChild(b2);
+  }
+
+  // Monthly budget per month from sl_params (mkt_YYYY-MM key)
+  const moIdx=APP.months.indexOf(mo);
+  const moNorm=c.normRates[moIdx>=0?moIdx:0]||1;
+  const defaultBgt=c.mktBudget*moNorm;
+  const mooBgt=parseFloat(APP.params['mkt_'+mo]||defaultBgt);
+  const mooCpl=parseFloat(APP.params['mkt_cpl_'+mo]||c.cpl);
+
+  // Load leads for this month
+  const {data:leadsData}=await APP.db.from('sl_leads')
+    .select('*').gte('date',mo+'-01').lte('date',mo+'-31').order('date',{ascending:false});
+  const leads=leadsData||[];
+  const totalLeads=leads.reduce((s,l)=>s+parseInt(l.total_leads||0),0);
+  const qualLeads=leads.reduce((s,l)=>s+parseInt(l.quality_leads||0),0);
+  const unqLeads=totalLeads-qualLeads;
+
+  // Sales this month for funnel
+  const {data:slsD}=await APP.db.from('sl_sales')
+    .select('qty').gte('date',mo+'-01').lte('date',mo+'-31');
+  const factSales=(slsD||[]).reduce((s,x)=>s+parseInt(x.qty||1),0);
+
+  // Funnel values: plan vs fact
+  const planLeads=mooCpl>0?Math.ceil(mooBgt/mooCpl)+parseInt(c.organicLeads||0):parseInt(c.organicLeads||0);
+  const planQual=Math.round(planLeads*c.convQuality/100);
+  const planSales=c.units;
+  const funnelConvQ=totalLeads>0?Math.round(qualLeads/totalLeads*100):0;
+  const funnelConvS=qualLeads>0?Math.round(factSales/qualLeads*100):0;
+
+  // Per branch leads
+  const brLeads={};
+  APP.branches.forEach(b=>{brLeads[b.id]={total:0,quality:0};});
+  leads.forEach(l=>{if(brLeads[l.branch_id]){brLeads[l.branch_id].total+=parseInt(l.total_leads||0);brLeads[l.branch_id].quality+=parseInt(l.quality_leads||0);}});
+
+  // Monthly budget table (all months)
+  const moBudgetRows=APP.months.map((m,i)=>{
+    const norm=c.normRates[i]||1;
+    const def=c.mktBudget*norm;
+    const val=parseFloat(APP.params['mkt_'+m]||def);
+    const cplM=parseFloat(APP.params['mkt_cpl_'+m]||c.cpl);
+    const paidL=cplM>0?Math.ceil(val/cplM):0;
+    const isActive=m===mo;
+    return `<tr style="${isActive?'background:rgba(37,99,235,.04)':''}">
+      <td><strong>${monthLabel(m)}</strong>${isActive?' <span class="badge badge-blue" style="font-size:9px">Joriy</span>':''}</td>
+      <td style="text-align:right">
+        ${isMktAdmin
+          ?`<input class="iEdit" type="number" value="${Math.round(val)}" style="width:100px;text-align:right" onchange="saveMktParam('mkt_${m}',this.value)">`
+          :fmtD(val)}
+      </td>
+      <td style="text-align:right">
+        ${isMktAdmin
+          ?`<input class="iEdit" type="number" value="${cplM}" step="0.01" style="width:70px;text-align:right" onchange="saveMktParam('mkt_cpl_${m}',this.value)">`
+          :`$${cplM}`}
+      </td>
+      <td style="text-align:right;font-family:var(--mono)">${fmt(paidL)}</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmt(Math.ceil(c.organicLeads*(norm)))}</td>
+      <td style="text-align:right;font-weight:600;font-family:var(--mono)">${fmt(paidL+Math.ceil(c.organicLeads*norm))}</td>
+    </tr>`;
+  }).join('');
+
+  let html=mSel()+`
+  <div class="kpiGrid">
+    ${kpi('Oylik budget',fmtD(mooBgt),`CPL $${mooCpl} · ${monthLabel(mo)}`,'blue')}
+    ${kpi('Reja lidlar',fmt(planLeads),`Pulli ${fmt(mooCpl>0?Math.ceil(mooBgt/mooCpl):0)} + Organik ${fmt(c.organicLeads)}`,'','')}
+    ${kpi('Haqiqat lidlar',fmt(totalLeads),`Sifatli ${fmt(qualLeads)} · Sifatsiz ${fmt(unqLeads)}`,totalLeads>=planLeads?'green':'amber')}
+    ${kpi('Konversiya (sifat)',funnelConvQ+'%',`Reja ${c.convQuality}%`,funnelConvQ>=c.convQuality?'green':'amber')}
+    ${kpi('Konversiya (sotuv)',funnelConvS+'%',`Sifatli → Sotuv`,funnelConvS>=c.convSale?'green':'amber')}
+    ${kpi('Haqiqat sotuvlar',fmt(factSales),'dona bu oy',factSales>=planSales?'green':'amber')}
   </div>
-  <div class="card"><div class="cardH"><h3>Параметры маркетинга</h3></div><div class="cardB">
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:12px">
-      ${pFld('mkt_budget','Бюджет маркетинга $')}
-      ${pFld('cpl','Стоимость лида CPL $','number','0.01')}
-      ${pFld('conv_quality','Конверсия качества %','number','0.5')}
-      ${pFld('conv_sale','Конверсия продажи %','number','0.5')}
-      ${pFld('organic_leads','Органических лидов/мес')}
-    </div>
-  </div></div>
-  <div class="card"><div class="cardH"><h3>Воронка продаж</h3></div><div class="cardB">
-    ${funnel.map(s=>`<div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${s.l}</span><strong style="font-family:var(--mono)">${fmt(s.v)}</strong></div>
-      <div class="prog"><div class="progFill" style="width:${s.p}%;background:${s.col}"></div></div>
-      <div style="font-size:10px;color:var(--ink3);margin-top:3px">${s.p.toFixed(1)}%</div>
-    </div>`).join('')}
-  </div></div>
-  <div class="card"><div class="cardH"><h3>Бюджет по филиалам</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Filial</th><th>Ogirlik</th><th style="text-align:right">Бюджет $/мес</th><th style="text-align:right">Платных лидов</th><th style="text-align:right">+ Орган.</th><th style="text-align:right">Jami лидов</th><th style="text-align:right">Ожид. продаж</th></tr></thead>
+
+  <!-- FUNNEL CHART -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div class="card"><div class="cardH"><h3>Funnel — Haqiqat (${monthLabel(mo)})</h3></div><div class="cardB">
+      ${totalLeads===0
+        ?`<div style="text-align:center;padding:30px;color:var(--ink3)">Hali lid kiritilmagan</div>`
+        :[
+          {l:'Jami lidlar',v:totalLeads,p:100,col:'var(--blue)'},
+          {l:'Sifatli lidlar',v:qualLeads,p:totalLeads>0?qualLeads/totalLeads*100:0,col:'var(--amber)'},
+          {l:'Sotuvlar (dona)',v:factSales,p:qualLeads>0?factSales/qualLeads*100:0,col:'var(--green)'},
+        ].map(s=>`<div style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span>${s.l}</span><strong style="font-family:var(--mono)">${fmt(s.v)}</strong></div>
+          <div class="prog"><div class="progFill" style="width:${Math.min(100,s.p)}%;background:${s.col}"></div></div>
+          <div style="font-size:10px;color:var(--ink3);margin-top:3px">${s.p.toFixed(1)}%</div>
+        </div>`).join('')
+      }
+    </div></div>
+    <div class="card"><div class="cardH"><h3>Funnel — Reja vs Haqiqat</h3></div><div class="cardB"><canvas id="chartFunnel" height="180"></canvas></div></div>
+  </div>
+
+  <!-- MONTHLY BUDGET TABLE -->
+  <div class="card"><div class="cardH">
+    <h3>Oylik marketing budgeti</h3>
+    <span class="hint">${isMktAdmin?'Inline tahrirlash mumkin':'Faqat ko&#x2019;rish'}</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr>
+      <th>Oy</th>
+      <th style="text-align:right">Budget $</th>
+      <th style="text-align:right">CPL $</th>
+      <th style="text-align:right">Pulli lidlar</th>
+      <th style="text-align:right">Organik</th>
+      <th style="text-align:right">Jami lidlar</th>
+    </tr></thead>
+    <tbody>${moBudgetRows}</tbody>
+    <tfoot><tr class="tFoot">
+      <td>JAMI</td>
+      <td style="text-align:right;font-family:var(--mono)">${fmtD(APP.months.reduce((s,m,i)=>s+parseFloat(APP.params['mkt_'+m]||c.mktBudget*(c.normRates[i]||1)),0))}</td>
+      <td></td>
+      <td></td><td></td><td></td>
+    </tr></tfoot>
+  </table></div></div>
+
+  <!-- PER BRANCH BUDGET + LEADS -->
+  <div class="card"><div class="cardH">
+    <h3>Filiallar bo'yicha — ${monthLabel(mo)}</h3>
+    <span class="hint">Budget taqsimlash og'irlik bo'yicha · Haqiqat lidlar kiritilgan ma'lumotlardan</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr>
+      <th>Filial</th>
+      <th style="text-align:right">Budget $</th>
+      <th style="text-align:right">Reja lidlar</th>
+      <th style="text-align:right">Haqiqat lidlar</th>
+      <th style="text-align:right">Sifatli</th>
+      <th style="text-align:right">Konversiya</th>
+      <th style="text-align:right">Bajarish</th>
+    </tr></thead>
     <tbody>${APP.branches.map(b=>{
       const sh=parseFloat(b.weight||1)/(c.totalWeight||1);
-      const bgt=c.mktBudget*sh,pl=c.cpl>0?Math.ceil(bgt/c.cpl):0;
-      const org=Math.ceil(c.organicLeads*sh),tot=pl+org;
-      return `<tr><td><strong>${b.name}</strong></td><td>${b.weight}</td>
+      const bgt=mooBgt*sh;
+      const planL=mooCpl>0?Math.ceil(bgt/mooCpl)+Math.ceil(c.organicLeads*sh):Math.ceil(c.organicLeads*sh);
+      const factL=brLeads[b.id]?.total||0;
+      const qualL=brLeads[b.id]?.quality||0;
+      const convL=factL>0?Math.round(qualL/factL*100):0;
+      const pct=planL>0?Math.min(100,Math.round(factL/planL*100)):0;
+      return `<tr>
+        <td><strong>${b.name}</strong><br><small style="color:var(--ink3)">${b.city||''}</small></td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(bgt)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmt(pl)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmt(org)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmt(tot)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${Math.round(tot*c.convRate)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(planL)}</td>
+        <td style="text-align:right;font-family:var(--mono);font-weight:700;color:var(--${factL>=planL?'green':factL>0?'amber':'ink3'})">${fmt(factL)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(qualL)}</td>
+        <td style="text-align:right"><span class="badge badge-${convL>=c.convQuality?'green':'amber'}">${convL}%</span></td>
+        <td style="text-align:right"><span class="badge badge-${pct>=100?'green':pct>=60?'amber':'red'}">${pct}%</span></td>
       </tr>`;
     }).join('')}</tbody>
-  </table></div></div>`;
-  html+=wArea('marketing'); document.getElementById('content').innerHTML=html; renderWidgets('marketing');
+  </table></div></div>
+
+  <!-- LEADS LOG TABLE -->
+  <div class="card"><div class="cardH">
+    <h3>Kunlik lidlar — ${monthLabel(mo)}</h3>
+    ${isMktAdmin?'<button class="btn primary sm" onclick="openLeadModal()" style="margin-left:auto">+ Kiritish</button>':''}
+  </div><div class="cardB tWrap"><table>
+    <thead><tr><th>Sana</th><th>Filial</th><th style="text-align:right">Jami lid</th><th style="text-align:right">Sifatli</th><th style="text-align:right">Sifatsiz</th><th>Kanal</th><th>Kiritgan</th>${isMktAdmin?'<th></th>':''}</tr></thead>
+    <tbody>${leads.slice(0,50).map(l=>{
+      const br=APP.branches.find(b=>b.id===l.branch_id);
+      const unq=parseInt(l.total_leads||0)-parseInt(l.quality_leads||0);
+      const ch={instagram:'📸 Instagram',google:'🔍 Google',tiktok:'🎵 TikTok',telegram:'✈️ Telegram',organic:'🌱 Organik',other:'📌 Boshqa'}[l.channel]||l.channel||'—';
+      return `<tr>
+        <td style="font-family:var(--mono);font-size:11px">${l.date}</td>
+        <td>${br?.name||'—'}</td>
+        <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmt(l.total_leads)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmt(l.quality_leads)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--amber)">${fmt(unq)}</td>
+        <td style="font-size:11px">${ch}</td>
+        <td style="font-size:11px;color:var(--ink3)">${l.entered_by||'—'}</td>
+        ${isMktAdmin?`<td><button class="btn sm danger" onclick="deleteLead('${l.id}')">Och</button></td>`:''}
+      </tr>`;
+    }).join('')||'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--ink3)">Hali lid kiritilmagan</td></tr>'}</tbody>
+  </table></div></div>
+  `;
+
+  html+=wArea('marketing');
+  document.getElementById('content').innerHTML=html;
+  renderWidgets('marketing');
+
+  // Draw funnel chart
+  try{
+    const ctx=document.getElementById('chartFunnel');
+    if(ctx){
+      if(APP._charts.chartFunnel) APP._charts.chartFunnel.destroy();
+      APP._charts.chartFunnel=new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels:['Jami lidlar','Sifatli lidlar','Sotuvlar (dona)'],
+          datasets:[
+            {label:'Reja',data:[planLeads,planQual,planSales],backgroundColor:'rgba(37,99,235,0.5)',borderRadius:4},
+            {label:'Haqiqat',data:[totalLeads,qualLeads,factSales],backgroundColor:'rgba(5,150,105,0.7)',borderRadius:4}
+          ]
+        },
+        options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}
+      });
+    }
+  }catch(e){console.error('funnel chart:',e);}
+}
+
+async function saveMktParam(key,val){
+  APP.params[key]=String(parseFloat(val)||0);
+  await APP.db.from('sl_params').upsert({key,value:String(parseFloat(val)||0),updated_at:new Date().toISOString(),updated_by:APP.user?.email||''},{onConflict:'key'});
+  // Don't reload — inline edit, smooth UX
+}
+
+function openLeadModal(id=null){
+  document.getElementById('M_lead_title').textContent=id?'Lid yozuvini tahrirlash':'Lid kiritish';
+  document.getElementById('ldDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ldBranch').innerHTML=APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  document.getElementById('ldTotal').value='';
+  document.getElementById('ldQuality').value='';
+  document.getElementById('ldNotes').value='';
+  document.getElementById('ldChannel').value='';
+  document.getElementById('ldUnq').style.display='none';
+  openM('M_lead');
+}
+function ldCalcUnq(){
+  const t=parseInt(document.getElementById('ldTotal').value)||0;
+  const q=parseInt(document.getElementById('ldQuality').value)||0;
+  const el=document.getElementById('ldUnq');
+  if(t>0){el.style.display='block';el.textContent=`Sifatsiz: ${Math.max(0,t-q)} ta · Konversiya: ${t>0?Math.round(q/t*100):0}%`;}
+  else el.style.display='none';
+}
+async function saveLead(){
+  const row={
+    date:document.getElementById('ldDate').value,
+    branch_id:parseInt(document.getElementById('ldBranch').value),
+    total_leads:parseInt(document.getElementById('ldTotal').value)||0,
+    quality_leads:parseInt(document.getElementById('ldQuality').value)||0,
+    channel:document.getElementById('ldChannel').value,
+    notes:document.getElementById('ldNotes').value.trim(),
+    entered_by:APP.user?.email||''
+  };
+  if(!row.date||!row.branch_id){alert('Sana va filialni tanlang');return;}
+  await APP.db.from('sl_leads').insert(row);
+  closeM('M_lead');
+  renderMarketing();
+}
+async function deleteLead(id){
+  if(!confirm('Bu lid yozuvini ochirish?')) return;
+  await APP.db.from('sl_leads').delete().eq('id',id);
+  renderMarketing();
+}
+
+async function sendLeadsReportTg(){
+  const mo=APP.currentMonth;
+  const {data:leads}=await APP.db.from('sl_leads').select('*,branch_id').gte('date',mo+'-01').lte('date',mo+'-31');
+  const c=runCalc();
+  const brMap={};
+  APP.branches.forEach(b=>{brMap[b.id]={name:b.name,total:0,quality:0};});
+  (leads||[]).forEach(l=>{if(brMap[l.branch_id]){brMap[l.branch_id].total+=parseInt(l.total_leads||0);brMap[l.branch_id].quality+=parseInt(l.quality_leads||0);}});
+  const totalL=(leads||[]).reduce((s,l)=>s+parseInt(l.total_leads||0),0);
+  const qualL=(leads||[]).reduce((s,l)=>s+parseInt(l.quality_leads||0),0);
+  const conv=totalL>0?Math.round(qualL/totalL*100):0;
+  const msg=`<b>📊 Marketing hisoboti — ${monthLabel(mo)}</b>
+
+`+
+    `Jami lidlar: <b>${totalL}</b>
+Sifatli: <b>${qualL}</b>
+Konversiya: <b>${conv}%</b>
+
+<b>Filiallar:</b>
+`+
+    Object.values(brMap).filter(b=>b.total>0).map(b=>`• ${b.name}: ${b.total} lid, ${b.quality} sifatli`).join('
+');
+  // Find targetolog/admin telegram ids
+  const targets=APP.team.filter(t=>['TARGETOLOG','ADMIN','TOP_MGR'].includes(t.role)&&t.telegram_id);
+  let sent=0,failed=0;
+  for(const t of targets){const ok=await sendTgMsg(t.telegram_id,msg);if(ok)sent++;else failed++;}
+  if(!targets.length){alert('Telegram ID bilan foydalanuvchi topilmadi (Targetolog/Admin)');return;}
+  alert(`Yuborildi: ${sent} | Xato: ${failed}`);
 }
 
 // ════════════════════════════════════════════════
@@ -1547,7 +1832,7 @@ async function openTeamModal(id=null){
   const roles = [
     ['SALES_STAFF','Sotuvchi'],['BRANCH_MGR','Filial menejer'],
     ['TOP_MGR','Top-menejer'],['COLLECTOR','Kollektor'],
-    ['CALLCENTER','Koll-markaz'],['CFO','Moliya boshlighi']
+    ['CALLCENTER','Koll-markaz'],['CFO','Moliya boshlighi'],['TARGETOLOG','Targetolog']
   ];
   let roleOpts = '';
   roles.forEach(([v,l]) => {
@@ -2726,6 +3011,7 @@ async function openUserModal(email=null){
       <option value="SALES_STAFF"${!u||u?.role==='SALES_STAFF'?' selected':''}>Sotuvchi</option>
       <option value="COLLECTOR"${u?.role==='COLLECTOR'?' selected':''}>Kollektor</option>
       <option value="CALLCENTER"${u?.role==='CALLCENTER'?' selected':''}>Колл-центр</option>
+      <option value="TARGETOLOG"${u?.role==='TARGETOLOG'?' selected':''}>Targetolog</option>
       <option value="USER"${u?.role==='USER'?' selected':''}>Наблюдатель</option>
     </select></div><div class="fG"><label>Filial</label><select id="uBranch">${brOpts}</select></div></div>
     <div class="fG"><label>Bolimlar</label><input id="uSects" value="${u?.sections||'ALL'}" placeholder="strategy,sales,marketing,..."></div>`;
@@ -3059,6 +3345,7 @@ function canBranchMgr(branchId){
   if(APP.user?.role==='BRANCH_MGR' && String(APP.user?.branch_id)===String(branchId)) return true;
   return false;
 }
+function canMarketing(){return['ADMIN','TOP_MGR','TARGETOLOG'].includes(APP.user?.role||'');}
 function isAdmin(){return APP.user?.role==='ADMIN';}
 
 async function toggleBranchPlan(branchId, makeActive){
@@ -3087,8 +3374,8 @@ async function saveSellerMax(teamId,val){
   await saveP('seller_max',JSON.stringify(sm));
 }
 function isAdmin(){return APP.user?.role==='ADMIN';}
-function roleLabel(r){return{ADMIN:'Admin',TOP_MGR:'Top-menejer',BRANCH_MGR:'Filial menejer',SALES_STAFF:'Sotuvchi',USER:'Kuzatuvchi',COLLECTOR:'Kollektor',CALLCENTER:'Call-markaz'}[r]||r;}
-function rColor(r){return{ADMIN:'blue',TOP_MGR:'blue',BRANCH_MGR:'green',SALES_STAFF:'amber',USER:'gray',COLLECTOR:'red',CALLCENTER:'blue'}[r]||'gray';}
+function roleLabel(r){return{ADMIN:'Admin',TOP_MGR:'Top-menejer',BRANCH_MGR:'Filial menejer',SALES_STAFF:'Sotuvchi',USER:'Kuzatuvchi',COLLECTOR:'Kollektor',CALLCENTER:'Call-markaz',TARGETOLOG:'Targetolog'}[r]||r;}
+function rColor(r){return{ADMIN:'blue',TOP_MGR:'blue',BRANCH_MGR:'green',SALES_STAFF:'amber',USER:'gray',COLLECTOR:'red',CALLCENTER:'blue',TARGETOLOG:'blue'}[r]||'gray';}
 function payL(p){return{cash:'Naqd',card:'Karta',installment:'Muddatli',transfer:'O\'tkazma'}[p]||p||'—';}
 function kpi(l,v,s,cls){return `<div class="kpi${cls?' '+cls:''}"><div class="kpiL">${l}</div><div class="kpiV">${v}</div>${s?`<div class="kpiS">${s}</div>`:''}</div>`;}
 function mSel(){return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><span style="font-size:11px;color:var(--ink3)">Месяц:</span><select style="border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-size:12px;background:var(--bg);outline:none" onchange="APP.currentMonth=this.value;loadSection(APP.currentSection)">${APP.months.map(m=>`<option value="${m}"${m===APP.currentMonth?' selected':''}>${monthLabel(m)}</option>`).join('')}</select></div>`;}
