@@ -391,6 +391,16 @@ async function startApp(user) {
     document.getElementById('branchMgrView').style.display='block';
     await loadBase(); renderBranchMgrView(); return;
   }
+  if (user.role==='KASSIR') {
+    // Kassir gets full app but only sales section
+    user.sections='sales';
+    document.getElementById('app').style.display='block';
+    await loadBase(); buildNav();
+    document.getElementById('sAvatar').textContent=(user.full_name||user.email)[0].toUpperCase();
+    document.getElementById('sUserName').textContent=user.full_name||user.email;
+    document.getElementById('sUserRole').textContent=roleLabel(user.role);
+    loadSection('sales'); return;
+  }
   document.getElementById('app').style.display='block';
   await loadBase(); buildNav();
   document.getElementById('sAvatar').textContent  = (user.full_name||user.email)[0].toUpperCase();
@@ -476,6 +486,7 @@ const SECTIONS=[
   {id:'procurement', label:'Zakup / OK',    cat:null},
   {id:'collections', label:'Undiruv',       cat:null},
   {id:'callcenter',  label:'Koll-markaz',   cat:null},
+  {id:'dashboard',   label:'Dashboard',     cat:'Hisobot'},
   {id:'settings',    label:'Sozlamalar',    cat:'Tizim'},
 ];
 function buildNav() {
@@ -495,7 +506,7 @@ function loadSection(id) {
   const nav=document.getElementById(`nav_${id}`); if(nav) nav.classList.add('act');
   document.getElementById('topbarTitle').textContent=SECTIONS.find(s=>s.id===id)?.label||id;
   document.getElementById('topbarRight').innerHTML='';
-  const fns={strategy:renderStrategy,sales:renderSales,marketing:renderMarketing,branches:renderBranches,team:renderTeam,finance:renderFinance,procurement:renderProcurement,collections:renderCollections,callcenter:renderCallCenter,bugun:renderBugun,leaderboard:renderLeaderboard,inventory:renderInventory,settings:renderSettings};
+  const fns={strategy:renderStrategy,sales:renderSales,marketing:renderMarketing,branches:renderBranches,team:renderTeam,finance:renderFinance,procurement:renderProcurement,collections:renderCollections,callcenter:renderCallCenter,bugun:renderBugun,leaderboard:renderLeaderboard,inventory:renderInventory,settings:renderSettings,dashboard:renderDashboard};
   if(fns[id]) fns[id]();
 }
 
@@ -980,7 +991,11 @@ async function renderSales() {
   const tb=document.getElementById('topbarRight');
   const b1=document.createElement('button');b1.className='btn';b1.textContent='Excel yuklash';b1.onclick=()=>openM('M_excel');tb.appendChild(b1);
   const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.style.marginLeft='4px';b2.onclick=openSaleModal;tb.appendChild(b2);
-}
+  } else if(APP.user?.role==='KASSIR') {
+    document.getElementById('topbarRight').innerHTML='';
+    const tb=document.getElementById('topbarRight');
+    const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.onclick=openSaleModal;tb.appendChild(b2);
+  }
   const {data:sls}=await APP.db.from('sl_sales').select('*,sl_models(name)').gte('date',mo+'-01').lte('date',mo+'-31').order('date',{ascending:false});
   const sales=sls||[];
   const totalRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
@@ -1050,10 +1065,10 @@ async function renderSales() {
         <td>${sellerName(s.salesperson)}</td>
         <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(parseFloat(s.unit_price||0)*parseInt(s.qty||1))}</td>
         <td><span class="badge badge-${s.payment_type==='cash'?'green':s.payment_type==='installment'?'amber':'blue'}">${payL(s.payment_type)}</span></td>
-        ${(canEdit()||(APP.user?.role==='BRANCH_MGR'&&String(s.branch_id)===String(APP.user?.branch_id)))?
+        ${(canEdit()||(APP.user?.role==='BRANCH_MGR'&&String(s.branch_id)===String(APP.user?.branch_id))||(APP.user?.role==='KASSIR'&&String(s.branch_id)===String(APP.user?.branch_id)))?
           `<td style="white-space:nowrap">
             <button class="btn sm" data-sid="${s.id}" data-price="${s.unit_price}" data-pay="${s.payment_type}" data-seller="${s.salesperson||''}" onclick="editSaleClick(this)">Ред</button>
-            <button class="btn sm danger" data-sid="${s.id}" onclick="delSaleClick(this)">Och</button>
+            ${canEdit()?`<button class="btn sm danger" data-sid="${s.id}" onclick="delSaleClick(this)">Och</button>`:''}
           </td>`
           :'<td></td>'}
       </tr>`;
@@ -1256,7 +1271,12 @@ async function openSaleModal(){
 function setModelPrice(){const sel=document.getElementById('sModel');const opt=sel.options[sel.selectedIndex];document.getElementById('sPrice').value=opt?.dataset.price||'';}
 async function saveSale(){
   const sid=document.getElementById('sDate').dataset.editId||null;
-  const row={date:document.getElementById('sDate').value,branch_id:parseInt(document.getElementById('sBranch').value),model_id:parseInt(document.getElementById('sModel').value),unit_price:parseFloat(document.getElementById('sPrice').value)||0,qty:parseInt(document.getElementById('sQty').value)||1,payment_type:document.getElementById('sPayType').value,salesperson:document.getElementById('sSeller').value};
+  const branchId=parseInt(document.getElementById('sBranch').value);
+  // KASSIR can only save for their own branch
+  if(APP.user?.role==='KASSIR'&&String(branchId)!==String(APP.user?.branch_id)){
+    alert('Siz faqat o\'z filialingiz uchun sotuv kirita olasiz');return;
+  }
+  const row={date:document.getElementById('sDate').value,branch_id:branchId,model_id:parseInt(document.getElementById('sModel').value),unit_price:parseFloat(document.getElementById('sPrice').value)||0,qty:parseInt(document.getElementById('sQty').value)||1,payment_type:document.getElementById('sPayType').value,salesperson:document.getElementById('sSeller').value};
   if(sid){await APP.db.from('sl_sales').update(row).eq('id',sid);}
   else{await APP.db.from('sl_sales').insert(row);}
   closeM('M_user'); renderSales();
@@ -1489,7 +1509,10 @@ async function renderMarketing(){
         <td style="text-align:right;font-family:var(--mono);color:var(--amber)">${fmt(unq)}</td>
         <td style="font-size:11px">${ch}</td>
         <td style="font-size:11px;color:var(--ink3)">${l.entered_by||'—'}</td>
-        ${isMktAdmin?`<td><button class="btn sm danger" onclick="deleteLead('${l.id}')">Och</button></td>`:''}
+        ${isMktAdmin?`<td style="white-space:nowrap">
+          <button class="btn sm" onclick="editLeadModal('${l.id}','${l.date}','${l.branch_id}','${l.total_leads}','${l.quality_leads}','${l.channel||''}')">Ред</button>
+          <button class="btn sm danger" onclick="deleteLead('${l.id}')">Och</button>
+        </td>`:''}
       </tr>`;
     }).join('')||'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--ink3)">Hali lid kiritilmagan</td></tr>'}</tbody>
   </table></div></div>
@@ -1533,12 +1556,25 @@ async function saveMktParam(key,val){
 function openLeadModal(id=null){
   document.getElementById('M_lead_title').textContent=id?'Lid yozuvini tahrirlash':'Lid kiritish';
   document.getElementById('ldDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ldDate').dataset.editId=id||'';
   document.getElementById('ldBranch').innerHTML=APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
   document.getElementById('ldTotal').value='';
   document.getElementById('ldQuality').value='';
   document.getElementById('ldNotes').value='';
   document.getElementById('ldChannel').value='';
   document.getElementById('ldUnq').style.display='none';
+  openM('M_lead');
+}
+function editLeadModal(id,date,branchId,total,quality,channel){
+  document.getElementById('M_lead_title').textContent='Lid yozuvini tahrirlash';
+  document.getElementById('ldDate').value=date;
+  document.getElementById('ldDate').dataset.editId=id;
+  document.getElementById('ldBranch').innerHTML=APP.branches.map(b=>`<option value="${b.id}"${String(b.id)===String(branchId)?' selected':''}>${b.name}</option>`).join('');
+  document.getElementById('ldTotal').value=total;
+  document.getElementById('ldQuality').value=quality;
+  document.getElementById('ldChannel').value=channel;
+  document.getElementById('ldNotes').value='';
+  ldCalcUnq();
   openM('M_lead');
 }
 function ldCalcUnq(){
@@ -1549,6 +1585,7 @@ function ldCalcUnq(){
   else el.style.display='none';
 }
 async function saveLead(){
+  const editId=document.getElementById('ldDate').dataset.editId||'';
   const row={
     date:document.getElementById('ldDate').value,
     branch_id:parseInt(document.getElementById('ldBranch').value),
@@ -1559,7 +1596,11 @@ async function saveLead(){
     entered_by:APP.user?.email||''
   };
   if(!row.date||!row.branch_id){alert('Sana va filialni tanlang');return;}
-  await APP.db.from('sl_leads').insert(row);
+  if(editId){
+    await APP.db.from('sl_leads').update(row).eq('id',editId);
+  } else {
+    await APP.db.from('sl_leads').insert(row);
+  }
   closeM('M_lead');
   renderMarketing();
 }
@@ -3138,6 +3179,7 @@ async function openUserModal(email=null){
       <option value="COLLECTOR"${u?.role==='COLLECTOR'?' selected':''}>Kollektor</option>
       <option value="CALLCENTER"${u?.role==='CALLCENTER'?' selected':''}>Колл-центр</option>
       <option value="TARGETOLOG"${u?.role==='TARGETOLOG'?' selected':''}>Targetolog</option>
+      <option value="KASSIR"${u?.role==='KASSIR'?' selected':''}>Kassir</option>
       <option value="USER"${u?.role==='USER'?' selected':''}>Наблюдатель</option>
     </select></div><div class="fG"><label>Filial</label><select id="uBranch">${brOpts}</select></div></div>
     <div class="fG"><label>Bolimlar</label><input id="uSects" value="${u?.sections||'ALL'}" placeholder="strategy,sales,marketing,..."></div>`;
@@ -3842,6 +3884,289 @@ async function brMgrSendTg(){
 }
 
 // ════════════════════════════════════════════════
+// DASHBOARD — Investor & Management View
+// ════════════════════════════════════════════════
+async function renderDashboard(){
+  const c=runCalc(); const mo=APP.currentMonth;
+  const moIdx=APP.months.indexOf(mo)>=0?APP.months.indexOf(mo):0;
+  const moNorm=c.normRates[moIdx]||1;
+  const planRev=c.netRev*moNorm;
+  const planProfit=c.targetProfit*moNorm;
+  const today=new Date().toISOString().slice(0,10);
+  const totalDays=daysInMonth(mo);
+  const daysPassed=workingDaysSoFar(mo);
+
+  // Load data in parallel
+  const [{data:sls},{data:leadsD},{data:collD}]=await Promise.all([
+    APP.db.from('sl_sales').select('branch_id,unit_price,qty,payment_type,date').gte('date',mo+'-01').lte('date',mo+'-31'),
+    APP.db.from('sl_leads').select('*').gte('date',mo+'-01').lte('date',mo+'-31'),
+    APP.db.from('sl_collections').select('total_debt,paid,remaining,overdue_days,status')
+  ]);
+
+  const sales=sls||[];
+  const leads=leadsD||[];
+  const colls=collD||[];
+
+  // Revenue calcs
+  const factRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+  const factU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
+  const pctRev=planRev>0?Math.round(factRev/planRev*100):0;
+  const cogs=factRev*(1-c.grossMargin/100);
+  const grossP=factRev-cogs;
+  const expKey='expenses_'+mo; let exp={};
+  try{exp=JSON.parse(APP.params[expKey]||'{}');}catch(e){}
+  const actFot=parseFloat(exp.fot!==undefined?exp.fot:c.totalFOT);
+  const actRent=parseFloat(exp.rent!==undefined?exp.rent:c.totalRent);
+  const actMkt=parseFloat(exp.mkt!==undefined?exp.mkt:c.mktBudget*moNorm);
+  const actBonus=parseFloat(exp.bonuses||0);
+  const actOther=parseFloat(exp.other!==undefined?exp.other:c.otherOpex);
+  const actOpex=actFot+actRent+actMkt+actBonus+actOther;
+  const netP=grossP-actOpex;
+  const pctProfit=planProfit>0?Math.round(netP/planProfit*100):0;
+  const marginPct=factRev>0?(netP/factRev*100).toFixed(1):0;
+
+  // Leads calcs
+  const totalLeads=leads.reduce((s,l)=>s+parseInt(l.total_leads||0),0);
+  const qualLeads=leads.reduce((s,l)=>s+parseInt(l.quality_leads||0),0);
+  const planLeads=APP.branches.reduce((s,b)=>s+bmp(b,c,moIdx).leads,0);
+  const convLQ=totalLeads>0?Math.round(qualLeads/totalLeads*100):0;
+  const convLS=qualLeads>0?Math.round(factU/qualLeads*100):0;
+
+  // Collections
+  const totDebt=colls.reduce((s,c)=>s+parseFloat(c.remaining||0),0);
+  const ov30=colls.filter(c=>c.overdue_days>=30).length;
+
+  // Branch data for ranking
+  const byBranch={};
+  APP.branches.forEach(b=>{byBranch[b.id]={rev:0,units:0};});
+  sales.forEach(s=>{if(byBranch[s.branch_id]){byBranch[s.branch_id].rev+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);byBranch[s.branch_id].units+=parseInt(s.qty||1);}});
+  const brRanked=APP.branches.map(b=>{
+    const bp=bmp(b,c,moIdx);
+    const fact=byBranch[b.id]?.rev||0;
+    const pct2=bp.rev>0?Math.round(fact/bp.rev*100):0;
+    return{b,fact,units:byBranch[b.id]?.units||0,plan:bp.rev,pct:pct2};
+  }).sort((a,b2)=>b2.pct-a.pct);
+
+  // Multi-month actual revenue for trend
+  const firstM=APP.months[0],lastM=APP.months[APP.months.length-1];
+  const {data:allSls}=await APP.db.from('sl_sales').select('date,unit_price,qty').gte('date',firstM+'-01').lte('date',lastM+'-31');
+  const byMonth={};
+  APP.months.forEach(m=>byMonth[m]=0);
+  (allSls||[]).forEach(s=>{const mo2=s.date?.slice(0,7);if(byMonth[mo2]!==undefined)byMonth[mo2]+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);});
+
+  // Color helpers
+  const gc=(p,inv=false)=>inv?(p<=100?'var(--green)':'var(--red)'):(p>=100?'var(--green)':p>=70?'var(--amber)':'var(--red)');
+  const bc=(p,inv=false)=>inv?(p<=100?'green':'red'):(p>=100?'green':p>=70?'amber':'red');
+
+  // Pace calc
+  const paceRev=daysPassed>0?factRev/(daysPassed/totalDays):0;
+  const pacePct=planRev>0?Math.round(paceRev/planRev*100):0;
+
+  let html=mSel();
+
+  // ── TOP KPI STRIP ──
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:16px">
+    <div class="kpi ${bc(pctRev)}">
+      <div class="kpiL">Daromad — haqiqat</div>
+      <div class="kpiV">${fmtD(factRev)}</div>
+      <div class="kpiS">Reja: ${fmtD(planRev)} · <strong>${pctRev}%</strong></div>
+    </div>
+    <div class="kpi ${bc(pctProfit)}">
+      <div class="kpiL">Sof foyda</div>
+      <div class="kpiV">${fmtD(netP)}</div>
+      <div class="kpiS">Reja: ${fmtD(planProfit)} · <strong>${pctProfit}%</strong></div>
+    </div>
+    <div class="kpi blue">
+      <div class="kpiL">Yalpi marja</div>
+      <div class="kpiV">${c.grossMargin}%</div>
+      <div class="kpiS">Net marja: ${marginPct}%</div>
+    </div>
+    <div class="kpi ${bc(pacePct)}">
+      <div class="kpiL">Joriy sur'at (pace)</div>
+      <div class="kpiV">${fmtD(paceRev)}</div>
+      <div class="kpiS">${daysPassed} kun · Bashorat: ${pctRev >= 0 ? pacePct : 0}%</div>
+    </div>
+    <div class="kpi ${totalLeads>=planLeads?'green':'amber'}">
+      <div class="kpiL">Jami lidlar</div>
+      <div class="kpiV">${fmt(totalLeads)}</div>
+      <div class="kpiS">Reja: ${fmt(planLeads)} · Sifatli: ${fmt(qualLeads)}</div>
+    </div>
+    <div class="kpi ${ov30>0?'red':'green'}">
+      <div class="kpiL">Debitorlik qoldig'i</div>
+      <div class="kpiV">${fmtD(totDebt)}</div>
+      <div class="kpiS">${ov30} ta 30+ kun kechikkan</div>
+    </div>
+  </div>`;
+
+  // ── PROGRESS BAR (big visual) ──
+  html+=`<div class="card" style="margin-bottom:14px"><div class="cardB" style="padding:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px">Oy rejasi bajarilishi — ${monthLabel(mo)}</div>
+        <div style="font-size:13px;color:var(--ink3);margin-top:2px">${daysPassed} kun o'tdi · ${totalDays-daysPassed} kun qoldi</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:32px;font-weight:800;font-family:var(--mono);color:${gc(pctRev)}">${pctRev}%</div>
+        <div style="font-size:12px;color:var(--ink3)">${fmtD(factRev)} / ${fmtD(planRev)}</div>
+      </div>
+    </div>
+    <div style="height:14px;background:var(--border);border-radius:7px;overflow:hidden;margin-bottom:10px;position:relative">
+      <div style="position:absolute;left:${Math.min(98,(daysPassed/totalDays*100)).toFixed(1)}%;top:0;bottom:0;width:2px;background:var(--ink4);opacity:.5"></div>
+      <div style="width:${Math.min(100,pctRev)}%;height:100%;background:${pctRev>=100?'var(--green)':pctRev>=70?'var(--amber)':'var(--blue)'};border-radius:7px;transition:width .5s"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink3)">
+      <span>Sotuvlar: <strong>${factU} dona</strong></span>
+      <span>Qoldi: <strong>${fmtD(Math.max(0,planRev-factRev))}</strong></span>
+      <span>Kunlik pace: <strong style="color:${gc(pacePct)}">${fmtD(paceRev)}</strong></span>
+    </div>
+  </div></div>`;
+
+  // ── CHARTS row ──
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div class="card"><div class="cardH"><h3>Reja vs Haqiqat — oylar bo'yicha</h3></div><div class="cardB"><canvas id="dbChartRev" height="180"></canvas></div></div>
+    <div class="card"><div class="cardH"><h3>Filiallar reytingi — ${monthLabel(mo)}</h3></div><div class="cardB"><canvas id="dbChartBranch" height="180"></canvas></div></div>
+  </div>`;
+
+  // ── LEADS FUNNEL (before P&L) ──
+  html+=`<div class="card" style="margin-bottom:14px"><div class="cardH">
+    <h3>Leads voronkasi — ${monthLabel(mo)}</h3>
+    <span class="hint">Lidlar → Sifatli → Sotuv</span>
+  </div><div class="cardB">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+      ${[
+        {l:'Jami lidlar',v:totalLeads,plan:planLeads,col:'var(--blue)'},
+        {l:'Sifatli lidlar',v:qualLeads,plan:Math.round(planLeads*c.convQuality/100),col:'var(--amber)'},
+        {l:'Sotuvlar (dona)',v:factU,plan:Math.ceil(c.units*moNorm),col:'var(--green)'}
+      ].map(s=>{
+        const p=s.plan>0?Math.round(s.v/s.plan*100):0;
+        return `<div style="border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center">
+          <div style="font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">${s.l}</div>
+          <div style="font-size:28px;font-weight:800;font-family:var(--mono);color:${s.col}">${fmt(s.v)}</div>
+          <div style="font-size:11px;color:var(--ink3);margin-top:4px">Reja: ${fmt(s.plan)}</div>
+          <div style="height:6px;background:var(--border);border-radius:3px;margin-top:8px;overflow:hidden">
+            <div style="width:${Math.min(100,p)}%;height:100%;background:${s.col};border-radius:3px"></div>
+          </div>
+          <div style="font-size:10px;color:var(--ink3);margin-top:4px">${p}%</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:24px;justify-content:center;font-size:12px;padding:10px;background:var(--bg);border-radius:8px">
+      <span>Sifat konv: <strong style="color:${convLQ>=c.convQuality?'var(--green)':'var(--amber)'}">${convLQ}%</strong> <span style="color:var(--ink4)">(reja ${c.convQuality}%)</span></span>
+      <span>Sotuv konv: <strong style="color:${convLS>=c.convSale?'var(--green)':'var(--amber)'}">${convLS}%</strong> <span style="color:var(--ink4)">(reja ${c.convSale}%)</span></span>
+    </div>
+  </div></div>`;
+
+  // ── P&L SUMMARY (after leads) ──
+  html+=`<div class="card" style="margin-bottom:14px"><div class="cardH">
+    <h3>P&L xulosasi — ${monthLabel(mo)}</h3>
+    <span class="hint">Qisqacha moliyaviy natija</span>
+  </div><div class="cardB">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+      ${[
+        {l:'Daromad',v:factRev,plan:planRev,isExp:false},
+        {l:'Tannarx (COGS)',v:cogs,plan:planRev*(1-c.grossMargin/100),isExp:true},
+        {l:'Yalpi foyda',v:grossP,plan:planRev*(c.grossMargin/100),isExp:false,bold:true},
+        {l:'Ish haqi (FOT)',v:actFot,plan:c.totalFOT,isExp:true},
+        {l:'Ijara',v:actRent,plan:c.totalRent,isExp:true},
+        {l:'Marketing',v:actMkt,plan:c.mktBudget*moNorm,isExp:true},
+        {l:'Boshqa xarajatlar',v:actOther+actBonus,plan:c.otherOpex,isExp:true},
+        {l:'Sof foyda',v:netP,plan:planProfit,isExp:false,bold:true,highlight:true}
+      ].map(r=>{
+        const good=r.isExp?r.v<=r.plan:r.v>=r.plan;
+        const diff=r.isExp?r.plan-r.v:r.v-r.plan;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);${r.highlight?'background:var(--'+(netP>=planProfit?'green':'red')+'-t);':''}${r.bold?'font-weight:700;':''}">
+          <span style="font-size:13px">${r.l}</span>
+          <div style="text-align:right">
+            <div style="font-family:var(--mono);font-size:14px;color:${r.bold?gc(r.isExp?100:r.v>=r.plan?100:0):'var(--ink)'}">${fmtD(r.v)}</div>
+            <div style="font-size:10px;color:${good?'var(--green)':'var(--red)'}">reja ${fmtD(r.plan)} · ${diff>=0?'+':''}${fmtD(diff)}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div></div>`;
+
+  // ── BRANCH RANKING TABLE ──
+  html+=`<div class="card" style="margin-bottom:14px"><div class="cardH">
+    <h3>Filiallar — ${monthLabel(mo)} natijalar</h3>
+    <span class="hint">Reja bajarilishi bo'yicha tartiblangan</span>
+  </div><div class="cardB tWrap"><table>
+    <thead><tr>
+      <th>O'rin</th><th>Filial</th><th style="text-align:right">Reja $</th>
+      <th style="text-align:right">Haqiqat $</th><th style="text-align:right">Dona</th>
+      <th style="text-align:right">Bajarilish</th>
+    </tr></thead>
+    <tbody>${brRanked.map((r,i)=>{
+      const medal=i<3?['🥇','🥈','🥉'][i]:'';
+      const barW=Math.min(100,r.pct);
+      const barCol=r.pct>=100?'var(--green)':r.pct>=70?'var(--amber)':'var(--red)';
+      return `<tr>
+        <td style="text-align:center;font-size:${i<3?'18':'13'}px">${medal||i+1}</td>
+        <td>
+          <strong>${r.b.name}</strong>
+          <span style="font-size:10px;color:var(--ink3);margin-left:6px">${r.b.city||''}</span>
+          <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;overflow:hidden">
+            <div style="width:${barW}%;height:100%;background:${barCol};border-radius:2px"></div>
+          </div>
+        </td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(r.plan)}</td>
+        <td style="text-align:right;font-family:var(--mono);font-weight:700;color:${barCol}">${fmtD(r.fact)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${r.units}</td>
+        <td style="text-align:right"><span class="badge badge-${r.pct>=100?'green':r.pct>=70?'amber':'red'}">${r.pct}%</span></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div></div>`;
+
+  // ── COLLECTIONS STATUS ──
+  if(totDebt>0){
+    const active=colls.filter(c=>c.status==='active');
+    const overdue=colls.filter(c=>c.overdue_days>0);
+    html+=`<div class="card"><div class="cardH">
+      <h3>Debitorlik holati</h3>
+      <span class="hint">Undiruv bo'limi ma'lumotlari</span>
+    </div><div class="cardB">
+      <div class="kpiGrid">
+        ${kpi('Qoldiq debitorlik',fmtD(totDebt),`${active.length} ta aktiv shartnoma`,'red')}
+        ${kpi('Kechikkan (30+ kun)',ov30,'ta','red')}
+        ${kpi('Jami shartnomalar',colls.length,'ta','')}
+        ${kpi('Kechikishsiz',colls.length-overdue.length,'ta shartnoma','green')}
+      </div>
+    </div></div>`;
+  }
+
+  document.getElementById('content').innerHTML=html;
+
+  // Render charts
+  setTimeout(()=>{
+    try{
+      const ctx1=document.getElementById('dbChartRev');
+      if(ctx1){
+        if(APP._charts.dbChartRev) APP._charts.dbChartRev.destroy();
+        APP._charts.dbChartRev=new Chart(ctx1,{type:'bar',data:{
+          labels:APP.months.map(m=>monthLabel(m)),
+          datasets:[
+            {label:'Reja $',data:APP.months.map((_,i)=>Math.round(c.netRev*(c.normRates[i]||1))),backgroundColor:'rgba(37,99,235,0.5)',borderRadius:4},
+            {label:'Haqiqat $',data:APP.months.map(m=>Math.round(byMonth[m]||0)),backgroundColor:'rgba(5,150,105,0.75)',borderRadius:4}
+          ]
+        },options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+Math.round(v/1000)+'K'}}}}});
+      }
+    }catch(e){}
+    try{
+      const ctx2=document.getElementById('dbChartBranch');
+      if(ctx2){
+        if(APP._charts.dbChartBranch) APP._charts.dbChartBranch.destroy();
+        APP._charts.dbChartBranch=new Chart(ctx2,{type:'bar',data:{
+          labels:brRanked.map(r=>r.b.name),
+          datasets:[
+            {label:'Reja $',data:brRanked.map(r=>Math.round(r.plan)),backgroundColor:'rgba(37,99,235,0.45)',borderRadius:4},
+            {label:'Haqiqat $',data:brRanked.map(r=>Math.round(r.fact)),backgroundColor:brRanked.map(r=>r.pct>=100?'rgba(5,150,105,0.8)':r.pct>=70?'rgba(217,119,6,0.8)':'rgba(220,38,38,0.7)'),borderRadius:4}
+          ]
+        },options:{responsive:true,indexAxis:'y',plugins:{legend:{position:'bottom'}},scales:{x:{beginAtZero:true,ticks:{callback:v=>'$'+Math.round(v/1000)+'K'}}}}});
+      }
+    }catch(e){}
+  },150);
+}
+
+// ════════════════════════════════════════════════
 // UTILS
 // ════════════════════════════════════════════════
 function fmt(n){return Math.round(n||0).toLocaleString('ru-RU');}
@@ -3849,6 +4174,12 @@ function fmtD(n){return '$'+Math.round(n||0).toLocaleString('ru-RU');}
 function yyyymm(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
 function monthLabel(ym){if(!ym)return'';const[y,m]=ym.split('-');return['Yan','Fev','Mar','Apr','May','Iyun','Iyul','Avg','Sen','Okt','Noy','Dek'][parseInt(m)-1]+' '+y;}
 function canEdit(){return['ADMIN','TOP_MGR'].includes(APP.user?.role||'');}
+function canKassir(branchId){
+  if(canEdit()) return true;
+  if(APP.user?.role==='KASSIR'&&(branchId===undefined||String(APP.user?.branch_id)===String(branchId))) return true;
+  return false;
+}
+function canAddSale(){return canEdit()||APP.user?.role==='KASSIR';}
 function daysInMonth(ym){
   if(!ym) return 30;
   const [y,m]=ym.split('-').map(Number);
@@ -3898,8 +4229,8 @@ async function saveSellerMax(teamId,val){
   await saveP('seller_max',JSON.stringify(sm));
 }
 function isAdmin(){return APP.user?.role==='ADMIN';}
-function roleLabel(r){return{ADMIN:'Admin',TOP_MGR:'Top-menejer',BRANCH_MGR:'Filial menejer',SALES_STAFF:'Sotuvchi',USER:'Kuzatuvchi',COLLECTOR:'Kollektor',CALLCENTER:'Call-markaz',TARGETOLOG:'Targetolog'}[r]||r;}
-function rColor(r){return{ADMIN:'blue',TOP_MGR:'blue',BRANCH_MGR:'green',SALES_STAFF:'amber',USER:'gray',COLLECTOR:'red',CALLCENTER:'blue',TARGETOLOG:'blue'}[r]||'gray';}
+function roleLabel(r){return{ADMIN:'Admin',TOP_MGR:'Top-menejer',BRANCH_MGR:'Filial menejer',SALES_STAFF:'Sotuvchi',USER:'Kuzatuvchi',COLLECTOR:'Kollektor',CALLCENTER:'Call-markaz',TARGETOLOG:'Targetolog',KASSIR:'Kassir'}[r]||r;}
+function rColor(r){return{ADMIN:'blue',TOP_MGR:'blue',BRANCH_MGR:'green',SALES_STAFF:'amber',USER:'gray',COLLECTOR:'red',CALLCENTER:'blue',TARGETOLOG:'blue',KASSIR:'green'}[r]||'gray';}
 function payL(p){return{cash:'Naqd',card:'Karta',installment:'Muddatli',transfer:'O\'tkazma'}[p]||p||'—';}
 function sellerName(emailOrName){
   if(!emailOrName) return '—';
@@ -4143,7 +4474,7 @@ async function uploadExcelData(){
     _excelRows = [];
     document.getElementById('excelFile').value = '';
     document.getElementById('excelPreview').style.display = 'none';
-    alert(`✅ ${_excelRows.length || 'Barcha'} sotuv muvaffaqiyatli yuklandi!`);
+    alert(`✅ Barcha sotuvlar muvaffaqiyatli yuklandi!`);
     loadSection('sales');
   } catch(e) {
     alert('Xato: ' + e.message);
