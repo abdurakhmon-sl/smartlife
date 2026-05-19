@@ -986,27 +986,49 @@ function bottlenecks(c){
 // ════════════════════════════════════════════════
 async function renderSales() {
   const c=runCalc(); const mo=APP.currentMonth;
-  if(canEdit()){
+  const isKassir=APP.user?.role==='KASSIR';
+  const kassirBranchId=isKassir?APP.user?.branch_id:null;
+
+  // Topbar buttons
   document.getElementById('topbarRight').innerHTML='';
   const tb=document.getElementById('topbarRight');
-  const b1=document.createElement('button');b1.className='btn';b1.textContent='Excel yuklash';b1.onclick=()=>openM('M_excel');tb.appendChild(b1);
-  const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.style.marginLeft='4px';b2.onclick=openSaleModal;tb.appendChild(b2);
-  } else if(APP.user?.role==='KASSIR') {
-    document.getElementById('topbarRight').innerHTML='';
-    const tb=document.getElementById('topbarRight');
+  if(canEdit()){
+    const b1=document.createElement('button');b1.className='btn';b1.textContent='Excel yuklash';b1.onclick=()=>openM('M_excel');tb.appendChild(b1);
+    const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.style.marginLeft='4px';b2.onclick=openSaleModal;tb.appendChild(b2);
+  } else if(isKassir){
     const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.onclick=openSaleModal;tb.appendChild(b2);
   }
-  const {data:sls}=await APP.db.from('sl_sales').select('*,sl_models(name)').gte('date',mo+'-01').lte('date',mo+'-31').order('date',{ascending:false});
+
+  // Load sales — KASSIR only sees their branch
+  let query=APP.db.from('sl_sales').select('*,sl_models(name)').gte('date',mo+'-01').lte('date',mo+'-31').order('date',{ascending:false});
+  if(isKassir) query=query.eq('branch_id',kassirBranchId);
+  const {data:sls}=await query;
   const sales=sls||[];
-  const totalRev=sales.reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
-  const totalU=sales.reduce((s,x)=>s+parseInt(x.qty||1),0);
+
   const today=new Date().toISOString().slice(0,10);
-  const todayRev=sales.filter(x=>x.date===today).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
   const totalDays=daysInMonth(mo);
   const daysPassed=workingDaysSoFar(mo);
-  // Monthly plan = sum of all branches from bmp() for this month (Jadval 1)
-  const moIdx2=APP.months.indexOf(mo);
-  const monthPlan=APP.branches.reduce((s,b)=>s+bmp(b,c,moIdx2>=0?moIdx2:0).rev,0);
+  const moIdx=APP.months.indexOf(mo);
+  const moIdx2=moIdx;
+
+  // Visible branches
+  const visibleBranches = isKassir
+    ? APP.branches.filter(b=>String(b.id)===String(kassirBranchId))
+    : APP.user?.role==='BRANCH_MGR'
+      ? APP.branches.filter(b=>String(b.id)===String(APP.user?.branch_id))
+      : APP.branches;
+
+  // Aggregate by branch
+  const byBranch={};
+  APP.branches.forEach(b=>byBranch[b.id]={rev:0,units:0});
+  sales.forEach(s=>{if(byBranch[s.branch_id]){byBranch[s.branch_id].rev+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);byBranch[s.branch_id].units+=parseInt(s.qty||1);}});
+
+  // KPI values (scoped to visible branches for KASSIR)
+  const totalRev=visibleBranches.reduce((s,b)=>s+(byBranch[b.id]?.rev||0),0);
+  const totalU=visibleBranches.reduce((s,b)=>s+(byBranch[b.id]?.units||0),0);
+  const todayRev=sales.filter(x=>x.date===today&&(!isKassir||String(x.branch_id)===String(kassirBranchId))).reduce((s,x)=>s+parseFloat(x.unit_price||0)*parseInt(x.qty||1),0);
+
+  const monthPlan=visibleBranches.reduce((s,b)=>s+bmp(b,c,moIdx2>=0?moIdx2:0).rev,0);
   const dayPlanTotal=monthPlan/totalDays;
   const daysForCalcB=Math.max(0,daysPassed-1);
   const shouldByToday=dayPlanTotal*daysForCalcB;
@@ -1015,19 +1037,28 @@ async function renderSales() {
   const newDailyPlan=remainingTarget/remainingDays;
   const pct=monthPlan>0?Math.min(100,totalRev/monthPlan*100):0;
   const pctByToday=shouldByToday>0?Math.min(100,totalRev/shouldByToday*100):0;
-  const byBranch={};
-  APP.branches.forEach(b=>byBranch[b.id]={rev:0,units:0});
-  sales.forEach(s=>{if(byBranch[s.branch_id]){byBranch[s.branch_id].rev+=parseFloat(s.unit_price||0)*parseInt(s.qty||1);byBranch[s.branch_id].units+=parseInt(s.qty||1);}});
-  const moIdx=APP.months.indexOf(mo);
-  // BRANCH_MGR sees only their own branch
-  const visibleBranches = APP.user?.role==='BRANCH_MGR'
-    ? APP.branches.filter(b=>String(b.id)===String(APP.user?.branch_id))
-    : APP.branches;
-  let html=mSel()+`<div class="kpiGrid">
+
+  // For KASSIR: show branch name in header
+  const kassirBranch=isKassir?APP.branches.find(b=>String(b.id)===String(kassirBranchId)):null;
+
+  let html=mSel();
+
+  // KASSIR gets a prominent branch header
+  if(isKassir&&kassirBranch){
+    html+=`<div style="background:var(--blue-t);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+      <div style="width:36px;height:36px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700">${kassirBranch.name[0]}</div>
+      <div>
+        <div style="font-weight:700;font-size:14px">${kassirBranch.name} filiali</div>
+        <div style="font-size:11px;color:var(--ink3)">${kassirBranch.city||''} · Kassir: ${APP.user?.full_name||''}</div>
+      </div>
+    </div>`;
+  }
+
+  html+=`<div class="kpiGrid">
     ${kpi('Haqiqat daromad',fmtD(totalRev),`${Math.round(pct)}% — reja ${fmtD(monthPlan)}`,pct>=100?'green':pct>=70?'amber':'red')}
-    ${kpi('Kechaga qadar kerak edi',fmtD(shouldByToday),`${daysForCalcB} kun (kechaga qadar) · ${Math.round(pctByToday)}% bajardi`,pctByToday>=100?'green':pctByToday>=80?'amber':'red')}
+    ${kpi('Kechaga qadar kerak edi',fmtD(shouldByToday),`${daysForCalcB} kun · ${Math.round(pctByToday)}% bajardi`,pctByToday>=100?'green':pctByToday>=80?'amber':'red')}
     ${kpi('Bugun',fmtD(todayRev),`Kunlik reja: ${fmtD(dayPlanTotal)}`,todayRev>=dayPlanTotal?'green':'amber')}
-    ${kpi('Qolgan kunlik reja',fmtD(newDailyPlan),`${remainingDays} kun qoldi · Tuzatilgan plan`,'blue')}
+    ${kpi('Qolgan kunlik reja',fmtD(newDailyPlan),`${remainingDays} kun qoldi`,'blue')}
     ${kpi('Qoldi (oy)',fmtD(remainingTarget),`Reja: ${fmtD(monthPlan)}`,'amber')}
   </div>
   <div class="card"><div class="cardB">
@@ -1039,40 +1070,66 @@ async function renderSales() {
       </span>
     </div>
     <div class="prog"><div class="progFill" style="width:${pct}%;background:${pct>=100?'var(--green)':pct>=70?'var(--amber)':'var(--blue)'}"></div></div>
-  </div></div>
-  <div class="card"><div class="cardH"><h3>Filiallar bo'yicha — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Filial</th><th>Menejer</th><th style="text-align:right">Haqiqat $</th><th style="text-align:right">Haqiqat dona</th><th style="text-align:right">Reja $</th><th style="text-align:right">Bajarish</th><th style="text-align:right">Qoldi</th></tr></thead>
-    <tbody>${visibleBranches.map(b=>{
-      const d=byBranch[b.id]||{rev:0,units:0};
-      const bp=bmp(b,c,moIdx>=0?moIdx:0);
-      const p2=bp.rev>0?Math.round(d.rev/bp.rev*100):0;
-      const mgr=APP.team.find(t=>t.branch_id===b.id&&t.role==='BRANCH_MGR');
-      return `<tr><td><strong>${b.name}</strong><br><small style="color:var(--ink3)">${b.city||''}</small></td>
-        <td>${mgr?.full_name||'<span style="color:var(--ink4)">—</span>'}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(d.rev)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${d.units}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(bp.rev)}</td>
-        <td style="text-align:right"><span class="badge badge-${p2>=100?'green':p2>=70?'amber':'red'}">${p2}%</span></td>
-        <td style="text-align:right;font-family:var(--mono);color:var(--${p2>=100?'green':'red'})">${fmtD(Math.max(0,bp.rev-d.rev))}</td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table></div></div>
-  <div class="card"><div class="cardH"><h3>Oxirgi sotuvlar</h3></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Sana</th><th>Filial</th><th>Model</th><th>Sotuvchi</th><th style="text-align:right">Summa $</th><th>Tolov</th><th></th></tr></thead>
-    <tbody>${sales.slice(0,30).map(s=>{
+  </div></div>`;
+
+  // Branch table (hidden for KASSIR - they only have 1 branch)
+  if(!isKassir){
+    html+=`<div class="card"><div class="cardH"><h3>Filiallar bo'yicha — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
+      <thead><tr><th>Filial</th><th>Menejer</th><th style="text-align:right">Haqiqat $</th><th style="text-align:right">Haqiqat dona</th><th style="text-align:right">Reja $</th><th style="text-align:right">Bajarish</th><th style="text-align:right">Qoldi</th></tr></thead>
+      <tbody>${visibleBranches.map(b=>{
+        const d=byBranch[b.id]||{rev:0,units:0};
+        const bp=bmp(b,c,moIdx>=0?moIdx:0);
+        const p2=bp.rev>0?Math.round(d.rev/bp.rev*100):0;
+        const mgr=APP.team.find(t=>t.branch_id===b.id&&t.role==='BRANCH_MGR');
+        return `<tr><td><strong>${b.name}</strong><br><small style="color:var(--ink3)">${b.city||''}</small></td>
+          <td>${mgr?.full_name||'<span style="color:var(--ink4)">—</span>'}</td>
+          <td style="text-align:right;font-family:var(--mono)">${fmtD(d.rev)}</td>
+          <td style="text-align:right;font-family:var(--mono)">${d.units}</td>
+          <td style="text-align:right;font-family:var(--mono)">${fmtD(bp.rev)}</td>
+          <td style="text-align:right"><span class="badge badge-${p2>=100?'green':p2>=70?'amber':'red'}">${p2}%</span></td>
+          <td style="text-align:right;font-family:var(--mono);color:var(--${p2>=100?'green':'red'})">${fmtD(Math.max(0,bp.rev-d.rev))}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div></div>`;
+  }
+
+  // Sales list — for KASSIR show ALL records (no 30-limit) with easy edit
+  const salesLimit=isKassir?500:30;
+  const tableTitle=isKassir
+    ? `Sotuvlar ro'yxati — ${monthLabel(mo)} · ${sales.length} ta yozuv`
+    : `Oxirgi sotuvlar`;
+
+  html+=`<div class="card"><div class="cardH">
+    <h3>${tableTitle}</h3>
+    ${isKassir?`<span class="hint" style="margin-left:auto">${kassirBranch?.name||''} · faqat siz kiritgan</span>`:''}
+  </div><div class="cardB tWrap"><table>
+    <thead><tr>
+      <th>Sana</th>
+      ${!isKassir?'<th>Filial</th>':''}
+      <th>Model</th>
+      <th>Sotuvchi</th>
+      <th style="text-align:right">Summa $</th>
+      <th>To'lov</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${sales.slice(0,salesLimit).map(s=>{
       const br=APP.branches.find(b=>b.id===s.branch_id);
-      return `<tr><td style="font-family:var(--mono);font-size:11px">${s.date}</td><td>${br?.name||'—'}</td><td>${s.sl_models?.name||'—'}</td>
+      const canEditThis=canEdit()||(APP.user?.role==='BRANCH_MGR'&&String(s.branch_id)===String(APP.user?.branch_id))||(isKassir&&String(s.branch_id)===String(kassirBranchId));
+      return `<tr>
+        <td style="font-family:var(--mono);font-size:11px">${s.date}</td>
+        ${!isKassir?`<td>${br?.name||'—'}</td>`:''}
+        <td>${s.sl_models?.name||'—'}</td>
         <td>${sellerName(s.salesperson)}</td>
         <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(parseFloat(s.unit_price||0)*parseInt(s.qty||1))}</td>
         <td><span class="badge badge-${s.payment_type==='cash'?'green':s.payment_type==='installment'?'amber':'blue'}">${payL(s.payment_type)}</span></td>
-        ${(canEdit()||(APP.user?.role==='BRANCH_MGR'&&String(s.branch_id)===String(APP.user?.branch_id))||(APP.user?.role==='KASSIR'&&String(s.branch_id)===String(APP.user?.branch_id)))?
-          `<td style="white-space:nowrap">
-            <button class="btn sm" data-sid="${s.id}" data-price="${s.unit_price}" data-pay="${s.payment_type}" data-seller="${s.salesperson||''}" onclick="editSaleClick(this)">Ред</button>
-            ${canEdit()?`<button class="btn sm danger" data-sid="${s.id}" onclick="delSaleClick(this)">Och</button>`:''}
-          </td>`
+        ${canEditThis
+          ?`<td style="white-space:nowrap">
+              <button class="btn sm" data-sid="${s.id}" data-price="${s.unit_price}" data-pay="${s.payment_type}" data-seller="${s.salesperson||''}" onclick="editSaleClick(this)">Tahrirlash</button>
+              ${canEdit()?`<button class="btn sm danger" data-sid="${s.id}" onclick="delSaleClick(this)">Och</button>`:''}
+            </td>`
           :'<td></td>'}
       </tr>`;
-    }).join('')||'<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--ink3)">Sotuvlar yoq</td></tr>'}</tbody>
+    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Sotuvlar yoq</td></tr>'}</tbody>
   </table></div></div>`;
 
   // BRANCH MANAGER TARGETS
@@ -1257,13 +1314,21 @@ async function saveSellerTarget(key, val) {
   await saveP(key, String(parseFloat(val)||0));
 }
 async function openSaleModal(){
-  const brOpts=APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
+  const isKassir=APP.user?.role==='KASSIR';
+  const kassirBranchId=isKassir?APP.user?.branch_id:null;
+  // KASSIR: only their branch; others: all branches
+  const brOpts=APP.branches.map(b=>{
+    const sel=isKassir?String(b.id)===String(kassirBranchId):false;
+    const dis=isKassir&&String(b.id)!==String(kassirBranchId);
+    return `<option value="${b.id}"${sel?' selected':''}${dis?' disabled':''}>${b.name}</option>`;
+  }).join('');
   const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}">${m.name} ($${m.price_usd})</option>`).join('');
   document.getElementById('M_user_title').textContent='Yangi sotuv';
   document.getElementById('M_user_body').innerHTML=`
-    <div class="fRow c2"><div class="fG"><label>Sana</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div><div class="fG"><label>Filial</label><select id="sBranch">${brOpts}</select></div></div>
+    <div class="fRow c2"><div class="fG"><label>Sana</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="fG"><label>Filial</label><select id="sBranch"${isKassir?' style="background:var(--bg);pointer-events:none;color:var(--ink3)"':''}>${brOpts}</select></div></div>
     <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Narx $</label><input id="sPrice" type="number"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Кол-во</label><input id="sQty" type="number" value="1" min="1"></div><div class="fG"><label>Tolov</label><select id="sPayType"><option value="cash">Наличные</option><option value="installment">Рассрочка</option><option value="card">Карта</option><option value="transfer">Перевод</option></select></div></div>
+    <div class="fRow c2"><div class="fG"><label>Kol-vo</label><input id="sQty" type="number" value="1" min="1"></div><div class="fG"><label>To'lov</label><select id="sPayType"><option value="cash">Naqd</option><option value="installment">Muddatli</option><option value="card">Karta</option><option value="transfer">O'tkazma</option></select></div></div>
     <div class="fG"><label>Sotuvchi (email)</label><input id="sSeller" value="${APP.user.email}"></div>`;
   document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveSale()">Saqlash</button>`;
   openM('M_user'); setTimeout(()=>setModelPrice(),50);
