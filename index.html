@@ -182,7 +182,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
   <div class="mB">
     <div class="fG" style="margin-bottom:12px"><label>Nomi</label><input id="tTitle"></div>
     <div class="fG" style="margin-bottom:12px"><label>Описание</label><textarea id="tDesc" rows="2" style="resize:vertical"></textarea></div>
-    <div class="fRow c2"><div class="fG"><label>Кому</label><select id="tAssign"></select></div><div class="fG"><label>Раздел</label><select id="tSect"><option value="general">Общая</option><option value="sales">Продажи</option><option value="marketing">Маркетинг</option><option value="finance">Финансы</option><option value="target">Цель</option></select></div></div>
+    <div class="fRow c2"><div class="fG"><label>Kimga</label><select id="tAssign"></select></div><div class="fG"><label>Bo'lim</label><select id="tSect"><option value="general">Umumiy</option><option value="sales">Sotuvlar</option><option value="marketing">Marketing</option><option value="finance">Moliya</option><option value="target">Maqsad</option></select></div></div>
     <div class="fRow c2" style="margin-top:12px"><div class="fG"><label>Приоритет</label><select id="tPrio"><option value="high">Высокий</option><option value="medium" selected>Средний</option><option value="low">Низкий</option></select></div><div class="fG"><label>Дедлайн</label><input id="tDue" type="date"></div></div>
   </div>
   <div class="mF"><button class="btn" onclick="closeM('M_task')">Bekor</button><button class="btn primary" onclick="saveTask()">Saqlash</button></div>
@@ -313,7 +313,7 @@ tr:last-child td{border-bottom:none}tr:hover td{background:#fafbfd}
     <div class="fG" style="margin-bottom:12px"><label>Ma'lumot manbai</label><select id="wSource"><option value="sales_by_branch">Sotuvlar bo'yicha filiallar</option><option value="sales_by_month">Sotuvlar bo'yicha oylar</option><option value="leads_by_branch">Lidlar bo'yicha filiallar</option><option value="profit_by_branch">Foyda bo'yicha filiallar</option><option value="mkt_by_branch">Marketing bo'yicha filiallar</option></select></div>
     <div class="fG"><label>Sarlavha (ixtiyoriy)</label><input id="wTitle" placeholder="Автоматически"></div>
   </div>
-  <div class="mF"><button class="btn" onclick="closeM('M_widget')">Bekor</button><button class="btn primary" onclick="saveWidget()">Qoshish</button></div>
+  <div class="mF"><button class="btn" onclick="closeM('M_widget')">Bekor</button><button class="btn primary" onclick="saveWidget()">Qo'shish</button></div>
 </div></div>
 
 <script>
@@ -336,7 +336,7 @@ const APP = {
 // ════════════════════════════════════════════════
 window.addEventListener('load', () => {
   if (!SB_URL || SB_URL.includes('ВСТАВЬТЕ')) {
-    document.getElementById('loginScreen').innerHTML = '<div style="position:relative;text-align:center;color:#fff;padding:60px"><div style="font-size:18px;font-weight:700;margin-bottom:10px">Настройка</div><div style="opacity:.6">SB_URL va SB_ANON ni fayl boshida almashtiring</div></div>';
+    document.getElementById('loginScreen').innerHTML = '<div style="position:relative;text-align:center;color:#fff;padding:60px"><div style="font-size:18px;font-weight:700;margin-bottom:10px">Sozlash</div><div style="opacity:.6">SB_URL va SB_ANON ni fayl boshida almashtiring</div></div>';
     return;
   }
   APP.db = supabase.createClient(SB_URL, SB_ANON);
@@ -365,7 +365,7 @@ async function doLogin() {
   const btn   = document.getElementById('lBtn');
   const err   = document.getElementById('lErr');
   if (!email||!pin){err.textContent='Email va PIN kiriting';return;}
-  btn.disabled=true; btn.textContent='Вход...'; err.textContent='';
+  btn.disabled=true; btn.textContent='Kirish...'; err.textContent='';
   try {
     const hash = await sha256(pin);
     const {data,error} = await APP.db.from('sl_users').select('*').eq('email',email).eq('pin_hash',hash).eq('active',true).single();
@@ -373,7 +373,7 @@ async function doLogin() {
     sessionStorage.setItem('sl_user', JSON.stringify(data));
     sessionStorage.setItem('sl_ver', 'sl_v2');
     await startApp(data);
-  } catch(e) { err.textContent=e.message||'Ошибка'; btn.disabled=false; btn.textContent='Войти'; }
+  } catch(e) { err.textContent=e.message||'Xatolik'; btn.disabled=false; btn.textContent='Kirish'; }
 }
 function doLogout(){ sessionStorage.removeItem('sl_user'); location.reload(); }
 
@@ -973,10 +973,10 @@ async function updateGrowth(i,v){let r=[];try{r=JSON.parse(APP.params.month_grow
 async function updW(id,v){const val=parseFloat(v)||0.25;await APP.db.from('sl_branches').update({weight:val}).eq('id',id);const b=APP.branches.find(x=>x.id===id);if(b)b.weight=val;loadSection(APP.currentSection);}
 function bottlenecks(c){
   const bns=[];
-  if(c.convRate<0.1) bns.push({lvl:'red',t:`Критически низкая конверсия: ${(c.convRate*100).toFixed(1)}%`,d:`Норма 15%+. Проверьте качество лидов и навыки продавцов`});
-  if(c.neededPaid>c.paidLeads) bns.push({lvl:'amber',t:`Дефицит лидов: нужно ${fmt(c.neededPaid)} платных, маркетинг даёт ${fmt(c.paidLeads)}`,d:`Увеличьте бюджет или снизьте CPL`});
-  if(c.targetMargin<8) bns.push({lvl:'amber',t:`Маржа ${c.targetMargin}% — ниже нормы (рек. 10%+)`,d:`Оптимизируйте структуру расходов`});
-  if(c.totalFOT/c.netRev>0.15) bns.push({lvl:'amber',t:`ФОТ ${(c.totalFOT/c.netRev*100).toFixed(1)}% от выручки (норма до 12%)`,d:`Оптимизируйте структуру команды`});
+  if(c.convRate<0.1) bns.push({lvl:'red',t:`Критически низкая конверсия: ${(c.convRate*100).toFixed(1)}%`,d:`Norma 15%+. Lidlar sifati va sotuvchilar ko'nikmalarini tekshiring`});
+  if(c.neededPaid>c.paidLeads) bns.push({lvl:'amber',t:`Дефицит лидов: нужно ${fmt(c.neededPaid)} платных, маркетинг даёт ${fmt(c.paidLeads)}`,d:`Budjetni oshiring yoki CPL ni kamaytiring`});
+  if(c.targetMargin<8) bns.push({lvl:'amber',t:`Маржа ${c.targetMargin}% — ниже нормы (рек. 10%+)`,d:`Xarajatlar tuzilmasini optimallang`});
+  if(c.totalFOT/c.netRev>0.15) bns.push({lvl:'amber',t:`ФОТ ${(c.totalFOT/c.netRev*100).toFixed(1)}% daromaddan (norma 12% gacha)`,d:`Jamoa tuzilmasini optimallang`});
   if(!bns.length) bns.push({lvl:'green',t:'Barcha ko\'rsatkichlar me\'yorda',d:'Muammoli joy topilmadi. Bajarishga e\'tibor qarating.'});
   return bns;
 }
@@ -994,9 +994,11 @@ async function renderSales() {
   const tb=document.getElementById('topbarRight');
   if(canEdit()){
     const b1=document.createElement('button');b1.className='btn';b1.textContent='Excel yuklash';b1.onclick=()=>openM('M_excel');tb.appendChild(b1);
-    const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.style.marginLeft='4px';b2.onclick=openSaleModal;tb.appendChild(b2);
+    const b3=document.createElement('button');b3.className='btn danger';b3.textContent='↩ Vozvrat';b3.style.marginLeft='4px';b3.onclick=()=>openSaleModal(true);tb.appendChild(b3);
+    const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.style.marginLeft='4px';b2.onclick=()=>openSaleModal(false);tb.appendChild(b2);
   } else if(isKassir){
-    const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.onclick=openSaleModal;tb.appendChild(b2);
+    const b3=document.createElement('button');b3.className='btn danger';b3.textContent='↩ Vozvrat';b3.onclick=()=>openSaleModal(true);tb.appendChild(b3);
+    const b2=document.createElement('button');b2.className='btn primary';b2.textContent='+ Sotuv';b2.style.marginLeft='4px';b2.onclick=()=>openSaleModal(false);tb.appendChild(b2);
   }
 
   // Load sales — KASSIR only sees their branch
@@ -1115,25 +1117,25 @@ async function renderSales() {
     <tbody>${sales.slice(0,salesLimit).map(s=>{
       const br=APP.branches.find(b=>b.id===s.branch_id);
       const canEditThis=canEdit()||(APP.user?.role==='BRANCH_MGR'&&String(s.branch_id)===String(APP.user?.branch_id))||(isKassir&&String(s.branch_id)===String(kassirBranchId));
-      return `<tr>
+      return `<tr style="${(s.payment_type==='vozvrat'||parseInt(s.qty||1)<0)?'background:var(--red-t);':''}">
         <td style="font-family:var(--mono);font-size:11px">${s.date}</td>
         ${!isKassir?`<td>${br?.name||'—'}</td>`:''}
         <td>${s.sl_models?.name||'—'}</td>
         <td>${sellerName(s.salesperson)}</td>
-        <td style="text-align:right;font-weight:700;font-family:var(--mono)">${fmtD(parseFloat(s.unit_price||0)*parseInt(s.qty||1))}</td>
-        <td><span class="badge badge-${s.payment_type==='cash'?'green':s.payment_type==='installment'?'amber':'blue'}">${payL(s.payment_type)}</span></td>
+        <td style="text-align:right;font-weight:700;font-family:var(--mono);color:var(--${(s.payment_type==='vozvrat'||parseInt(s.qty||1)<0)?'red':'ink'})">${(s.payment_type==='vozvrat'||parseInt(s.qty||1)<0)?'−':'+'}${fmtD(Math.abs(parseFloat(s.unit_price||0)*parseInt(s.qty||1)))}</td>
+        <td><span class="badge badge-${s.payment_type==='vozvrat'?'red':s.payment_type==='cash'?'green':s.payment_type==='installment'?'amber':'blue'}">${payL(s.payment_type)}</span></td>
         ${canEditThis
           ?`<td style="white-space:nowrap">
               <button class="btn sm" data-sid="${s.id}" data-price="${s.unit_price}" data-pay="${s.payment_type}" data-seller="${s.salesperson||''}" onclick="editSaleClick(this)">Tahrirlash</button>
-              ${canEdit()?`<button class="btn sm danger" data-sid="${s.id}" onclick="delSaleClick(this)">Och</button>`:''}
+              ${canEdit()?`<button class="btn sm danger" data-sid="${s.id}" onclick="delSaleClick(this)">O'chirish</button>`:''}
             </td>`
           :'<td></td>'}
       </tr>`;
-    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Sotuvlar yoq</td></tr>'}</tbody>
+    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Sotuvlar yo'q</td></tr>'}</tbody>
   </table></div></div>`;
 
-  // BRANCH MANAGER TARGETS
-  if(APP.user?.role==='BRANCH_MGR' || canEdit()) {
+  // BRANCH MANAGER TARGETS — hidden for KASSIR
+  if((APP.user?.role==='BRANCH_MGR' || canEdit()) && !isKassir) {
     const myBranch = APP.user?.role==='BRANCH_MGR' 
       ? APP.branches.find(b=>String(b.id)===String(APP.user?.branch_id))
       : null;
@@ -1151,11 +1153,9 @@ async function renderSales() {
           const bp = bmp(b,c,moIdx>=0?moIdx:0);
           const staffCount = staff.length||parseInt(b.staff_count)||1;
           const defaultTarget = bp.rev/staffCount;
-          
           if(!staff.length) {
-            return `<tr><td><strong>${b.name}</strong></td><td colspan="5" style="color:var(--ink4)">Sotuvchilar yoq</td></tr>`;
+            return `<tr><td><strong>${b.name}</strong></td><td colspan="5" style="color:var(--ink4)">Sotuvchilar yo'q</td></tr>`;
           }
-          
           return staff.map(t=>{
             const tgtKey = 'target_'+mo+'_'+t.id;
             const tgt = parseFloat(APP.params[tgtKey]||defaultTarget);
@@ -1179,8 +1179,14 @@ async function renderSales() {
     </div>`;
   }
 
+  // PLAN VS FACT BY BRANCH
+  // KASSIR: show only their branch; plan totals scoped to visibleBranches
+  const brPlanTotal=visibleBranches.reduce((s,b)=>s+bmp(b,c,moIdx>=0?moIdx:0).rev,0);
+  const brPlanUnits=visibleBranches.reduce((s,b)=>s+bmp(b,c,moIdx>=0?moIdx:0).units,0);
+  const brFactTotal=visibleBranches.reduce((s,b)=>s+(byBranch[b.id]?.rev||0),0);
+  const brFactUnits=visibleBranches.reduce((s,b)=>s+(byBranch[b.id]?.units||0),0);
+  const brPct=brPlanTotal>0?Math.round(brFactTotal/brPlanTotal*100):0;
 
-  // PLAN VS FACT BY BRANCH - full detail
   html += `<div class="card">
     <div class="cardH"><h3>Reja vs Haqiqat — Filiallar bo'yicha</h3>
       <span class="hint">${monthLabel(mo)}</span>
@@ -1192,8 +1198,8 @@ async function renderSales() {
         <th style="text-align:right">Haqiqat $</th>
         <th style="text-align:right">Farq $</th>
         <th style="text-align:right">%</th>
-        <th style="text-align:right">Reja dona</th>
-        <th style="text-align:right">Haqiqat dona</th>
+        <th style="text-align:right">Reja (dona)</th>
+        <th style="text-align:right">Haqiqat (dona)</th>
         <th style="text-align:right">Qoldi $</th>
         <th style="text-align:right">Kunlik reja $</th>
         <th style="text-align:right">Bugun $</th>
@@ -1230,14 +1236,14 @@ async function renderSales() {
       }).join('')}</tbody>
       <tfoot><tr class="tFoot">
         <td>JAMI</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(c.netRev*(c.normRates[moIdx>=0?moIdx:0]||1))}</td>
-        <td style="text-align:right;font-family:var(--mono);color:var(--${pct>=100?'green':'red'})">${fmtD(totalRev)}</td>
-        <td style="text-align:right;font-family:var(--mono);color:var(--${totalRev>=c.netRev?'green':'red'})">${totalRev>=c.netRev?'+':''}${fmtD(totalRev-c.netRev*(c.normRates[moIdx>=0?moIdx:0]||1))}</td>
-        <td style="text-align:right"><span class="badge badge-${pct>=100?'green':pct>=70?'amber':'red'}">${Math.round(pct)}%</span></td>
-        <td style="text-align:right;font-family:var(--mono)">${fmt(c.units*(c.normRates[moIdx>=0?moIdx:0]||1))}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmt(totalU)}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(Math.max(0,c.netRev*(c.normRates[moIdx>=0?moIdx:0]||1)-totalRev))}</td>
-        <td style="text-align:right;font-family:var(--mono)">${fmtD(c.netRev*(c.normRates[moIdx>=0?moIdx:0]||1)/26)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(brPlanTotal)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${brPct>=100?'green':'red'})">${fmtD(brFactTotal)}</td>
+        <td style="text-align:right;font-family:var(--mono);color:var(--${brFactTotal>=brPlanTotal?'green':'red'})">${brFactTotal>=brPlanTotal?'+':''}${fmtD(brFactTotal-brPlanTotal)}</td>
+        <td style="text-align:right"><span class="badge badge-${brPct>=100?'green':brPct>=70?'amber':'red'}">${brPct}%</span></td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(brPlanUnits)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmt(brFactUnits)}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(Math.max(0,brPlanTotal-brFactTotal))}</td>
+        <td style="text-align:right;font-family:var(--mono)">${fmtD(brPlanTotal/26)}</td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(todayRev)}</td>
       </tr></tfoot>
     </table></div>
@@ -1313,54 +1319,159 @@ async function renderSales() {
 async function saveSellerTarget(key, val) {
   await saveP(key, String(parseFloat(val)||0));
 }
-async function openSaleModal(){
+async function openSaleModal(isVozvrat=false){
   const isKassir=APP.user?.role==='KASSIR';
   const kassirBranchId=isKassir?APP.user?.branch_id:null;
-  // KASSIR: only their branch; others: all branches
+
   const brOpts=APP.branches.map(b=>{
     const sel=isKassir?String(b.id)===String(kassirBranchId):false;
     const dis=isKassir&&String(b.id)!==String(kassirBranchId);
     return `<option value="${b.id}"${sel?' selected':''}${dis?' disabled':''}>${b.name}</option>`;
   }).join('');
-  const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}">${m.name} ($${m.price_usd})</option>`).join('');
-  document.getElementById('M_user_title').textContent='Yangi sotuv';
+
+  const sellerTeam = isKassir
+    ? APP.team.filter(t=>String(t.branch_id)===String(kassirBranchId)&&['SALES_STAFF','BRANCH_MGR','KASSIR'].includes(t.role))
+    : APP.team.filter(t=>['SALES_STAFF','BRANCH_MGR'].includes(t.role));
+  const slOpts=sellerTeam.map(t=>`<option value="${t.email}"${t.email===APP.user.email?' selected':''}>${t.full_name}</option>`).join('');
+  const sellerField = sellerTeam.length
+    ? `<select id="sSeller">${slOpts}</select>`
+    : `<input id="sSeller" value="${APP.user.email}" placeholder="Sotuvchi emaili">`;
+
+  const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}" data-cost="${m.cost_usd}">${m.name} ($${m.price_usd})</option>`).join('');
+
+  document.getElementById('M_user_title').textContent=isVozvrat?'Vozvrat kiritish':'Yangi sotuv';
   document.getElementById('M_user_body').innerHTML=`
-    <div class="fRow c2"><div class="fG"><label>Sana</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
-    <div class="fG"><label>Filial</label><select id="sBranch"${isKassir?' style="background:var(--bg);pointer-events:none;color:var(--ink3)"':''}>${brOpts}</select></div></div>
-    <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Narx $</label><input id="sPrice" type="number"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Kol-vo</label><input id="sQty" type="number" value="1" min="1"></div><div class="fG"><label>To'lov</label><select id="sPayType"><option value="cash">Naqd</option><option value="installment">Muddatli</option><option value="card">Karta</option><option value="transfer">O'tkazma</option></select></div></div>
-    <div class="fG"><label>Sotuvchi (email)</label><input id="sSeller" value="${APP.user.email}"></div>`;
-  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveSale()">Saqlash</button>`;
-  openM('M_user'); setTimeout(()=>setModelPrice(),50);
+    ${isVozvrat?`<div style="background:var(--red-t);border:1px solid var(--red);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--red)">
+      ⚠️ Vozvrat — summa hisobdan <strong>ayiriladi</strong>.</div>`:''}
+    <div class="fRow c2">
+      <div class="fG"><label>Sana</label><input id="sDate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="fG"><label>Filial</label><select id="sBranch"${isKassir?' style="background:var(--bg);pointer-events:none;color:var(--ink3)"':''}>${brOpts}</select></div>
+    </div>
+    <div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div>
+    <div class="fRow c2">
+      <div class="fG"><label>Sotuv narxi $</label><input id="sPrice" type="number" oninput="calcSaleMargin()"></div>
+      <div class="fG"><label>Tan narxi $</label><input id="sCost" type="number" oninput="calcSaleMargin()"></div>
+    </div>
+    <div id="sMarginInfo" style="font-size:11px;color:var(--ink3);margin:-4px 0 8px;padding:6px 10px;background:var(--bg);border-radius:6px;display:none"></div>
+    <div class="fRow c2">
+      <div class="fG"><label>Soni</label><input id="sQty" type="number" value="1" min="1" oninput="calcSaleMargin()"></div>
+      <div class="fG"><label>To'lov</label><select id="sPayType">
+        ${isVozvrat
+          ?`<option value="vozvrat" selected>Vozvrat</option>`
+          :`<option value="cash">Naqd</option><option value="installment">Muddatli</option><option value="card">Karta</option><option value="transfer">O'tkazma</option>`}
+      </select></div>
+    </div>
+    <div class="fG"><label>Sotuvchi</label>${sellerField}</div>`;
+  document.getElementById('M_user_foot').innerHTML=`
+    <button class="btn" onclick="closeM('M_user')">Bekor</button>
+    <button class="btn ${isVozvrat?'danger':'primary'}" onclick="saveSale(${isVozvrat})">
+      ${isVozvrat?'Vozvrat saqlash':'Saqlash'}
+    </button>`;
+  openM('M_user');
+  setTimeout(()=>setModelPrice(),50);
 }
-function setModelPrice(){const sel=document.getElementById('sModel');const opt=sel.options[sel.selectedIndex];document.getElementById('sPrice').value=opt?.dataset.price||'';}
-async function saveSale(){
+
+function setModelPrice(){
+  const sel=document.getElementById('sModel');
+  const opt=sel?.options[sel.selectedIndex];
+  if(!opt) return;
+  document.getElementById('sPrice').value=opt.dataset.price||'';
+  document.getElementById('sCost').value=opt.dataset.cost||'';
+  calcSaleMargin();
+}
+
+function calcSaleMargin(){
+  const price=parseFloat(document.getElementById('sPrice')?.value)||0;
+  const cost=parseFloat(document.getElementById('sCost')?.value)||0;
+  const qty=parseInt(document.getElementById('sQty')?.value)||1;
+  const el=document.getElementById('sMarginInfo');
+  if(!el) return;
+  if(price>0&&cost>0){
+    const margin=price-cost;
+    const marginPct=price>0?(margin/price*100).toFixed(1):0;
+    const total=margin*qty;
+    el.style.display='block';
+    el.innerHTML=`Marja: <strong style="color:var(--${margin>=0?'green':'red'})">${fmtD(margin)}</strong> (${marginPct}%) · ${qty>1?`${qty} donada: <strong>${fmtD(total)}</strong>`:''}`;
+  } else { el.style.display='none'; }
+}
+
+async function saveSale(isVozvrat=false){
   const sid=document.getElementById('sDate').dataset.editId||null;
   const branchId=parseInt(document.getElementById('sBranch').value);
-  // KASSIR can only save for their own branch
   if(APP.user?.role==='KASSIR'&&String(branchId)!==String(APP.user?.branch_id)){
     alert('Siz faqat o\'z filialingiz uchun sotuv kirita olasiz');return;
   }
-  const row={date:document.getElementById('sDate').value,branch_id:branchId,model_id:parseInt(document.getElementById('sModel').value),unit_price:parseFloat(document.getElementById('sPrice').value)||0,qty:parseInt(document.getElementById('sQty').value)||1,payment_type:document.getElementById('sPayType').value,salesperson:document.getElementById('sSeller').value};
+  const rawQty=parseInt(document.getElementById('sQty').value)||1;
+  // Vozvrat = negative qty
+  const qty=isVozvrat?-Math.abs(rawQty):Math.abs(rawQty);
+  const row={
+    date:document.getElementById('sDate').value,
+    branch_id:branchId,
+    model_id:parseInt(document.getElementById('sModel').value),
+    unit_price:parseFloat(document.getElementById('sPrice').value)||0,
+    unit_cost:parseFloat(document.getElementById('sCost')?.value)||0,
+    qty,
+    payment_type:document.getElementById('sPayType').value,
+    salesperson:document.getElementById('sSeller').value
+  };
   if(sid){await APP.db.from('sl_sales').update(row).eq('id',sid);}
   else{await APP.db.from('sl_sales').insert(row);}
   closeM('M_user'); renderSales();
 }
+
 async function editSaleClick(btn){
   const sid=btn.dataset.sid;
   const {data:s}=await APP.db.from('sl_sales').select('*').eq('id',sid).single();
   if(!s) return;
-  const brOpts=APP.branches.map(b=>`<option value="${b.id}"${b.id===s.branch_id?' selected':''}>${b.name}</option>`).join('');
-  const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}"${m.id===s.model_id?' selected':''}>${m.name} ($${m.price_usd})</option>`).join('');
-  const slOpts=APP.team.filter(t=>['SALES_STAFF','BRANCH_MGR'].includes(t.role)).map(t=>`<option value="${t.email}"${t.email===s.salesperson?' selected':''}>${t.full_name} (${t.email})</option>`).join('');
-  document.getElementById('M_user_title').textContent='Sotuvni tahrirlash';
+  const isKassir=APP.user?.role==='KASSIR';
+  const kassirBranchId=isKassir?APP.user?.branch_id:null;
+  const isVozvrat=s.payment_type==='vozvrat'||parseInt(s.qty||1)<0;
+
+  const brOpts=APP.branches.map(b=>{
+    const sel=b.id===s.branch_id;
+    const dis=isKassir&&String(b.id)!==String(kassirBranchId);
+    return `<option value="${b.id}"${sel?' selected':''}${dis?' disabled':''}>${b.name}</option>`;
+  }).join('');
+  const mdOpts=APP.models.map(m=>`<option value="${m.id}" data-price="${m.price_usd}" data-cost="${m.cost_usd}"${m.id===s.model_id?' selected':''}>${m.name} ($${m.price_usd})</option>`).join('');
+
+  // Sotuvchi dropdown — filter by branch if KASSIR
+  const sellerTeam = isKassir
+    ? APP.team.filter(t=>String(t.branch_id)===String(kassirBranchId)&&['SALES_STAFF','BRANCH_MGR','KASSIR'].includes(t.role))
+    : APP.team.filter(t=>['SALES_STAFF','BRANCH_MGR'].includes(t.role));
+  const slOpts=sellerTeam.map(t=>`<option value="${t.email}"${t.email===s.salesperson?' selected':''}>${t.full_name}</option>`).join('');
+  const sellerField=sellerTeam.length
+    ? `<select id="sSeller">${slOpts}</select>`
+    : `<input id="sSeller" value="${s.salesperson||''}" placeholder="Sotuvchi emaili">`;
+
+  document.getElementById('M_user_title').textContent=isVozvrat?'Vozvratni tahrirlash':'Sotuvni tahrirlash';
   document.getElementById('M_user_body').innerHTML=`
-    <div class="fRow c2"><div class="fG"><label>Sana</label><input id="sDate" type="date" value="${s.date||''}" data-edit-id="${sid}"></div><div class="fG"><label>Filial</label><select id="sBranch">${brOpts}</select></div></div>
-    <div class="fRow c2"><div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div><div class="fG"><label>Narx $</label><input id="sPrice" type="number" value="${s.unit_price||''}"></div></div>
-    <div class="fRow c2"><div class="fG"><label>Soni</label><input id="sQty" type="number" value="${s.qty||1}" min="1"></div><div class="fG"><label>To'lov</label><select id="sPayType"><option value="cash"${s.payment_type==='cash'?' selected':''}>Naqd</option><option value="installment"${s.payment_type==='installment'?' selected':''}>Muddatli</option><option value="card"${s.payment_type==='card'?' selected':''}>Karta</option><option value="transfer"${s.payment_type==='transfer'?' selected':''}>O'tkazma</option></select></div></div>
-    <div class="fG"><label>Sotuvchi</label><select id="sSeller">${slOpts}</select></div>`;
-  document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveSale()">Saqlash</button>`;
+    ${isVozvrat?`<div style="background:var(--red-t);border:1px solid var(--red);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--red)">⚠️ Vozvrat yozuvi</div>`:''}
+    <div class="fRow c2">
+      <div class="fG"><label>Sana</label><input id="sDate" type="date" value="${s.date||''}" data-edit-id="${sid}"></div>
+      <div class="fG"><label>Filial</label><select id="sBranch"${isKassir?' style="background:var(--bg);pointer-events:none;color:var(--ink3)"':''}>${brOpts}</select></div>
+    </div>
+    <div class="fG"><label>Model</label><select id="sModel" onchange="setModelPrice()">${mdOpts}</select></div>
+    <div class="fRow c2">
+      <div class="fG"><label>Sotuv narxi $</label><input id="sPrice" type="number" value="${s.unit_price||''}" oninput="calcSaleMargin()"></div>
+      <div class="fG"><label>Tan narxi $</label><input id="sCost" type="number" value="${s.unit_cost||''}" oninput="calcSaleMargin()"></div>
+    </div>
+    <div id="sMarginInfo" style="font-size:11px;color:var(--ink3);margin:-4px 0 8px;padding:6px 10px;background:var(--bg);border-radius:6px;display:none"></div>
+    <div class="fRow c2">
+      <div class="fG"><label>Soni</label><input id="sQty" type="number" value="${Math.abs(s.qty||1)}" min="1" oninput="calcSaleMargin()"></div>
+      <div class="fG"><label>To'lov</label><select id="sPayType">
+        <option value="cash"${s.payment_type==='cash'?' selected':''}>Naqd</option>
+        <option value="installment"${s.payment_type==='installment'?' selected':''}>Muddatli</option>
+        <option value="card"${s.payment_type==='card'?' selected':''}>Karta</option>
+        <option value="transfer"${s.payment_type==='transfer'?' selected':''}>O'tkazma</option>
+        <option value="vozvrat"${s.payment_type==='vozvrat'?' selected':''}>Vozvrat</option>
+      </select></div>
+    </div>
+    <div class="fG"><label>Sotuvchi</label>${sellerField}</div>`;
+  document.getElementById('M_user_foot').innerHTML=`
+    <button class="btn" onclick="closeM('M_user')">Bekor</button>
+    <button class="btn primary" onclick="saveSale(${isVozvrat})">Saqlash</button>`;
   openM('M_user');
+  setTimeout(()=>calcSaleMargin(),50);
 }
 async function delSaleClick(btn){
   if(!confirm('Bu sotuvni o\'chirib tashlash?')) return;
@@ -1575,8 +1686,8 @@ async function renderMarketing(){
         <td style="font-size:11px">${ch}</td>
         <td style="font-size:11px;color:var(--ink3)">${l.entered_by||'—'}</td>
         ${isMktAdmin?`<td style="white-space:nowrap">
-          <button class="btn sm" onclick="editLeadModal('${l.id}','${l.date}','${l.branch_id}','${l.total_leads}','${l.quality_leads}','${l.channel||''}')">Ред</button>
-          <button class="btn sm danger" onclick="deleteLead('${l.id}')">Och</button>
+          <button class="btn sm" onclick="editLeadModal('${l.id}','${l.date}','${l.branch_id}','${l.total_leads}','${l.quality_leads}','${l.channel||''}')">Tahrirlash</button>
+          <button class="btn sm danger" onclick="deleteLead('${l.id}')">O'chirish</button>
         </td>`:''}
       </tr>`;
     }).join('')||'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--ink3)">Hali lid kiritilmagan</td></tr>'}</tbody>
@@ -1749,7 +1860,7 @@ async function renderBranches(){
         <td>${mgr?.full_name||'<span style="color:var(--ink4)">—</span>'}</td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(plan.rev)}</td>
         <td style="text-align:right;font-family:var(--mono)">${plan.units}</td>
-        ${canEdit()?`<td><button class="btn sm" onclick="openBranchModal(${b.id})">Ред</button></td>`:''}
+        ${canEdit()?`<td><button class="btn sm" onclick="openBranchModal(${b.id})">Tahrirlash</button></td>`:''}
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
@@ -1763,11 +1874,11 @@ async function renderBranches(){
         <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
         <td style="font-family:var(--mono);font-size:11px">${t.telegram_id||'—'}</td>
         ${canEdit()?`<td style="white-space:nowrap">
-          <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button>
-          <button class="btn sm danger" onclick="deleteTeamMember('${t.id}')">Och</button>
+          <button class="btn sm" onclick="openTeamModal('${t.id}')">Tahrirlash</button>
+          <button class="btn sm danger" onclick="deleteTeamMember('${t.id}')">O'chirish</button>
         </td>`:''}
       </tr>`;
-    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yoq</td></tr>'}</tbody>
+    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yo'q</td></tr>'}</tbody>
   </table></div></div>`;
 
   // BRANCH MAX INPUT — for admins and branch managers
@@ -1801,7 +1912,7 @@ async function renderBranches(){
 }
 async function openBranchModal(id=null){
   const b=id?APP.branches.find(x=>x.id===id):null;
-  document.getElementById('M_user_title').textContent=id?'Filialni tahrirlash':'Filial qoshish';
+  document.getElementById('M_user_title').textContent=id?'Filialni tahrirlash':'Filial qo'shish';
   document.getElementById('M_user_body').innerHTML=`
     <div class="fRow c2"><div class="fG"><label>Nomi</label><input id="brName" value="${b?.name||''}"></div><div class="fG"><label>Shahar</label><input id="brCity" value="${b?.city||''}"></div></div>
     <div class="fRow c2"><div class="fG"><label>Og'irlik (доля плана)</label><input id="brWeight" type="number" step="0.25" min="0.25" value="${b?.weight||1}"></div><div class="fG"><label>Xodimlar soni</label><input id="brStaff" type="number" min="1" value="${b?.staff_count||2}"></div></div>
@@ -1861,7 +1972,7 @@ async function renderTeam(){
   const sColor={pending:'amber',done:'green',cancelled:'gray',review:'blue'};
   let html=mSel()+`<div class="kpiGrid">
     ${kpi('Xodimlar',APP.team.length,'faol','blue')}
-    ${kpi('ФОТ/мес',fmtD(c.totalFOT),'belgilangan','amber')}
+    ${kpi('Ish haqi (FOT)/oy',fmtD(c.totalFOT),'belgilangan','amber')}
     ${kpi('Xohlangan bonuslar',fmtD(totalBonus),`${monthLabel(mo)} uchun`,'green')}
     ${totalBonusAllMonths>totalBonus?kpi('Jami bonuslar (barcha oylar)',fmtD(totalBonusAllMonths),`${APP.months.length} oy`,'blue'):''}
     ${kpi('Ochiq vazifalar',(tasks||[]).filter(t=>t.status==='pending').length,mo,'')}
@@ -1880,8 +1991,8 @@ async function renderTeam(){
         <td style="max-width:150px;font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wd.wish||'—'}</td>
         ${canEdit()?`<td style="white-space:nowrap">
           <button class="btn sm" onclick="openWishModal('${t.id}','${t.email}','${t.full_name.replace(/'/g,'\u0060')}','${mo}')">Maqsad</button>
-          <button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button>
-          <button class="btn sm danger" onclick="if(confirm('${t.full_name} ni ochirish?'))deleteTeamMember('${t.id}')">Och</button>
+          <button class="btn sm" onclick="openTeamModal('${t.id}')">Tahrirlash</button>
+          <button class="btn sm danger" onclick="if(confirm('${t.full_name} ni ochirish?'))deleteTeamMember('${t.id}')">O'chirish</button>
           ${t.telegram_id?`<button class="btn sm" onclick="sendTgTo('${t.telegram_id}','${t.full_name.replace(/'/g,'\u0060')}','${mo}')">TG</button>`:''}
         </td>`:''}
       </tr>`;
@@ -2053,7 +2164,7 @@ async function openTeamModal(id=null){
     roleOpts += '<option value="'+v+'"'+sel+'>'+l+'</option>';
   });
 
-  document.getElementById('M_team_title').textContent = id ? 'Xodimni tahrirlash' : 'Xodim qoshish';
+  document.getElementById('M_team_title').textContent = id ? 'Xodimni tahrirlash' : 'Xodim qo'shish';
   document.getElementById('M_team_body').innerHTML =
     '<div class="fRow c2">'
       +'<div class="fG"><label>Ism Familiya</label><input id="tmName" value="'+(t?.full_name||'')+'"></div>'
@@ -2110,16 +2221,16 @@ async function renderFinance(){
   const pct=c.targetProfit>0?Math.round(netP/c.targetProfit*100):0;
   const pnlRows=[
     {l:'Daromad (reja)',v:c.netRev,b:false,cls:''},
-    {l:'Выручка (факт)',v:totalRev,b:true,cls:totalRev>=c.netRev?'green':'red'},
-    {l:'Себестоимость',v:-cogs,b:false,cls:'red'},
+    {l:'Daromad (haqiqat)',v:totalRev,b:true,cls:totalRev>=c.netRev?'green':'red'},
+    {l:'Tannarx (COGS)',v:-cogs,b:false,cls:'red'},
     {l:'Yalpi foyda',v:grossP,b:true,cls:'blue'},
     {l:'',v:null,sep:true},
-    {l:'ФОТ',v:-c.totalFOT,b:false,cls:''},
-    {l:'Аренда',v:-c.totalRent,b:false,cls:''},
-    {l:'Маркетинг',v:-c.mktBudget,b:false,cls:''},
-    {l:'Бонусы сотрудников',v:-totalBonus,b:false,cls:''},
-    {l:'Прочие расходы',v:-c.otherOpex,b:false,cls:''},
-    {l:'Jami расходы',v:-totalOpex,b:true,cls:'red'},
+    {l:'Ish haqi (FOT)',v:-c.totalFOT,b:false,cls:''},
+    {l:'Ijara',v:-c.totalRent,b:false,cls:''},
+    {l:'Marketing',v:-c.mktBudget,b:false,cls:''},
+    {l:'Xodimlar bonusi',v:-totalBonus,b:false,cls:''},
+    {l:'Boshqa xarajatlar',v:-c.otherOpex,b:false,cls:''},
+    {l:'Jami xarajatlar',v:-totalOpex,b:true,cls:'red'},
     {l:'',v:null,sep:true},
     {l:'Sof foyda',v:netP,b:true,cls:netP>=c.targetProfit?'green':'red'},
     {l:'Чистая маржа %',v:null,str:totalRev>0?(netP/totalRev*100).toFixed(1)+'%':'—',b:true,cls:totalRev>0&&netP/totalRev*100>=c.targetMargin?'green':'amber'},
@@ -2128,9 +2239,9 @@ async function renderFinance(){
     ${kpi('Daromad (haqiqat)',fmtD(totalRev),`${Math.round(totalRev/c.netRev*100)}% от плана`,totalRev>=c.netRev?'green':'amber')}
     ${kpi('Yalpi foyda',fmtD(grossP),`Маржа ${c.grossMargin}%`,'blue')}
     ${kpi('Operatsion xarajatlar',fmtD(totalOpex),'','amber')}
-    ${kpi('Sof foyda',fmtD(netP),`${pct}% от плана`,netP>=c.targetProfit?'green':'red')}
+    ${kpi('Sof foyda',fmtD(netP),`${pct}% reja bajarish`,netP>=c.targetProfit?'green':'red')}
     ${kpi('Cash IN',fmtD(cashIn),`Нал. ${fmtD(cashRev)}`,'green')}
-    ${kpi('Дефицит ликв.',fmtD(Math.max(0,totalRev-cashIn)),`Рассрочка ${c.installPct}%`,'red')}
+    ${kpi('Likvidlik taqchilligi',fmtD(Math.max(0,totalRev-cashIn)),`Muddatli ${c.installPct}%`,'red')}
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
   <div class="card"><div class="cardH"><h3>P&L — ${monthLabel(mo)}</h3></div><div class="cardB tWrap"><table>
@@ -2147,10 +2258,10 @@ async function renderFinance(){
       <tr><td>Muddatli to'lov tushumlari (1/${c.installMonths})</td><td style="text-align:right;font-family:var(--mono)">${fmtD(installRev/c.installMonths)}</td></tr>
       <tr style="font-weight:700;background:var(--bg)"><td>JAMI Cash IN</td><td style="text-align:right;font-family:var(--mono);color:var(--green)">${fmtD(cashIn)}</td></tr>
       <tr><td colspan="2" style="padding-top:8px;font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase">Исходящие</td></tr>
-      <tr><td>Себестоимость</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs)}</td></tr>
-      <tr><td>ФОТ</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalFOT)}</td></tr>
-      <tr><td>Аренда</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalRent)}</td></tr>
-      <tr><td>Маркетинг</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.mktBudget)}</td></tr>
+      <tr><td>Tannarx</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs)}</td></tr>
+      <tr><td>Ish haqi</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalFOT)}</td></tr>
+      <tr><td>Ijara</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.totalRent)}</td></tr>
+      <tr><td>Marketing</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.mktBudget)}</td></tr>
       <tr><td>Boshqa + bonuslar</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(c.otherOpex+totalBonus)}</td></tr>
       <tr style="font-weight:700;background:var(--bg)"><td>JAMI Cash OUT</td><td style="text-align:right;font-family:var(--mono);color:var(--red)">${fmtD(cogs+totalOpex)}</td></tr>
       <tr style="font-weight:700;font-size:14px"><td>Net Cash Flow</td><td style="text-align:right;font-family:var(--mono);color:var(--${cashIn-cogs-totalOpex>=0?'green':'red'})">${fmtD(cashIn-cogs-totalOpex)}</td></tr>
@@ -2443,7 +2554,7 @@ function buildCollTable(list,mo){
     const coll=APP.team.find(t=>t.email===c.collector_email);
     const sMap={active:'amber',paid:'green',written_off:'gray',legal:'red'};
     const status=c.status||'active';
-    const edBtn=canEdit()?'<button class="btn sm" onclick="openCollModal(\''+c.id+'\')">Ред</button>':'';
+    const edBtn=canEdit()?'<button class="btn sm" onclick="openCollModal(\''+c.id+'\')">Tahrirlash</button>':'';
     return '<tr>'+
       '<td><strong>'+c.client_name+'</strong></td><td style="font-size:11px">'+(c.phone||'—')+'</td>'+
       '<td>'+(br?.name||'—')+'</td>'+
@@ -2482,7 +2593,7 @@ async function renderCollections(){
   html+=wArea('collections'); document.getElementById('content').innerHTML=html; renderWidgets('collections');
 }
 async function openCollModal(id=null){
-  document.getElementById('M_coll_title').textContent=id?'Tahrirlash':'Qoshish';
+  document.getElementById('M_coll_title').textContent=id?'Tahrirlash':'Qo'shish';
   const brOpts='<option value="">—</option>'+APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
   const cOpts='<option value="">—</option>'+APP.team.filter(t=>t.role==='COLLECTOR').map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('');
   document.getElementById('clBranch').innerHTML=brOpts;
@@ -2598,7 +2709,7 @@ async function renderCallCenter(){
           <span class="badge badge-${t.status==='done'?'green':'amber'}">${t.status==='done'?'Bajarildi':'Kutilmoqda'}</span>
         </div>`;
       }).join('')}
-    </div>`:`<div style="text-align:center;padding:20px;color:var(--ink3)">Bugun vazifa yoq</div>`}
+    </div>`:`<div style="text-align:center;padding:20px;color:var(--ink3)">Bugun vazifa yo'q</div>`}
   </div></div>`;
 
   // ALL TASKS TABLE
@@ -2623,7 +2734,7 @@ async function renderCallCenter(){
         <td><span class="badge badge-${t.status==='done'?'green':t.status==='pending'?'amber':'gray'}">${t.status==='done'?'Bajarildi':t.status==='pending'?'Kutilmoqda':'Bekor'}</span></td>
         ${canEdit()?`<td><button class="btn sm" onclick="toggleTask('${t.id}','${t.status}')">${t.status==='pending'?'Bajarildi':'Ochish'}</button></td>`:''}
       </tr>`;
-    }).join('')||`<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Vazifalar yoq</td></tr>`}</tbody>
+    }).join('')||`<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Vazifalar yo'q</td></tr>`}</tbody>
   </table></div></div>`;
 
   // STATS BY OPERATOR
@@ -2775,7 +2886,7 @@ function recurringRulesPanel(section){
   const freqLabel={daily:'Har kuni',weekdays:'Har kuni (DU-JU)',weekly:'Har hafta',monthly:'Har oy'};
   return `<div class="card"><div class="cardH">
     <h3>Qaytalanadigan vazifalar</h3>
-    ${canEdit()?'<button class="btn primary sm" onclick="openRecurringModal()" style="margin-left:auto">+ Qoida qoshish</button>':''}
+    ${canEdit()?'<button class="btn primary sm" onclick="openRecurringModal()" style="margin-left:auto">+ Qoida qo'shish</button>':''}
   </div><div class="cardB">
     ${sectionRules.length?`<div class="tWrap"><table>
       <thead><tr><th>Vazifa</th><th>Bajaruvchi</th><th>Takrorlash</th><th>Boshlanishi</th><th>Holati</th>${canEdit()?'<th></th>':''}</tr></thead>
@@ -2793,7 +2904,7 @@ function recurringRulesPanel(section){
           </td>`:''}
         </tr>`;
       }).join('')}</tbody>
-    </table></div>`:`<div style="text-align:center;padding:16px;color:var(--ink3)">Qoidalar yoq. ${canEdit()?'Yuqoridagi tugmani bosing.':''}</div>`}
+    </table></div>`:`<div style="text-align:center;padding:16px;color:var(--ink3)">Qoidalar yo'q. ${canEdit()?'Yuqoridagi tugmani bosing.':''}</div>`}
   </div></div>`;
 }
 
@@ -3179,17 +3290,17 @@ async function renderSettings(){
     {k:'commission_pct',l:'Sotuvchi komissiyasi %'},{k:'tg_bot_token',l:'Telegram Bot Token'}
   ];
   let html=`<div class="card"><div class="cardH"><h3>Tizim foydalanuvchilari</h3><button class="btn primary sm" onclick="openUserModal()" style="margin-left:auto">+ Foydalanuvchi</button></div><div class="cardB tWrap"><table>
-    <thead><tr><th>Email</th><th>Ism</th><th>Rol</th><th>Filial</th><th>Разделы</th><th>Faol</th><th></th></tr></thead>
+    <thead><tr><th>Email</th><th>Ism</th><th>Rol</th><th>Filial</th><th>Bo'limlar</th><th>Faol</th><th></th></tr></thead>
     <tbody>${APP.users.map(u=>{
       const br=APP.branches.find(b=>b.id===u.branch_id);
       return `<tr><td style="font-size:11px;font-family:var(--mono)">${u.email}</td><td>${u.full_name||'—'}</td>
         <td><span class="badge badge-${rColor(u.role)}">${roleLabel(u.role)}</span></td>
-        <td>${br?.name||'Все'}</td>
+        <td>${br?.name||'Hammasi'}</td>
         <td style="font-size:10px;color:var(--ink3)">${u.sections||'ALL'}</td>
-        <td><span class="badge badge-${u.active?'green':'gray'}">${u.active?'Да':'Нет'}</span></td>
+        <td><span class="badge badge-${u.active?'green':'gray'}">${u.active?'Ha':'Yo'q'}</span></td>
         <td style="white-space:nowrap">
-          <button class="btn sm" onclick="openUserModal('${u.email}')">Ред</button>
-          <button class="btn sm" onclick="toggleActive('${u.email}',${u.active})">${u.active?'Och':'Акт.'}</button>
+          <button class="btn sm" onclick="openUserModal('${u.email}')">Tahrirlash</button>
+          <button class="btn sm" onclick="toggleActive('${u.email}',${u.active})">${u.active?'O'chirish':'Faollashtirish'}</button>
         </td>
       </tr>`;
     }).join('')}</tbody>
@@ -3209,19 +3320,19 @@ async function renderSettings(){
         <td><span class="badge badge-${rColor(t.role)}">${roleLabel(t.role)}</span></td>
         <td>${br?.name||'—'}</td>
         <td style="text-align:right;font-family:var(--mono)">${fmtD(t.salary_usd||0)}</td>
-        <td><button class="btn sm" onclick="openTeamModal('${t.id}')">Ред</button></td>
+        <td><button class="btn sm" onclick="openTeamModal('${t.id}')">Tahrirlash</button></td>
       </tr>`;
     }).join('')}</tbody>
   </table></div></div>
   </div>
-  <div class="card"><div class="cardH"><h3>Vidjetlar (bolimlarni sozlash)</h3><span class="hint">Administrator ixtiyoriy bo'limga widget qo'shadi</span></div><div class="cardB">
+  <div class="card"><div class="cardH"><h3>Vidjetlar (bo'limlarni sozlash)</h3><span class="hint">Administrator ixtiyoriy bo'limga widget qo'shadi</span></div><div class="cardB">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
       ${['strategy','sales','marketing','branches','team','finance','procurement','collections'].map(s=>{
         let ws=[];try{ws=JSON.parse(APP.params[`widgets_${s}`]||'[]');}catch(e){}
         return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
           <div style="font-size:11px;font-weight:700;margin-bottom:4px">${SECTIONS.find(x=>x.id===s)?.label||s}</div>
           <div style="font-size:11px;color:var(--ink3)">${ws.length} vijet</div>
-          <button class="btn sm primary" onclick="openWidgetModal('${s}')" style="margin-top:8px">Qoshish</button>
+          <button class="btn sm primary" onclick="openWidgetModal('${s}')" style="margin-top:8px">Qo'shish</button>
           ${ws.length?`<button class="btn sm danger" onclick="clearWidgets('${s}')" style="margin-top:4px">Очистить</button>`:''}
         </div>`;
       }).join('')}
@@ -3237,17 +3348,17 @@ async function openUserModal(email=null){
     <div class="fRow c2"><div class="fG"><label>Ism</label><input id="uName" value="${u?.full_name||''}"></div><div class="fG"><label>Email</label><input id="uEmail" type="email" value="${u?.email||''}"${email?' readonly':''}></div></div>
     <div class="fRow c2"><div class="fG"><label>PIN</label><input id="uPin" type="password" placeholder="••••••"></div><div class="fG"><label>Telegram ID</label><input id="uTg" value="${u?.telegram_id||''}"></div></div>
     <div class="fRow c2"><div class="fG"><label>Rol</label><select id="uRole">
-      <option value="ADMIN"${u?.role==='ADMIN'?' selected':''}>Админ</option>
-      <option value="TOP_MGR"${u?.role==='TOP_MGR'?' selected':''}>Топ-менеджер</option>
+      <option value="ADMIN"${u?.role==='ADMIN'?' selected':''}>Admin</option>
+      <option value="TOP_MGR"${u?.role==='TOP_MGR'?' selected':''}>Top-menejer</option>
       <option value="BRANCH_MGR"${u?.role==='BRANCH_MGR'?' selected':''}>Filial menejeri</option>
       <option value="SALES_STAFF"${!u||u?.role==='SALES_STAFF'?' selected':''}>Sotuvchi</option>
       <option value="COLLECTOR"${u?.role==='COLLECTOR'?' selected':''}>Kollektor</option>
-      <option value="CALLCENTER"${u?.role==='CALLCENTER'?' selected':''}>Колл-центр</option>
+      <option value="CALLCENTER"${u?.role==='CALLCENTER'?' selected':''}>Koll-markaz</option>
       <option value="TARGETOLOG"${u?.role==='TARGETOLOG'?' selected':''}>Targetolog</option>
       <option value="KASSIR"${u?.role==='KASSIR'?' selected':''}>Kassir</option>
-      <option value="USER"${u?.role==='USER'?' selected':''}>Наблюдатель</option>
+      <option value="USER"${u?.role==='USER'?' selected':''}>Kuzatuvchi</option>
     </select></div><div class="fG"><label>Filial</label><select id="uBranch">${brOpts}</select></div></div>
-    <div class="fG"><label>Bolimlar</label><input id="uSects" value="${u?.sections||'ALL'}" placeholder="strategy,sales,marketing,..."></div>`;
+    <div class="fG"><label>Bo'limlar</label><input id="uSects" value="${u?.sections||'ALL'}" placeholder="strategy,sales,marketing,..."></div>`;
   document.getElementById('M_user_foot').innerHTML=`<button class="btn" onclick="closeM('M_user')">Bekor</button><button class="btn primary" onclick="saveUser('${email||''}')">Saqlash</button>`;
   openM('M_user');
 }
@@ -3271,7 +3382,7 @@ function wArea(section){
   if(!canEdit()&&!ws.length) return '';
   let html='';
   if(canEdit()) html+=`<div class="wBar"><span style="font-size:11px;font-weight:700;color:var(--blue)">Maxsus vidjetlar</span><button class="btn primary sm" onclick="openWidgetModal('${section}')">+ Qo'shish</button><span style="font-size:11px;color:var(--ink3);margin-left:auto">${ws.length} vijet</span></div>`;
-  ws.forEach((w,i)=>{html+=`<div class="card" id="ws_${section}_${i}"><div class="cardH"><h3>${w.title||w.source}</h3>${canEdit()?`<button class="btn sm danger" onclick="delWidget('${section}',${i})">Ochirish</button>`:''}</div><div class="cardB" id="wc_${section}_${i}"><div style="text-align:center;padding:20px;color:var(--ink3)">Загрузка...</div></div></div>`;});
+  ws.forEach((w,i)=>{html+=`<div class="card" id="ws_${section}_${i}"><div class="cardH"><h3>${w.title||w.source}</h3>${canEdit()?`<button class="btn sm danger" onclick="delWidget('${section}',${i})">O'chirish</button>`:''}</div><div class="cardB" id="wc_${section}_${i}"><div style="text-align:center;padding:20px;color:var(--ink3)">Yuklanmoqda...</div></div></div>`;});
   return html;
 }
 async function saveWidget(){
@@ -3363,7 +3474,7 @@ async function sendTaskNotificationsToAll(freq='daily'){
       (todayTasks||[]).slice(0,5).forEach((t,i)=>lines.push(`${i+1}. ${t.title}`));
       lines.push('');
     } else {
-      lines.push('Bugun vazifa yoq');
+      lines.push('Bugun vazifa yo'q');
       lines.push('');
     }
     if(isMonday&&weekTasks.length){
@@ -3385,7 +3496,7 @@ async function sendTaskNotificationsToAll(freq='daily'){
     if(ok)sent++;else failed++;
     await new Promise(r=>setTimeout(r,150));
   }
-  alert(`Yuborildi: ${sent} | Xato: ${failed} | TG ID yoq: ${skipped}`);
+  alert(`Yuborildi: ${sent} | Xato: ${failed} | TG ID yo'q: ${skipped}`);
 }
 
 function addDays(dateStr,days){const d=new Date(dateStr);d.setDate(d.getDate()+days);return d.toISOString().slice(0,10);}
@@ -3628,7 +3739,7 @@ async function renderSellerView(){
           <span style="font-size:10px;padding:2px 7px;border-radius:8px;background:${t.priority==='high'?'rgba(220,38,38,.2)':'rgba(100,116,139,.2)'};color:${t.priority==='high'?'#f87171':'#94a3b8'};flex-shrink:0">${t.priority==='high'?'Muhim':'Orta'}</span>
         </div>`;
       }).join('')}
-    </div>`:`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;text-align:center;color:rgba(255,255,255,.3);font-size:13px">Bugun vazifa yoq ✓</div>`}
+    </div>`:`<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;text-align:center;color:rgba(255,255,255,.3);font-size:13px">Bugun vazifa yo'q ✓</div>`}
 
   </div>`;
 }
@@ -3808,7 +3919,7 @@ async function renderBranchMgrView(){
     <!-- SOTUVCHILAR -->
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:14px">👥 Sotuvchilar holati — ${monthLabel(mo)}</div>
-      ${sellerRows||'<div style="color:rgba(255,255,255,.3);font-size:13px">Sotuvchilar yoq</div>'}
+      ${sellerRows||'<div style="color:rgba(255,255,255,.3);font-size:13px">Sotuvchilar yo'q</div>'}
     </div>
 
     <!-- FILIALLAR REYTINGI (qisqacha) -->
@@ -3945,7 +4056,7 @@ async function brMgrSendTg(){
     if(ok)sent++;else failed++;
     await new Promise(r=>setTimeout(r,150));
   }
-  alert('Yuborildi: '+sent+' | Xato: '+failed+(branchTeam.length===0?' | TG ID yoq':''));
+  alert('Yuborildi: '+sent+' | Xato: '+failed+(branchTeam.length===0?' | TG ID yo'q':''));
 }
 
 // ════════════════════════════════════════════════
@@ -4296,7 +4407,7 @@ async function saveSellerMax(teamId,val){
 function isAdmin(){return APP.user?.role==='ADMIN';}
 function roleLabel(r){return{ADMIN:'Admin',TOP_MGR:'Top-menejer',BRANCH_MGR:'Filial menejer',SALES_STAFF:'Sotuvchi',USER:'Kuzatuvchi',COLLECTOR:'Kollektor',CALLCENTER:'Call-markaz',TARGETOLOG:'Targetolog',KASSIR:'Kassir'}[r]||r;}
 function rColor(r){return{ADMIN:'blue',TOP_MGR:'blue',BRANCH_MGR:'green',SALES_STAFF:'amber',USER:'gray',COLLECTOR:'red',CALLCENTER:'blue',TARGETOLOG:'blue',KASSIR:'green'}[r]||'gray';}
-function payL(p){return{cash:'Naqd',card:'Karta',installment:'Muddatli',transfer:'O\'tkazma'}[p]||p||'—';}
+function payL(p){return{cash:'Naqd',card:'Karta',installment:'Muddatli',transfer:'O\'tkazma',vozvrat:'Vozvrat'}[p]||p||'—';}
 function sellerName(emailOrName){
   if(!emailOrName) return '—';
   // Try to find by email first
@@ -4328,20 +4439,20 @@ async function openTgPreview(){
         <div style="width:32px;height:32px;background:var(--${hasTg?'blue':'amber'});border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">${(member.full_name||'?')[0]}</div>
         <div>
           <div style="font-weight:700;font-size:13px">${member.full_name}</div>
-          <div style="font-size:11px;color:var(--ink3)">${roleLabel(member.role)} · ${br?.name||'Filial yoq'}</div>
+          <div style="font-size:11px;color:var(--ink3)">${roleLabel(member.role)} · ${br?.name||'Filial yo'q'}</div>
         </div>
         ${hasTg
           ?`<span class="badge badge-green" style="margin-left:auto">TG: ${member.telegram_id}</span>`
-          :`<span class="badge badge-amber" style="margin-left:auto">TG ID yoq</span>`}
+          :`<span class="badge badge-amber" style="margin-left:auto">TG ID yo'q</span>`}
       </div>
       ${hasTg?`<div style="background:var(--bg);border-radius:8px;padding:10px;font-size:12px;line-height:1.7">
         <div>Bugungi sotuv rejasi: <strong>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</strong></div>
         <div>Oylik reja: <strong>$${Math.round(myPlan).toLocaleString('ru-RU')}</strong></div>
-        ${(todayTasks||[]).length?`<div>Bugungi vazifalar: <strong>${(todayTasks||[]).map(t=>t.title).join(', ')}</strong></div>`:'<div style="color:var(--ink3)">Bugun vazifa yoq</div>'}
+        ${(todayTasks||[]).length?`<div>Bugungi vazifalar: <strong>${(todayTasks||[]).map(t=>t.title).join(', ')}</strong></div>`:'<div style="color:var(--ink3)">Bugun vazifa yo'q</div>'}
       </div>`:`<div style="font-size:11px;color:var(--amber)">Bu xodimga xabar yuborilmaydi. Sozlamalarda Telegram ID qo'shing.</div>`}
     </div>`;
   }
-  document.getElementById('tgPreviewBody').innerHTML=html||'<div style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yoq</div>';
+  document.getElementById('tgPreviewBody').innerHTML=html||'<div style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yo'q</div>';
   openM('M_tgpreview');
 }
 async function confirmSendTg(){
@@ -4509,7 +4620,7 @@ function previewExcel(input){
 
     // Preview table
     document.getElementById('excelInfo').textContent = `${_excelRows.length} ta sotuv yuklashga tayyor` + (errors.length ? ` · ${errors.length} ta xato` : '');
-    const tableHTML = '<thead><tr><th>Sana</th><th>Filial</th><th>Sotuvchi</th><th style="text-align:right">Summa $</th><th>Tolov</th></tr></thead><tbody>' +
+    const tableHTML = '<thead><tr><th>Sana</th><th>Filial</th><th>Sotuvchi</th><th style="text-align:right">Summa $</th><th>To'lov</th></tr></thead><tbody>' +
       _excelRows.slice(0,10).map(r => {
         const br = APP.branches.find(b=>b.id===r.branch_id);
         const memberName = APP.team.find(t=>t.email===r.salesperson)?.full_name||r.salesperson;
