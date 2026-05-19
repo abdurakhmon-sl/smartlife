@@ -1388,10 +1388,12 @@ function calcSaleMargin(){
   if(!el) return;
   if(price>0&&cost>0){
     const margin=price-cost;
-    const marginPct=price>0?(margin/price*100).toFixed(1):0;
+    const marginPct=(margin/price*100).toFixed(1);
     const total=margin*qty;
+    const col=margin>=0?'green':'red';
+    const qtyPart=qty>1?' · '+qty+' donada: <strong>'+fmtD(total)+'</strong>':'';
     el.style.display='block';
-    el.innerHTML=`Marja: <strong style="color:var(--${margin>=0?'green':'red'})">${fmtD(margin)}</strong> (${marginPct}%) · ${qty>1?`${qty} donada: <strong>${fmtD(total)}</strong>`:''}`;
+    el.innerHTML='Marja: <strong style="color:var(--'+col+'">'+fmtD(margin)+'</strong> ('+marginPct+'%)'+qtyPart;
   } else { el.style.display='none'; }
 }
 
