@@ -1914,7 +1914,7 @@ async function renderBranches(){
 }
 async function openBranchModal(id=null){
   const b=id?APP.branches.find(x=>x.id===id):null;
-  document.getElementById('M_user_title').textContent=id?'Filialni tahrirlash':'Filial qo'shish';
+  document.getElementById('M_user_title').textContent=id?'Filialni tahrirlash':"Filial qo'shish";
   document.getElementById('M_user_body').innerHTML=`
     <div class="fRow c2"><div class="fG"><label>Nomi</label><input id="brName" value="${b?.name||''}"></div><div class="fG"><label>Shahar</label><input id="brCity" value="${b?.city||''}"></div></div>
     <div class="fRow c2"><div class="fG"><label>Og'irlik (доля плана)</label><input id="brWeight" type="number" step="0.25" min="0.25" value="${b?.weight||1}"></div><div class="fG"><label>Xodimlar soni</label><input id="brStaff" type="number" min="1" value="${b?.staff_count||2}"></div></div>
@@ -2166,7 +2166,7 @@ async function openTeamModal(id=null){
     roleOpts += '<option value="'+v+'"'+sel+'>'+l+'</option>';
   });
 
-  document.getElementById('M_team_title').textContent = id ? 'Xodimni tahrirlash' : 'Xodim qo'shish';
+  document.getElementById('M_team_title').textContent = id ? 'Xodimni tahrirlash' : "Xodim qo'shish";
   document.getElementById('M_team_body').innerHTML =
     '<div class="fRow c2">'
       +'<div class="fG"><label>Ism Familiya</label><input id="tmName" value="'+(t?.full_name||'')+'"></div>'
@@ -2595,7 +2595,7 @@ async function renderCollections(){
   html+=wArea('collections'); document.getElementById('content').innerHTML=html; renderWidgets('collections');
 }
 async function openCollModal(id=null){
-  document.getElementById('M_coll_title').textContent=id?'Tahrirlash':'Qo'shish';
+  document.getElementById('M_coll_title').textContent=id?'Tahrirlash':"Qo'shish";
   const brOpts='<option value="">—</option>'+APP.branches.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
   const cOpts='<option value="">—</option>'+APP.team.filter(t=>t.role==='COLLECTOR').map(t=>`<option value="${t.email}">${t.full_name}</option>`).join('');
   document.getElementById('clBranch').innerHTML=brOpts;
@@ -2888,7 +2888,7 @@ function recurringRulesPanel(section){
   const freqLabel={daily:'Har kuni',weekdays:'Har kuni (DU-JU)',weekly:'Har hafta',monthly:'Har oy'};
   return `<div class="card"><div class="cardH">
     <h3>Qaytalanadigan vazifalar</h3>
-    ${canEdit()?'<button class="btn primary sm" onclick="openRecurringModal()" style="margin-left:auto">+ Qoida qo'shish</button>':''}
+    ${canEdit()?"<button class='btn primary sm' onclick='openRecurringModal()' style='margin-left:auto'>+ Qoida qo'shish</button>":''}
   </div><div class="cardB">
     ${sectionRules.length?`<div class="tWrap"><table>
       <thead><tr><th>Vazifa</th><th>Bajaruvchi</th><th>Takrorlash</th><th>Boshlanishi</th><th>Holati</th>${canEdit()?'<th></th>':''}</tr></thead>
@@ -3299,10 +3299,10 @@ async function renderSettings(){
         <td><span class="badge badge-${rColor(u.role)}">${roleLabel(u.role)}</span></td>
         <td>${br?.name||'Hammasi'}</td>
         <td style="font-size:10px;color:var(--ink3)">${u.sections||'ALL'}</td>
-        <td><span class="badge badge-${u.active?'green':'gray'}">${u.active?'Ha':'Yo'q'}</span></td>
+        <td><span class="badge badge-${u.active?'green':'gray'}">${u.active?'Ha':"Yo'q"}</span></td>
         <td style="white-space:nowrap">
           <button class="btn sm" onclick="openUserModal('${u.email}')">Tahrirlash</button>
-          <button class="btn sm" onclick="toggleActive('${u.email}',${u.active})">${u.active?'O'chirish':'Faollashtirish'}</button>
+          <button class="btn sm" onclick="toggleActive('${u.email}',${u.active})">${u.active?"O'chirish":'Faollashtirish'}</button>
         </td>
       </tr>`;
     }).join('')}</tbody>
@@ -4622,7 +4622,7 @@ function previewExcel(input){
 
     // Preview table
     document.getElementById('excelInfo').textContent = `${_excelRows.length} ta sotuv yuklashga tayyor` + (errors.length ? ` · ${errors.length} ta xato` : '');
-    const tableHTML = '<thead><tr><th>Sana</th><th>Filial</th><th>Sotuvchi</th><th style="text-align:right">Summa $</th><th>To'lov</th></tr></thead><tbody>' +
+    const tableHTML = '<thead><tr><th>Sana</th><th>Filial</th><th>Sotuvchi</th><th style="text-align:right">Summa $</th><th>To\'lov</th></tr></thead><tbody>' +
       _excelRows.slice(0,10).map(r => {
         const br = APP.branches.find(b=>b.id===r.branch_id);
         const memberName = APP.team.find(t=>t.email===r.salesperson)?.full_name||r.salesperson;
