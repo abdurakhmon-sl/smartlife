@@ -1131,7 +1131,7 @@ async function renderSales() {
             </td>`
           :'<td></td>'}
       </tr>`;
-    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Sotuvlar yo'q</td></tr>'}</tbody>
+    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Sotuvlar yo\u2019q</td></tr>'}</tbody>
   </table></div></div>`;
 
   // BRANCH MANAGER TARGETS — hidden for KASSIR
@@ -1880,7 +1880,7 @@ async function renderBranches(){
           <button class="btn sm danger" onclick="deleteTeamMember('${t.id}')">O'chirish</button>
         </td>`:''}
       </tr>`;
-    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yo'q</td></tr>'}</tbody>
+    }).join('')||'<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yo2019q</td></tr>'}</tbody>
   </table></div></div>`;
 
   // BRANCH MAX INPUT — for admins and branch managers
@@ -3476,7 +3476,7 @@ async function sendTaskNotificationsToAll(freq='daily'){
       (todayTasks||[]).slice(0,5).forEach((t,i)=>lines.push(`${i+1}. ${t.title}`));
       lines.push('');
     } else {
-      lines.push('Bugun vazifa yo'q');
+      lines.push('Bugun vazifa yo2019q');
       lines.push('');
     }
     if(isMonday&&weekTasks.length){
@@ -3498,7 +3498,7 @@ async function sendTaskNotificationsToAll(freq='daily'){
     if(ok)sent++;else failed++;
     await new Promise(r=>setTimeout(r,150));
   }
-  alert(`Yuborildi: ${sent} | Xato: ${failed} | TG ID yo'q: ${skipped}`);
+  alert(`Yuborildi: ${sent} | Xato: ${failed} | TG ID yo2019q: ${skipped}`);
 }
 
 function addDays(dateStr,days){const d=new Date(dateStr);d.setDate(d.getDate()+days);return d.toISOString().slice(0,10);}
@@ -3921,7 +3921,7 @@ async function renderBranchMgrView(){
     <!-- SOTUVCHILAR -->
     <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-bottom:12px">
       <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:rgba(255,255,255,.3);margin-bottom:14px">👥 Sotuvchilar holati — ${monthLabel(mo)}</div>
-      ${sellerRows||'<div style="color:rgba(255,255,255,.3);font-size:13px">Sotuvchilar yo'q</div>'}
+      ${sellerRows||'<div style="color:rgba(255,255,255,.3);font-size:13px">Sotuvchilar yo2019q</div>'}
     </div>
 
     <!-- FILIALLAR REYTINGI (qisqacha) -->
@@ -4058,7 +4058,7 @@ async function brMgrSendTg(){
     if(ok)sent++;else failed++;
     await new Promise(r=>setTimeout(r,150));
   }
-  alert('Yuborildi: '+sent+' | Xato: '+failed+(branchTeam.length===0?' | TG ID yo'q':''));
+  alert('Yuborildi: '+sent+' | Xato: '+failed+(branchTeam.length===0?' | TG ID yo2019q':''));
 }
 
 // ════════════════════════════════════════════════
@@ -4441,20 +4441,20 @@ async function openTgPreview(){
         <div style="width:32px;height:32px;background:var(--${hasTg?'blue':'amber'});border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700">${(member.full_name||'?')[0]}</div>
         <div>
           <div style="font-weight:700;font-size:13px">${member.full_name}</div>
-          <div style="font-size:11px;color:var(--ink3)">${roleLabel(member.role)} · ${br?.name||'Filial yo'q'}</div>
+          <div style="font-size:11px;color:var(--ink3)">${roleLabel(member.role)} · ${br?.name||'Filial yo2019q'}</div>
         </div>
         ${hasTg
           ?`<span class="badge badge-green" style="margin-left:auto">TG: ${member.telegram_id}</span>`
-          :`<span class="badge badge-amber" style="margin-left:auto">TG ID yo'q</span>`}
+          :`<span class="badge badge-amber" style="margin-left:auto">TG ID yo2019q</span>`}
       </div>
       ${hasTg?`<div style="background:var(--bg);border-radius:8px;padding:10px;font-size:12px;line-height:1.7">
         <div>Bugungi sotuv rejasi: <strong>$${Math.round(myPlan/26).toLocaleString('ru-RU')}</strong></div>
         <div>Oylik reja: <strong>$${Math.round(myPlan).toLocaleString('ru-RU')}</strong></div>
-        ${(todayTasks||[]).length?`<div>Bugungi vazifalar: <strong>${(todayTasks||[]).map(t=>t.title).join(', ')}</strong></div>`:'<div style="color:var(--ink3)">Bugun vazifa yo'q</div>'}
+        ${(todayTasks||[]).length?`<div>Bugungi vazifalar: <strong>${(todayTasks||[]).map(t=>t.title).join(', ')}</strong></div>`:'<div style="color:var(--ink3)">Bugun vazifa yo\u2019q</div>'}
       </div>`:`<div style="font-size:11px;color:var(--amber)">Bu xodimga xabar yuborilmaydi. Sozlamalarda Telegram ID qo'shing.</div>`}
     </div>`;
   }
-  document.getElementById('tgPreviewBody').innerHTML=html||'<div style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yo'q</div>';
+  document.getElementById('tgPreviewBody').innerHTML=html||'<div style="text-align:center;padding:20px;color:var(--ink3)">Xodimlar yo2019q</div>';
   openM('M_tgpreview');
 }
 async function confirmSendTg(){
